@@ -9,7 +9,6 @@
 <includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
 <includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
 <includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
-<includepath>${ProjDirPath}/Utilities/STM32L4xx_Nucleo_32</includepath>
 
 </language>
 <language name="C Source File">
@@ -20,21 +19,9 @@
 <includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
 <includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
 <includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
-<includepath>${ProjDirPath}/Utilities/STM32L4xx_Nucleo_32</includepath>
 
 </language>
 <language name="Object File">
-
-</language>
-<language name="Assembly Source File">
-<includepath>${ProjDirPath}/Include</includepath>
-<includepath>${ProjDirPath}/API_Includes</includepath>
-<includepath>${ProjDirPath}/CMSIS/core</includepath>
-<includepath>${ProjDirPath}/CMSIS/device</includepath>
-<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
-<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
-<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
-<includepath>${ProjDirPath}/Utilities/STM32L4xx_Nucleo_32</includepath>
 
 </language>
 <language name="s">
@@ -45,7 +32,16 @@
 <includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
 <includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
 <includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
-<includepath>${ProjDirPath}/Utilities/STM32L4xx_Nucleo_32</includepath>
+
+</language>
+<language name="Assembly Source File">
+<includepath>${ProjDirPath}/Include</includepath>
+<includepath>${ProjDirPath}/API_Includes</includepath>
+<includepath>${ProjDirPath}/CMSIS/core</includepath>
+<includepath>${ProjDirPath}/CMSIS/device</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
+<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
 
 </language>
 </section>
@@ -107,10 +103,10 @@
 <language name="Object File">
 
 </language>
-<language name="Assembly Source File">
+<language name="s">
 
 </language>
-<language name="s">
+<language name="Assembly Source File">
 
 </language>
 </section>
