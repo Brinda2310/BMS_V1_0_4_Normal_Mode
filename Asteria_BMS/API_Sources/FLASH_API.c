@@ -91,7 +91,7 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
  * @retval RES_ERROR					: Not Successful
  * 		   RES_OK						: Successful
  */
-uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *RxBuffer)
+uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint32_t *RxBuffer)
 {
 	uint32_t Address = 0,Index = 0;
 	uint8_t Result = RESULT_OK;

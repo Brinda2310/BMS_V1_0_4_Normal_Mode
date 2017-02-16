@@ -148,6 +148,6 @@
 /* Funtion prototypes */
 void MCU_Flash_DeInit();
 uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *TxBuffer);
-uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *RxBuffer);
+uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint32_t *RxBuffer);
 
 #endif /* FLASH_API_H_ */
