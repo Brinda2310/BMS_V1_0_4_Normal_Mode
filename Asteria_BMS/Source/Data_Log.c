@@ -15,7 +15,7 @@ UINT BytesWritten;
 uint8_t Units_Digit = 0,Tens_Digit= 0, Hundreds_Digit = 0,Thousands_Digit = 0;
 char Log_File_Name[15] = "0:/_";
 uint32_t String_Index = 0;
-uint32_t File_Number = 0;
+uint32_t File_Number = 0,Directory_Number = 1;
 
 uint8_t File_Data[100];
 
@@ -107,11 +107,52 @@ uint8_t Create_Log_File(uint8_t *File_Name)
 //	}
 //}
 
+uint8_t Update_Directory()
+{
+	uint8_t Result = RESULT_OK;
+	if (File_Number > 100)
+	{
+		uint8_t Directory_Name[] = "Directory_Count:";
+		int8_t Timeout = 50, i = 0, lcl_index = 0;
+		uint8_t Rx_Data[20];
+		bool loop_break = false;
+
+		if (f_mount(&FatFs, "0", 1) != FR_OK)
+			return RESULT_ERROR;
+
+		if (f_open(&File, "0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
+			return RESULT_ERROR;
+
+		while ((Rx_Data[lcl_index] != DIR_COUNT_TERMINATOR) && (Timeout-- > 0))
+		{
+			if (f_read(&File, &Rx_Data[lcl_index], 1, &BytesWritten) != FR_OK)
+			{
+				if (Rx_Data[lcl_index] != ':' && loop_break == false)
+				{
+					if (Rx_Data[lcl_index] != Directory_Name[lcl_index])
+						return RESULT_ERROR;
+				}
+				else
+				{
+					loop_break = true;
+					if (Rx_Data[lcl_index] != ':')
+						Directory_Name[i++] = Rx_Data[lcl_index];
+				}
+			}
+			lcl_index++;
+		}
+	}
+	return Result;
+}
+
 uint8_t Create_Log_Summary_File()
 {
 	uint32_t Rx_Flash_Data = 0;
 	uint64_t Tx_Flash_Data = 0;
-	uint8_t Summary_File_Data[100];
+	uint8_t Summary_File_Data[] = "File data to be filled\r\n";
+	uint8_t Dir_String[] = "Directory_Count:1    \t";
+	uint8_t File_String[] = "File_Count:0   \r\n";
+	uint16_t String_Count = 0;
 
 	MCU_Flash_Read(DIRECTORY_NAME_START_ADDRESS,DIRECTORY_NAME_END_ADDRESS,&Rx_Flash_Data);
 
@@ -126,8 +167,16 @@ uint8_t Create_Log_Summary_File()
 		if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_ALWAYS | FA_WRITE | FA_READ) != FR_OK)
 			return RESULT_ERROR;
 
-		if(f_write(&File,Summary_File_Data,sizeof(Summary_File_Data),&BytesWritten) != FR_OK)
+		if((String_Count = f_write(&File,Dir_String,sizeof(Dir_String),&BytesWritten)) != FR_OK)
 			return RESULT_ERROR;
+
+		if(f_write(&File,File_String,(sizeof(File_String)-1),&BytesWritten) != FR_OK)
+			return RESULT_ERROR;
+
+		if(f_write(&File,Summary_File_Data,strlen(Summary_File_Data),&BytesWritten) != FR_OK)
+			return RESULT_ERROR;
+
+		f_sync(&File);
 	}
 
 return RESULT_OK;
@@ -136,9 +185,9 @@ return RESULT_OK;
 uint8_t Update_Log_Summary_File()
 {
 	uint8_t Rx_Data[20];
-	int8_t Timeout = 30,i = 0,lcl_index = 0;
-	uint8_t File_Name[] = "File_Count:";
-	bool loop_break = false;
+//	int8_t Timeout = 100,i = 0,lcl_index = 0,Count_Index = 0;
+	uint8_t File_Name[20],Directory_Name[20];
+//	bool loop_break = false;
 
 	if(f_mount(&FatFs,"0",1) != FR_OK)
 		return RESULT_ERROR;
@@ -146,31 +195,63 @@ uint8_t Update_Log_Summary_File()
 	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
 		return RESULT_ERROR;
 
-	while((Rx_Data[lcl_index] != 0x0D) && (Timeout-- > 0))
-	{
-		if(f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten) != FR_OK)
-		{
-			if(Rx_Data[lcl_index] != ':' && loop_break == false)
-			{
-				if (Rx_Data[lcl_index] != File_Name[lcl_index])
-					return RESULT_ERROR;
-			}
-			else
-			{
-				loop_break = true;
-				if(Rx_Data[lcl_index] != ':')
-					File_Name[i++] = Rx_Data[lcl_index];
-			}
-		}
-		lcl_index++;
-	}
+//	f_write(&File,File_Name,strlen(File_Name),&BytesWritten);
+//	f_sync(&File);
 
-	if(Timeout <= 0)
-		return RESULT_ERROR;
+//	while((Rx_Data[lcl_index] != FILE_COUNT_TERMINATOR) && (Timeout-- > 0))
+//	{
+//		if(f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten) != FR_OK)
+//		{
+//			if(Rx_Data[lcl_index] != ':' && loop_break == false)
+//			{
+//				if (Rx_Data[lcl_index] != File_Name[lcl_index])
+//					return RESULT_ERROR;
+//			}
+//			else
+//			{
+//				loop_break = true;
+//				if(Rx_Data[lcl_index] != ':')
+//					File_Name[i++] = Rx_Data[lcl_index];
+//			}
+//		}
+//		lcl_index++;
+//	}
+//
+//	if(Timeout <= 0)
+//		return RESULT_ERROR;
+
+	f_lseek(&File,34);
 
 	File_Number = atoi((char*)File_Name);
+	File_Number += 100;
 
-	File_Number++;
+	itoa(File_Number,(char*)File_Name,10);
+
+	if(File_Number >= 100)
+	{
+		File_Number = 1;
+		f_lseek(&File,16);
+
+		Directory_Number = atoi((char*)Directory_Name);
+		Directory_Number++;
+
+		itoa(Directory_Number,(char*)Directory_Name,10);
+
+		if(f_write(&File,Directory_Name,strlen(Directory_Name),&BytesWritten) != FR_OK)
+			return RESULT_ERROR;
+
+		f_lseek(&File,34);
+		File_Name[0] = '0';
+		if(f_write(&File,File_Name,1,&BytesWritten) != FR_OK)
+			return RESULT_ERROR;
+	}
+	else
+	{
+		if(f_write(&File,File_Name,strlen(File_Name),&BytesWritten) != FR_OK)
+			return RESULT_ERROR;
+	}
+
+	f_sync(&File);
 
 	return RESULT_OK;
 }

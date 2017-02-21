@@ -32,7 +32,7 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
 
 	FirstPage = Get_Flash_Page_Number(User_Flash_Start_Address);
-	NoOfPages = Get_Flash_Page_Number(User_Flash_End_Address) - 1;
+	NoOfPages = Get_Flash_Page_Number(User_Flash_End_Address) - FirstPage +  1;
 
 	/* Size of each page is 4Kb and stm32l432kc has only one falsh bank, Number of pages to be written */
 	EraseInitStruct.TypeErase 	= FLASH_TYPEERASE_PAGES;
@@ -48,7 +48,6 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	}
 	else
 	{
-		Result = RESULT_OK;
 		EraseSuccessful = true;
 	}
 

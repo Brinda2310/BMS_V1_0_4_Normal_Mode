@@ -14,6 +14,7 @@
 #include "RTC_API.h"
 #include "GPIO_API.h"
 #include "ff.h"
+#include "Data_Log.h"
 
 #define THOUSANDS_DIGIT_POS					6
 #define HUNDREDS_DIGIT_POS					(THOUSANDS_DIGIT_POS + 1)
@@ -40,7 +41,7 @@ typedef struct
 
 RTC_Data RTC_Info;
 
-uint8_t Showtime[30];
+uint8_t Showtime[30] = "test_string\r";
 uint8_t RecData = 0;
 
 int main(void)
@@ -63,11 +64,12 @@ int main(void)
 	RTC_Info.Minutes = 0x28;
 	RTC_Info.Seconds = 0x00;
 
-
 	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
 	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
 
-
+	Create_Log_Summary_File();
+	//Create_Log_File();
+	Update_Log_Summary_File();
 
 //	if(f_lseek(&File,File.fsize) == FR_OK)
 //	{
@@ -79,8 +81,10 @@ int main(void)
 	{
 		if((SysTickCounter % 1000) == 0)
 		{
-			RTC_TimeShow(Showtime);
-			BMS_COM_Write_Data(Showtime,8);
+			//RTC_TimeShow(Showtime);
+			BMS_COM_Write_Data(Showtime,12);
+//			Delay_Millis(5);
+//			memset(Showtime,0,sizeof(Showtime));
 		}
 
 		if(_1Hz_Flag == true)
