@@ -24,15 +24,17 @@
 #define DIR_COUNT_TERMINATOR						0x09
 #define FILE_COUNT_TERMINATOR						0x0A
 
-uint8_t Create_Log_File(uint8_t *File_Name);
+uint8_t Create_Log_File();
 uint8_t Create_Log_Summary_File();
-uint8_t Update_Log_Summary_File();
+static uint8_t Update_Log_Summary_File();
 uint8_t Create_Directory();
+uint8_t Delete_Directory();
+void Write_Data_To_File();
+uint8_t Get_File_Dir_Counts();
 
 //void Write_Data_To_File(uint8_t *Data);
 //static void Maintain_Directory();
 
-static uint8_t Directory_Name[] = "_1/";
-static uint8_t File_Name[] = "Log_16_02_2017.txt";
+//static uint8_t File_Name[] = "Log_16_02_2017.txt";
 
 #endif /* DATA_LOG_H_ */

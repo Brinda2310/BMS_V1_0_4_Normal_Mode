@@ -46,8 +46,6 @@ uint8_t RecData = 0;
 
 int main(void)
 {
-	int8_t Counter = 0;
-
 	HAL_Init();
 	Set_System_Clock_Frequency();
 	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
@@ -68,8 +66,6 @@ int main(void)
 	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
 
 	Create_Log_Summary_File();
-	//Create_Log_File();
-	Update_Log_Summary_File();
 
 //	if(f_lseek(&File,File.fsize) == FR_OK)
 //	{
@@ -82,10 +78,27 @@ int main(void)
 		if((SysTickCounter % 1000) == 0)
 		{
 			//RTC_TimeShow(Showtime);
-			BMS_COM_Write_Data(Showtime,12);
+			//BMS_COM_Write_Data(Showtime,12);
 //			Delay_Millis(5);
 //			memset(Showtime,0,sizeof(Showtime));
 		}
+
+		BMS_COM_Read_Data(&RecData, 1);
+		if (RecData == 'B')
+		{
+			BMS_COM_Write_Data("Log_file_Created\r",17);
+			Create_Log_File();
+		}
+		else if (RecData == 'C')
+		{
+			BMS_COM_Write_Data("Data_Written\r",13);
+			Write_Data_To_File();
+		}
+		else if(RecData == 'D')
+		{
+			Delete_Directory();
+		}
+		RecData = 0;
 
 		if(_1Hz_Flag == true)
 		{

@@ -7,32 +7,64 @@
 
 #include "Data_Log.h"
 
+DIR Directory;
 FATFS FatFs;
 FIL File;
 FRESULT Result;
 UINT BytesWritten;
 
+static uint8_t Directory_Name[10] = "_1";
+uint8_t Delete_Dir_Count = 0;
 uint8_t Units_Digit = 0,Tens_Digit= 0, Hundreds_Digit = 0,Thousands_Digit = 0;
-char Log_File_Name[15] = "0:/_";
+char Log_File_Name[30];
 uint32_t String_Index = 0;
 uint32_t File_Number = 0,Directory_Number = 1;
+char  String_Buffer[512];
+//uint8_t File_Data[100];
 
-uint8_t File_Data[100];
-
-uint16_t Counter = 0;
-
-uint8_t Create_Log_File(uint8_t *File_Name)
+uint8_t Create_Log_File()
 {
 	int8_t Number_in_String[8],String_Length = 0;
-	char  String_Buffer[100];
+	uint8_t Counter = 0;
+	uint8_t Dir_Length = 0;
 
-	if (f_mount(&FatFs, "0", 1) == FR_OK)
-		return RESULT_ERROR;
+	Get_File_Dir_Counts();
 
+	if(f_opendir(&Directory,(char*)Directory_Name) != FR_OK)
+		f_mkdir((char*)Directory_Name);
+
+	if(File_Number >= 5)
+	{
+		File_Number = 0;
+		f_closedir(&Directory);
+
+		Directory_Number = atoi((char*)(Directory_Name + 1));
+		Directory_Number++;
+
+		itoa(Directory_Number,(char*)(Directory_Name+1),10);
+		f_mkdir((char*)Directory_Name);
+	}
+
+	itoa(Directory_Number,&Directory_Name[1],10);
+
+	Dir_Length = strlen((char*)Directory_Name);
+
+	Log_File_Name[Counter++] = '0';
+	Log_File_Name[Counter++] = ':';
+	Log_File_Name[Counter++] = '/';
+
+	for(int index = 0 ; index < Dir_Length; index++)
+	{
+		Log_File_Name[Counter++] = Directory_Name[index];
+	}
+
+	Log_File_Name[Counter++] = '/';
+	Log_File_Name[Counter++] = '_';
+
+	File_Number++;
 	itoa(File_Number,(char*)Number_in_String,10);
     String_Length = strlen((char*)Number_in_String);
 
-	Counter = 4;
 	for(int index = 0 ; index < String_Length ; index++)
 	{
 		Log_File_Name[Counter++] = Number_in_String[index];
@@ -43,106 +75,92 @@ uint8_t Create_Log_File(uint8_t *File_Name)
 	Log_File_Name[Counter++] = 't';
 	Log_File_Name[Counter++] = '\0';
 
+	BMS_COM_Write_Data(Log_File_Name,strlen(Log_File_Name)+1);
+
 	if (f_open(&File, Log_File_Name, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK)
 		return RESULT_ERROR;
 
 	String_Index += sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,Initial_Cell_Voltage,Final_Cell_Voltage,Initial_Pack_Voltage,");
-//	f_write(&File_Name,String_Buffer,String_Index,&BytesWritten);
-
 	String_Index += sprintf(&String_Buffer[String_Index],"Final_Pack_Voltage,Total_Capacity,Initial_Capacity,Final_Capacity,Battery C/D Date,");
-//	f_write(&File_Name,String_Buffer,String_Index,&BytesWritten);
-
 	String_Index += sprintf(&String_Buffer[String_Index],"Packed_cycles_used,Charging/Discharging,Min_Temperature,Max_Temperature,");
-//	f_write(&File_Name,String_Buffer,String_Index,&BytesWritten);
-
 	String_Index += sprintf(&String_Buffer[String_Index],"Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
 
 	f_write(&File,String_Buffer,String_Index,&BytesWritten);
+	f_sync(&File);
+
+	Update_Log_Summary_File();
+
+	memset(String_Buffer,0,sizeof(String_Buffer));
+	String_Index = 0;
 
 	return RESULT_OK;
 }
 
-//void Write_Data_To_File(uint8_t *Data)
-//{
-//	if (f_write(&File, Buffer, strlen((char*) Buffer), &BytesWritten)== FR_OK)
-//	{
-//		HAL_GPIO_TogglePin(GPIOB, BOARD_LED);
-//		f_sync(&File);
-//	}
-//}
-//static void Maintain_Directory()
-//{
-//	if(Counter >= 1)
-//	{
-//		filename[UNITS_DIGIT_POS] = ++Units_Digit + '0';
-//
-//		if (Units_Digit > 9)
-//		{
-//			Units_Digit = 0;
-//			filename[UNITS_DIGIT_POS] = '0';
-//			filename[TENS_DIGIT_POS] = ++Tens_Digit+ '0';
-//		}
-//
-//		if(Tens_Digit > 9)
-//		{
-//			Units_Digit = 0;
-//			Tens_Digit = 0;
-//			filename[UNITS_DIGIT_POS] = '0';
-//			filename[TENS_DIGIT_POS] = '0';
-//			filename[HUNDREDS_DIGIT_POS] = ++Hundreds_Digit+ '0';
-//		}
-//		if(Hundreds_Digit > 9)
-//		{
-//			Units_Digit = 0;
-//			Tens_Digit = 0;
-//			Hundreds_Digit = 0;
-//			filename[THOUSANDS_DIGIT_POS] = ++Thousands_Digit + '0';
-//		}
-//
-//		if (f_open(&File, filename, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)== FR_OK)
-//		{
-//			BMS_COM_Write_Data(filename, 15);
-//		}
-//		Counter = 0;
-//	}
-//}
-
-uint8_t Update_Directory()
+void Write_Data_To_File()
 {
-	uint8_t Result = RESULT_OK;
-	if (File_Number > 100)
+	String_Index = sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,Initial_Cell_Voltage,Final_Cell_Voltage,Initial_Pack_Voltage\r\n");
+	if (f_write(&File, String_Buffer, String_Index, &BytesWritten)== FR_OK)
 	{
-		uint8_t Directory_Name[] = "Directory_Count:";
-		int8_t Timeout = 50, i = 0, lcl_index = 0;
-		uint8_t Rx_Data[20];
-		bool loop_break = false;
-
-		if (f_mount(&FatFs, "0", 1) != FR_OK)
-			return RESULT_ERROR;
-
-		if (f_open(&File, "0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
-			return RESULT_ERROR;
-
-		while ((Rx_Data[lcl_index] != DIR_COUNT_TERMINATOR) && (Timeout-- > 0))
-		{
-			if (f_read(&File, &Rx_Data[lcl_index], 1, &BytesWritten) != FR_OK)
-			{
-				if (Rx_Data[lcl_index] != ':' && loop_break == false)
-				{
-					if (Rx_Data[lcl_index] != Directory_Name[lcl_index])
-						return RESULT_ERROR;
-				}
-				else
-				{
-					loop_break = true;
-					if (Rx_Data[lcl_index] != ':')
-						Directory_Name[i++] = Rx_Data[lcl_index];
-				}
-			}
-			lcl_index++;
-		}
+		f_sync(&File);
 	}
-	return Result;
+	String_Index = 0;
+}
+
+uint8_t Delete_Directory()
+{
+	uint8_t Rx_Data[30],Data = 0;
+	uint8_t Timeout = 30,lcl_index = 0, i =0;
+	bool loop_break = false;
+	uint8_t Directory_Name[30] = "Directory_Count:";
+
+	if(f_mount(&FatFs,"0",1) != FR_OK)
+		return RESULT_ERROR;
+
+	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
+		return RESULT_ERROR;
+
+	while (( Data != '\t') && (Timeout-- > 0))
+	{
+		if (f_read(&File, &Rx_Data[lcl_index], 1, &BytesWritten) == FR_OK)
+		{
+			Data = Rx_Data[lcl_index];
+			if (Rx_Data[lcl_index] != ':' && loop_break == false)
+			{
+				if (Rx_Data[lcl_index] != Directory_Name[lcl_index])
+					return RESULT_ERROR;
+			}
+			else
+			{
+				loop_break = true;
+				if (Rx_Data[lcl_index] != ':')
+					Directory_Name[i++] = Rx_Data[lcl_index];
+			}
+		}
+		else
+			return RESULT_ERROR;
+		lcl_index++;
+	}
+
+	if (Timeout <= 0)
+		return RESULT_ERROR;
+
+	Directory_Number = atoi((char*)(Directory_Name));
+	Directory_Number--;
+
+	if(Delete_Dir_Count < Directory_Number)
+		Delete_Dir_Count++;
+	else
+		return RESULT_ERROR;
+
+	Directory_Name[0] = '_';
+	itoa(Delete_Dir_Count,(char*)(Directory_Name+1),10);
+	BMS_COM_Write_Data(Directory_Name,strlen((char*)Directory_Name));
+	FRESULT res = f_unlink((char*)Directory_Name);
+
+	Update_Log_Summary_File();
+
+	return RESULT_OK;
+
 }
 
 uint8_t Create_Log_Summary_File()
@@ -173,21 +191,20 @@ uint8_t Create_Log_Summary_File()
 		if(f_write(&File,File_String,(sizeof(File_String)-1),&BytesWritten) != FR_OK)
 			return RESULT_ERROR;
 
-		if(f_write(&File,Summary_File_Data,strlen(Summary_File_Data),&BytesWritten) != FR_OK)
+		if(f_write(&File,Summary_File_Data,strlen((char*)Summary_File_Data),&BytesWritten) != FR_OK)
 			return RESULT_ERROR;
 
 		f_sync(&File);
+
+//		BMS_COM_Write_Data("Log_Summary_File_OK\r",20);
 	}
 
 return RESULT_OK;
 }
 
-uint8_t Update_Log_Summary_File()
+static uint8_t Update_Log_Summary_File()
 {
-	uint8_t Rx_Data[20];
-//	int8_t Timeout = 100,i = 0,lcl_index = 0,Count_Index = 0;
-	uint8_t File_Name[20],Directory_Name[20];
-//	bool loop_break = false;
+	uint8_t Buffer[10];
 
 	if(f_mount(&FatFs,"0",1) != FR_OK)
 		return RESULT_ERROR;
@@ -195,65 +212,66 @@ uint8_t Update_Log_Summary_File()
 	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
 		return RESULT_ERROR;
 
-//	f_write(&File,File_Name,strlen(File_Name),&BytesWritten);
-//	f_sync(&File);
-
-//	while((Rx_Data[lcl_index] != FILE_COUNT_TERMINATOR) && (Timeout-- > 0))
-//	{
-//		if(f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten) != FR_OK)
-//		{
-//			if(Rx_Data[lcl_index] != ':' && loop_break == false)
-//			{
-//				if (Rx_Data[lcl_index] != File_Name[lcl_index])
-//					return RESULT_ERROR;
-//			}
-//			else
-//			{
-//				loop_break = true;
-//				if(Rx_Data[lcl_index] != ':')
-//					File_Name[i++] = Rx_Data[lcl_index];
-//			}
-//		}
-//		lcl_index++;
-//	}
-//
-//	if(Timeout <= 0)
-//		return RESULT_ERROR;
-
+	itoa(File_Number,(char*)Buffer,10);
 	f_lseek(&File,34);
-
-	File_Number = atoi((char*)File_Name);
-	File_Number += 100;
-
-	itoa(File_Number,(char*)File_Name,10);
-
-	if(File_Number >= 100)
-	{
-		File_Number = 1;
-		f_lseek(&File,16);
-
-		Directory_Number = atoi((char*)Directory_Name);
-		Directory_Number++;
-
-		itoa(Directory_Number,(char*)Directory_Name,10);
-
-		if(f_write(&File,Directory_Name,strlen(Directory_Name),&BytesWritten) != FR_OK)
-			return RESULT_ERROR;
-
-		f_lseek(&File,34);
-		File_Name[0] = '0';
-		if(f_write(&File,File_Name,1,&BytesWritten) != FR_OK)
-			return RESULT_ERROR;
-	}
-	else
-	{
-		if(f_write(&File,File_Name,strlen(File_Name),&BytesWritten) != FR_OK)
-			return RESULT_ERROR;
-	}
-
+	f_write(&File,Buffer,4,&BytesWritten);
 	f_sync(&File);
+	memset(Buffer,0,sizeof(Buffer));
+
+	f_lseek(&File,16);
+	itoa(Directory_Number,(char*)Buffer,10);
+	f_write(&File,Buffer,4,&BytesWritten);
+	f_sync(&File);
+
 
 	return RESULT_OK;
 }
 
+uint8_t Get_File_Dir_Counts()
+{
+	uint8_t Rx_Data[10],Data = 0;
+	char Count[10];
+	uint8_t Timeout = 10,lcl_index = 0, i = 0;
 
+	if(f_mount(&FatFs,"0",1) != FR_OK)
+		return RESULT_ERROR;
+
+	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
+		return RESULT_ERROR;
+
+	f_lseek(&File,34);
+
+	while (( Data != FILE_COUNT_TERMINATOR) && (Timeout-- > 0))
+	{
+		f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten);
+		Data = Rx_Data[lcl_index];
+		Count[i++] = Data;
+		lcl_index++;
+	}
+
+	if(Timeout < 0)
+		return RESULT_ERROR;
+
+	File_Number = atoi(Count);
+
+	memset(Rx_Data,0,sizeof(Rx_Data));
+	memset(Count,0,sizeof(Count));
+	i = 0;
+
+	f_lseek(&File,16);
+
+	while ((Data != DIR_COUNT_TERMINATOR) && (Timeout-- > 0))
+	{
+		f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten);
+		Data = Rx_Data[lcl_index];
+		Count[i++] = Data;
+		lcl_index++;
+	}
+
+	if(Timeout < 0)
+		return RESULT_ERROR;
+
+	Directory_Number = atoi(Count);
+
+return RESULT_OK;
+}
