@@ -13,6 +13,8 @@ FIL File;
 FRESULT Result;
 UINT BytesWritten;
 
+Log_Vars Log_Variables;
+
 static uint8_t Directory_Name[10] = "_1";
 uint8_t Delete_Dir_Count = 0;
 uint8_t Units_Digit = 0,Tens_Digit= 0, Hundreds_Digit = 0,Thousands_Digit = 0;
@@ -82,8 +84,8 @@ uint8_t Create_Log_File()
 
 	String_Index += sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,Initial_Cell_Voltage,Final_Cell_Voltage,Initial_Pack_Voltage,");
 	String_Index += sprintf(&String_Buffer[String_Index],"Final_Pack_Voltage,Total_Capacity,Initial_Capacity,Final_Capacity,Battery C/D Date,");
-	String_Index += sprintf(&String_Buffer[String_Index],"Packed_cycles_used,Charging/Discharging,Min_Temperature,Max_Temperature,");
-	String_Index += sprintf(&String_Buffer[String_Index],"Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
+	String_Index += sprintf(&String_Buffer[String_Index],"Pack_cycles_used,Charging/Discharging,Min_Temperature,Max_Temperature,");
+	String_Index += sprintf(&String_Buffer[String_Index],"Flight_Time,Health_Status_Register\r\n");
 
 	f_write(&File,String_Buffer,String_Index,&BytesWritten);
 	f_sync(&File);

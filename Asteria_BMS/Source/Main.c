@@ -78,7 +78,7 @@ int main(void)
 		if((SysTickCounter % 1000) == 0)
 		{
 			//RTC_TimeShow(Showtime);
-			//BMS_COM_Write_Data(Showtime,12);
+			BMS_COM_Write_Data(Showtime,12);
 //			Delay_Millis(5);
 //			memset(Showtime,0,sizeof(Showtime));
 		}

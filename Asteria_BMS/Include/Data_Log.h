@@ -24,6 +24,31 @@
 #define DIR_COUNT_TERMINATOR						0x09
 #define FILE_COUNT_TERMINATOR						0x0A
 
+
+typedef struct
+{
+	uint32_t Start_Time;
+	uint32_t End_Time;
+	float Initial_Cell_Voltage;
+	float Final_Cell_Voltage;
+	float Initial_Pack_Voltage;
+	float Final_Pack_Voltage;
+	uint16_t Pack_Capacity;
+	uint16_t Initial_Capacity;
+	uint16_t Final_Capacity;
+	uint16_t Pack_Cycles_Used;
+	float Min_Temperature;
+	float Max_Temperature;
+	uint32_t Flight_Time;
+	uint32_t Health_Status_Register;
+	char GPS_Date[10];
+	char Battery_Charge_Discharge_Date[10];
+	uint8_t Charging_Discharging_Status;
+
+}Log_Vars;
+
+extern Log_Vars Log_Variables;
+
 uint8_t Create_Log_File();
 uint8_t Create_Log_Summary_File();
 static uint8_t Update_Log_Summary_File();
