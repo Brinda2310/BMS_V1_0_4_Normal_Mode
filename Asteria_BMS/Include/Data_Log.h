@@ -95,5 +95,6 @@ extern uint8_t Check_SD_Card;
 uint8_t Create_BMS_Log_File();
 void log_sprintf(void *data_array,char *dst_array,unsigned char *count,int *offset,unsigned char data_type);
 uint8_t Log_All_Data();
+void Stop_Log();
 
 #endif /* DATA_LOG_H_ */

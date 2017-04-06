@@ -104,6 +104,7 @@ int main(void)
 
 			case 'C':
 				Start_Log = false;
+				Stop_Log();
 				BMS_COM_Write_Data("Log_Stopped\r",13);
 				break;
 
@@ -115,24 +116,22 @@ int main(void)
 
 		if(_1Hz_Flag == true)
 		{
+			if(Start_Log == true)
+			{
+				if (Log_All_Data() == 1)
+				{
+					GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
+				}
+			}
 			_1Hz_Flag = false;
 		}
 
 		if (_50Hz_Flag == true )
 		{
-			if(Start_Log == true)
-			{
-				if(Log_All_Data() == 1)
-				{
-					GPIO_Write(GPIO_B,BOARD_LED,PIN_TOGGLE);
-				}
-			}
-
 			_50Hz_Flag = false;
 		}
 
 //		Delay_Millis(50);
-
 	}
 }
 

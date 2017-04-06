@@ -38,7 +38,7 @@ void TIM6_PeriodElapsedCallback()
 {
 	_50Hz_Flag = true;
 	Counter++;
-	if(Counter >= 59)
+	if(Counter >= 50)
 	{
 		_1Hz_Flag = true;
 		Counter = 0;

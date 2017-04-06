@@ -15,7 +15,7 @@ UINT BytesWritten;
 
 Log_Vars Log_Variables;
 
-char GPS_Date_Time[19];
+char GPS_Date_Time[25];
 
 char String_Buffer[512];
 
@@ -50,7 +50,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 6, 4, 2017,12,22,50);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 6, 4, 2017,16,31,50);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -120,6 +120,9 @@ uint8_t Create_BMS_Log_File()
 	*String_Index += sprintf(&String_Buffer[*String_Index], "UTC Start: ");
 
 	/* Copy the start time value to user data buffer and update its index */
+	GPS_Date_Time[13] = ':';
+	GPS_Date_Time[16] = ':';
+
 	memcpy(&String_Buffer[*String_Index], GPS_Date_Time, 19);
 	*String_Index+= 19;
 
@@ -141,6 +144,9 @@ uint8_t Create_BMS_Log_File()
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
+	GPS_Date_Time[13] = ':';
+	GPS_Date_Time[16] = ':';
+
 	return Result;
 }
 
@@ -155,20 +161,22 @@ uint8_t Log_All_Data()
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
-	int length = 0;
+//	int length = 0;
 
-	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,",5,4,2017);
-	else
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,", 0,0,0);
+//	if(1)
+//		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,",6,4,2017);
+//	else
+//		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,", 0,0,0);
 
-	strcpy(&String_Buffer[*String_Index],GPS_Date_Time);
-	*String_Index += length;
+	strncpy(&String_Buffer[*String_Index],GPS_Date_Time,10);
+	*String_Index += 10;
 
-	Long_Values[(*Index_Counter)++] = SysTickCounter;								// Start Time
+	String_Buffer[(*String_Index)++] = ',';
+
+	Long_Values[(*Index_Counter)++] = (SysTickCounter/1000);								// Start Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Long_Values[(*Index_Counter)++] = SysTickCounter;								// End Time
+	Long_Values[(*Index_Counter)++] = (SysTickCounter/1000);								// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	Float_Values[(*Index_Counter)++] = 3.20;										// Cell1 Voltage
@@ -217,6 +225,7 @@ uint8_t Log_All_Data()
 		Error_Code <<= 1;
 	}
 
+	String_Buffer[(*String_Index)++] = ',';
 	String_Buffer[(*String_Index)++] = '\r';
 	String_Buffer[(*String_Index)++] = '\n';
 
@@ -235,7 +244,20 @@ uint8_t Log_All_Data()
 
 }
 
+void Stop_Log()
+{
+	uint8_t length;
+	memset(String_Buffer,0,sizeof(String_Buffer));
+	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
+	if(1)
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 6, 4, 2017,16,31,50);
+	else
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
+
+	f_write(&BMS_Log_File, GPS_Date_Time, (UINT)length, &BytesWritten);
+	f_close(&BMS_Log_File);
+}
 
 /* Function to convert the user variables into CSV format
  * Parameters:
