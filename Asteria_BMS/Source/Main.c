@@ -49,57 +49,60 @@ int main(void)
 	HAL_Init();
 	Set_System_Clock_Frequency();
 	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
+//	GPIO_Init(GPIO_B,GPIO_PIN_4,GPIO_INPUT,NOPULL);
+
 	BMS_Timers_Init();
 	BMS_COM_Init();
 	RTC_Init();
 
-	RTC_Info.Day = TUESDAY;
-	RTC_Info.Date = 0x14;
-	RTC_Info.Month = FEBRUARY;
+	RTC_Info.Day = WEDNESDAY;
+	RTC_Info.Date = 0x05;
+	RTC_Info.Month = APRIL;
 	RTC_Info.Year = 0x17;
 
-	RTC_Info.Hours = 0x11;
-	RTC_Info.Minutes = 0x28;
+	RTC_Info.Hours = 0x13;
+	RTC_Info.Minutes = 0x30;
 	RTC_Info.Seconds = 0x00;
 
 	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
 	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
 
-	Create_Log_Summary_File();
-
-//	if(f_lseek(&File,File.fsize) == FR_OK)
-//	{
-//		BMS_COM_Write_Data("File seek done\r",15);
-//		HAL_GPIO_TogglePin(GPIOB,BOARD_LED);
-//	}
-
 	while(1)
 	{
 		if((SysTickCounter % 1000) == 0)
 		{
+//			if (GPIO_Read(GPIO_B, GPIO_PIN_4) == PIN_HIGH)
+//			{
+//				BMS_COM_Write_Data("High", 5);
+//			}
+//			else
+//			{
+//				BMS_COM_Write_Data("LOW", 5);
+//			}
 			//RTC_TimeShow(Showtime);
-			BMS_COM_Write_Data(Showtime,12);
+			//BMS_COM_Write_Data(Showtime,12);
 //			Delay_Millis(5);
 //			memset(Showtime,0,sizeof(Showtime));
 		}
 
 		BMS_COM_Read_Data(&RecData, 1);
-		if (RecData == 'B')
-		{
-			BMS_COM_Write_Data("Log_file_Created\r",17);
-			Create_Log_File();
-		}
-		else if (RecData == 'C')
-		{
-			BMS_COM_Write_Data("Data_Written\r",13);
-			Write_Data_To_File();
-		}
-		else if(RecData == 'D')
-		{
-			Delete_Directory();
-		}
-		RecData = 0;
 
+		switch(RecData)
+		{
+			case 'A':
+				if(Create_BMS_Log_File() == 0)
+				{
+					BMS_COM_Write_Data("Log_file_Created\r",17);
+				}
+				break;
+			case 'B':
+				Log_All_Data();
+				BMS_COM_Write_Data("Data_Written\r",13);
+				break;
+
+		}
+
+		RecData = 0;
 		if(_1Hz_Flag == true)
 		{
 			_1Hz_Flag = false;
@@ -107,31 +110,10 @@ int main(void)
 
 		if (_50Hz_Flag == true )
 		{
-
+			GPIO_Write(GPIO_B,BOARD_LED,PIN_TOGGLE);
 			_50Hz_Flag = false;
 		}
 
-/* Section of  code to delete the files on disk */
-//		BMS_COM_Read_Data(&RecData,1);
-//		if(RecData == 'A')
-//		{
-//			if(f_unlink("0:/Test_Delete.txt") == FR_OK)
-//			{
-//				//HAL_GPIO_TogglePin(GPIOB,BOARD_LED);
-//				BMS_COM_Write_Data("Error\n\r",7);
-//			}
-//			else
-//			{
-//				BMS_COM_Write_Data("Success\n\r",9);
-//				//HAL_GPIO_WritePin(GPIOB,BOARD_LED,PIN_HIGH);
-//			}
-//
-//		}
-//		else if (RecData == 'B')
-//		{
-//			BMS_COM_Write_Data("Padded string\n\r",15);
-//		}
-//		RecData = 0;
 //		Delay_Millis(50);
 
 	}

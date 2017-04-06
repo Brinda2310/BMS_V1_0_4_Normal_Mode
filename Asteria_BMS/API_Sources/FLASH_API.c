@@ -24,6 +24,7 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	bool EraseSuccessful = false;
 	uint8_t Result = RESULT_OK;
 	uint32_t Address;
+	uint8_t Timeout = 10;
 
 #ifdef BMS_VERSION
 	static FLASH_EraseInitTypeDef EraseInitStruct;
@@ -34,46 +35,39 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	FirstPage = Get_Flash_Page_Number(User_Flash_Start_Address);
 	NoOfPages = Get_Flash_Page_Number(User_Flash_End_Address) - FirstPage +  1;
 
-	/* Size of each page is 4Kb and stm32l432kc has only one falsh bank, Number of pages to be written */
+	/* Size of each page is 2KB and stm32l432kc has only one flash bank, Number of pages to be written */
 	EraseInitStruct.TypeErase 	= FLASH_TYPEERASE_PAGES;
 	EraseInitStruct.Banks      	= FLASH_BANK_1;
 	EraseInitStruct.Page       	= FirstPage;
 	EraseInitStruct.NbPages     = NoOfPages;
 
-	/* Perticular page address must be rased before writing any data */
-	if(HAL_FLASHEx_Erase(&EraseInitStruct,&PageError) != HAL_OK)
+	HAL_StatusTypeDef Res;
+
+	Res = HAL_FLASHEx_Erase(&EraseInitStruct,&PageError);
+	/* Flash page has to be erased before writing any data to it */
+	if(Res != HAL_OK)
 	{
-		Result = RESULT_ERROR;
-		EraseSuccessful = false;
+		/* If there is any error while erasing the flash page then lock the flash avoid accedental data write corruptinf the flash */
+		HAL_FLASH_Lock();
+		Result = RESULT_ERROR ;
 	}
 	else
 	{
-		EraseSuccessful = true;
-	}
-
-	/* Proceed for writing the data only if erase operation is successful */
-	if (EraseSuccessful == true)
-	{
 		Address = User_Flash_Start_Address;
-		while (Address < User_Flash_End_Address)
+		while (Address < User_Flash_End_Address && Timeout-- > 0)
 		{
+			Res = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, Address,TxBuffer[Index++]);
 			/* Write the 8Byte i.e.64 bit data */
-			if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, Address,TxBuffer[Index++]) == HAL_OK)
+			if (Res == HAL_OK)
 			{
 				Address = Address + 8;
 			}
 			else
 			{
 				HAL_FLASH_Lock();
-				Result = RESULT_ERROR ;
+				Result = RESULT_ERROR;
 			}
 		}
-	}
-	else
-	{
-		/* If there is any error while erasing the flash page then lock the flash avoid accedental data write corruptinf the flash */
-		HAL_FLASH_Lock();
-		Result = RESULT_ERROR ;
 	}
 
 	HAL_FLASH_Lock();
@@ -107,7 +101,7 @@ uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End
 }
 
 /**
- * @brief  Finds the page number in which perticular address lies
+ * @brief  Finds the page number in which particular address lies
  * @param  Address		: Flash address who's page number is to be found
  * @retval Page_Number	: Page number ranging from 0 - 127
  */

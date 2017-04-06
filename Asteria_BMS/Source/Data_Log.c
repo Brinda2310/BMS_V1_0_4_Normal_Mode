@@ -9,271 +9,436 @@
 
 DIR Directory;
 FATFS FatFs;
-FIL File;
+FIL BMS_Log_File;
+FIL Summary_File;
 FRESULT Result;
 UINT BytesWritten;
 
 Log_Vars Log_Variables;
 
-static uint8_t Directory_Name[10] = "_1";
-uint8_t Delete_Dir_Count = 0;
-uint8_t Units_Digit = 0,Tens_Digit= 0, Hundreds_Digit = 0,Thousands_Digit = 0;
-char Log_File_Name[30];
-uint32_t String_Index = 0;
-uint32_t File_Number = 0,Directory_Number = 1;
+char GPS_Date_Time[19];
+
 char  String_Buffer[512];
-//uint8_t File_Data[100];
 
-uint8_t Create_Log_File()
+bool Log_Status = 1;
+
+/* Variable to handle the user buffer index */
+int *String_Index, Memory_Address1 = 0;
+
+/* Variable temp_var is defined just to get any free memory location which is to be assigned to index_counter; otherwise defining pointer
+ * without initialization will be dangling pointer */
+uint8_t *Index_Counter,Memory_Address2 = 0;
+
+/* Buffer to store the file name which is created on SD card as soon as logging is started */
+char File_Name[50] = "0:/Test_.txt";
+
+/* This variables becomes SD_NOT_PRESENT whenever any error occurs with fatfs operation */
+uint8_t Check_SD_Card = SDC_PRESENT;
+
+uint8_t Create_BMS_Log_File()
 {
-	int8_t Number_in_String[8],String_Length = 0;
-	uint8_t Counter = 0;
-	uint8_t Dir_Length = 0;
+	uint8_t String_Length = 0;
+	uint8_t lcl_counter = 0,Number_in_String[6];
+	uint8_t Result = 1;
 
-	Get_File_Dir_Counts();
+	String_Index = &Memory_Address1;
+	Index_Counter = &Memory_Address2;
 
-	if(f_opendir(&Directory,(char*)Directory_Name) != FR_OK)
-		f_mkdir((char*)Directory_Name);
+//	if(1)
+//		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 6, 4, 2017,12,22,50);
+//	else
+//		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
+//
+//	/* File name for log file inside the directory */
+//	File_Name[lcl_counter++] = '0';
+//	File_Name[lcl_counter++] = ':';
+//	File_Name[lcl_counter++] = '/';
+//
+//	/* Fill the file_name buffer with start time and date; Assuming GPS has given the date and time */
+//	File_Name[lcl_counter++] = GPS_Date_Time[6];
+//	File_Name[lcl_counter++] = GPS_Date_Time[7];
+//	File_Name[lcl_counter++] = GPS_Date_Time[8];
+//	File_Name[lcl_counter++] = GPS_Date_Time[9];
+//	File_Name[lcl_counter++] = '-';
+//	File_Name[lcl_counter++] = GPS_Date_Time[3];
+//	File_Name[lcl_counter++] = GPS_Date_Time[4];
+//	File_Name[lcl_counter++] = '-';
+//	File_Name[lcl_counter++] = GPS_Date_Time[0];
+//	File_Name[lcl_counter++] = GPS_Date_Time[1];
+//	File_Name[lcl_counter++] = '_';
+//
+//	for (int index = 0; index < 8; index++)
+//	{
+//		File_Name[lcl_counter++] = GPS_Date_Time[11 + index];
+//	}
+//	File_Name[lcl_counter++] = '_';
+//	File_Name[lcl_counter++] = 'B';
+//	File_Name[lcl_counter++] = 'M';
+//	File_Name[lcl_counter++] = 'S';
+//	File_Name[lcl_counter++] = '_';
+//
+//	/* Assuming this file count is read from internal flash */
+//	Total_Num_of_Files++;
+//
+//	/* Convert the number into string */
+//	itoa(Total_Num_of_Files, (char*) Number_in_String, 10);
+//
+//	String_Length = strlen((char*) Number_in_String);
+//
+//	/* Add the file number in file name */
+//	for (int index = 0; index < String_Length; index++) {
+//		File_Name[lcl_counter++] = Number_in_String[index];
+//	}
+//	File_Name[lcl_counter++] = '.';
+//	File_Name[lcl_counter++] = 't';
+//	File_Name[lcl_counter++] = 'x';
+//	File_Name[lcl_counter++] = 't';
+//	File_Name[lcl_counter++] = '\0';
+//
 
-	if(File_Number >= 5)
+	/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error in opening the file */
+	/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends on Charging/Power up /
+	 * Wake up from Sleep etc */
+	if (f_open(&BMS_Log_File, File_Name, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)	!= FR_OK)
 	{
-		File_Number = 0;
-		f_closedir(&Directory);
-
-		Directory_Number = atoi((char*)(Directory_Name + 1));
-		Directory_Number++;
-
-		itoa(Directory_Number,(char*)(Directory_Name+1),10);
-		f_mkdir((char*)Directory_Name);
+		Log_Status = 0;
+		Result = 0;
 	}
 
-	itoa(Directory_Number,&Directory_Name[1],10);
+	*String_Index += sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
+	*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Total_Capacity,Capacity_Used,Pack_Cyles,Battery C/D Rate,");
+	*String_Index += sprintf(&String_Buffer[*String_Index],"Charging/Discharging,Temperature,Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
 
-	Dir_Length = strlen((char*)Directory_Name);
-
-	Log_File_Name[Counter++] = '0';
-	Log_File_Name[Counter++] = ':';
-	Log_File_Name[Counter++] = '/';
-
-	for(int index = 0 ; index < Dir_Length; index++)
+	if(f_write(&BMS_Log_File,String_Buffer,*String_Index,&BytesWritten) != FR_OK)
 	{
-		Log_File_Name[Counter++] = Directory_Name[index];
+		Result = 0;
 	}
 
-	Log_File_Name[Counter++] = '/';
-	Log_File_Name[Counter++] = '_';
+	f_sync(&BMS_Log_File);
 
-	File_Number++;
-	itoa(File_Number,(char*)Number_in_String,10);
-    String_Length = strlen((char*)Number_in_String);
-
-	for(int index = 0 ; index < String_Length ; index++)
-	{
-		Log_File_Name[Counter++] = Number_in_String[index];
-	}
-	Log_File_Name[Counter++] = '.';
-	Log_File_Name[Counter++] = 't';
-	Log_File_Name[Counter++] = 'x';
-	Log_File_Name[Counter++] = 't';
-	Log_File_Name[Counter++] = '\0';
-
-	BMS_COM_Write_Data(Log_File_Name,strlen(Log_File_Name)+1);
-
-	if (f_open(&File, Log_File_Name, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK)
-		return RESULT_ERROR;
-
-	String_Index += sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,Initial_Cell_Voltage,Final_Cell_Voltage,Initial_Pack_Voltage,");
-	String_Index += sprintf(&String_Buffer[String_Index],"Final_Pack_Voltage,Total_Capacity,Initial_Capacity,Final_Capacity,Battery C/D Date,");
-	String_Index += sprintf(&String_Buffer[String_Index],"Pack_cycles_used,Charging/Discharging,Min_Temperature,Max_Temperature,");
-	String_Index += sprintf(&String_Buffer[String_Index],"Flight_Time,Health_Status_Register\r\n");
-
-	f_write(&File,String_Buffer,String_Index,&BytesWritten);
-	f_sync(&File);
-
-	Update_Log_Summary_File();
-
+	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
-	String_Index = 0;
 
-	return RESULT_OK;
+	return Result;
 }
 
-void Write_Data_To_File()
+void Log_All_Data()
 {
-	String_Index = sprintf(String_Buffer,"GPS_Date,Start_Time,End_Time,Initial_Cell_Voltage,Final_Cell_Voltage,Initial_Pack_Voltage\r\n");
-	if (f_write(&File, String_Buffer, String_Index, &BytesWritten)== FR_OK)
+	int Int_Values[3];
+	float Float_Values[6];
+	long Long_Values[4];
+	uint8_t Char_Values[1];
+
+	*String_Index = 0;
+	memset(String_Buffer,0,sizeof(String_Buffer));
+
+	int length = 0;
+
+	if(1)
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,",5,4,2017);
+	else
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,", 0,0,0);
+
+	strcpy(&String_Buffer[*String_Index],GPS_Date_Time);
+	*String_Index += length;
+
+	Long_Values[(*Index_Counter)++] = SysTickCounter;								// Start Time
+	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
+
+	Long_Values[(*Index_Counter)++] = SysTickCounter;								// End Time
+	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
+
+	Float_Values[(*Index_Counter)++] = 3.20;										// Cell1 Voltage
+	Float_Values[(*Index_Counter)++] = 3.11;										// Cell2 Voltage
+	Float_Values[(*Index_Counter)++] = 2.56;										// Cell3 Voltage
+	Float_Values[(*Index_Counter)++] = 3.38;										// Cell4 Voltage
+	Float_Values[(*Index_Counter)++] = 2.89;										// Cell5 Voltage
+	Float_Values[(*Index_Counter)++] = 1.45;										// Cell6 Voltage
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
+
+	Float_Values[(*Index_Counter)++] = 25.68;										// Pack Voltage
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
+
+	Int_Values[(*Index_Counter)++] = 11000;											// Total Capacity
+	Int_Values[(*Index_Counter)++] = 1000;											// Used Capacity
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+
+	Int_Values[(*Index_Counter)++] = 5;												// Pack Cycles
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
+
+	Int_Values[(*Index_Counter)++] = 800;											// Charge/Discharge Rate
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+
+	Char_Values[(*Index_Counter)++] = 1;											// Charge/Discharge Status
+	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
+
+	Float_Values[(*Index_Counter)++] = 35.6;										// Temperature of Pack Read By Sensor
+	Float_Values[(*Index_Counter)++] = 19.6;										// Final Pack Voltage read after charge/discharge cycle
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
+
+	Long_Values[(*Index_Counter)++] = 360;											// Flight Time to be Received From AP
+	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
+
+	Int_Values[(*Index_Counter)++] = 0xF0F0;										// To be updated based on status from BMS IC
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+
+	String_Buffer[(*String_Index)++] = ',';
+	String_Buffer[(*String_Index)++] = '\r';
+	String_Buffer[(*String_Index)++] = '\n';
+
+	if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 	{
-		f_sync(&File);
+		Log_Status = 0;
+		Result = 1;;
 	}
-	String_Index = 0;
+
+	Log_Status = 1;
+
+	f_sync(&BMS_Log_File);
+
 }
 
-uint8_t Delete_Directory()
+
+
+/* Function to convert the user variables into CSV format
+ * Parameters:
+ * 		data_array: pointer to the array of integer/float/long/short float/short int
+ * 		dst_array : pointer to the array of character to which resulting string is stored
+ * 		count 	  : number of data values to be converted into string
+ * 		offset    : location from which converted characters are stored
+ * 		data_type : it can be INT_DATA/SHORT_INT_DATA/FLOAT_DATA/SHORT_FLOAT_DATA/LONG/CHAR_DATA
+ *
+ * */
+void log_sprintf(void *data_array,char *dst_array,unsigned char *count,int *offset,unsigned char data_type)
 {
-	uint8_t Rx_Data[30],Data = 0;
-	uint8_t Timeout = 30,lcl_index = 0, i =0;
-	bool loop_break = false;
-	uint8_t Directory_Name[30] = "Directory_Count:";
+	unsigned char index = 0;
+	int lcl_index = 0 ;
 
-	if(f_mount(&FatFs,"0",1) != FR_OK)
-		return RESULT_ERROR;
-
-	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
-		return RESULT_ERROR;
-
-	while (( Data != '\t') && (Timeout-- > 0))
+	switch(data_type)
 	{
-		if (f_read(&File, &Rx_Data[lcl_index], 1, &BytesWritten) == FR_OK)
-		{
-			Data = Rx_Data[lcl_index];
-			if (Rx_Data[lcl_index] != ':' && loop_break == false)
+		case INT_DATA:
+			data_type = INT_SIZE_;
+			for(index = 0;index < *count; index++)
 			{
-				if (Rx_Data[lcl_index] != Directory_Name[lcl_index])
-					return RESULT_ERROR;
+				int data;
+				data = ((int*)data_array)[index];
+
+				if(data >=0)
+					dst_array[*offset] = '+';
+				else
+				{
+					dst_array[*offset] = '-';
+					data = -data;
+				}
+
+				if(data > MAX_INT_VALUE)
+					data = MAX_INT_VALUE;
+
+				while(data != 0 && lcl_index < (data_type - 1))
+				{
+					dst_array[*offset + data_type - ++lcl_index] = (data % 10) + '0';
+					data = data / 10;
+				}
+				while(lcl_index != (data_type-1))
+					dst_array[*offset + data_type - ++lcl_index] = '0';
+
+				dst_array[*offset + data_type] = ',';
+				*offset += (data_type + 1);
+				lcl_index = 0;
+			}
+			break;
+
+
+		case LONG_DATA:
+			data_type = LONG_SIZE_;
+			for(index = 0;index < *count; index++)
+			{
+				long data;
+				data = ((long*)data_array)[index];
+
+				if(data >=0 )
+					dst_array[*offset] = '+';
+				else
+				{
+					dst_array[*offset] = '-';
+					data = -data;
+				}
+
+				if(data > MAX_LONG_VALUE)
+					data = MAX_LONG_VALUE;
+
+				while(data != 0 && lcl_index < (data_type-1))
+				{
+					dst_array[*offset + data_type - ++lcl_index] = (data % 10) + '0';
+					data = data / 10;
+				}
+				while(lcl_index != (data_type-1))
+					dst_array[*offset + data_type - ++lcl_index] = '0';
+
+				dst_array[*offset + data_type] = ',';
+				*offset += (data_type + 1);
+				lcl_index = 0;
+			}
+			break;
+	case SHORT_INT_DATA:
+			data_type = SHORT_INT_SIZE_;
+			for(index = 0;index < *count; index++)
+			{
+				int data;
+				data = ((int*)data_array)[index];
+
+				if(data >=0 )
+					dst_array[*offset] = '+';
+				else
+				{
+					dst_array[*offset] = '-';
+					data = -data;
+				}
+
+				if(data > MAX_SHORT_INT_VALUE)
+					data = MAX_SHORT_INT_VALUE;
+
+				while(data != 0 && lcl_index < data_type - 1)
+				{
+					dst_array[*offset + data_type - ++lcl_index] = (data % 10) + '0';
+					data = data / 10;
+				}
+
+				while(lcl_index != (data_type-1))
+					dst_array[*offset + data_type - ++lcl_index] = '0';
+
+				dst_array[*offset + data_type] = ',';
+				*offset += (data_type + 1);
+				lcl_index = 0;
+			}
+			break;
+
+	case SHORT_FLOAT_DATA:
+			data_type = SHORT_FLOAT_SIZE_;
+			for(index = 0;index < *count; index++)
+			{
+				float data;
+				int lcl_int = 0;
+				data = ((float*)data_array)[index];
+				if(data >=0)
+					dst_array[*offset] = '+';
+				else
+				{
+					dst_array[*offset] = '-';
+					data = -data;
+				}
+
+				if(data > MAX_SHORT_FLOAT_VALUE)
+					data = MAX_SHORT_FLOAT_VALUE;
+
+					data *= 100;
+					lcl_int = (int)data;
+
+				while(lcl_int != 0 && lcl_index < data_type - 1)
+				{
+					if(lcl_index == DECIMAL_POINT_PLACE)
+						dst_array[*offset + data_type - ++lcl_index] = '.';
+					else
+					{
+						dst_array[*offset + data_type - ++lcl_index] = (lcl_int % 10) + '0';
+						lcl_int = lcl_int / 10;
+					}
+
+				}
+				while(lcl_index != (data_type-1))
+				{
+					if(lcl_index == DECIMAL_POINT_PLACE)
+						dst_array[*offset + data_type - ++lcl_index] = '.';
+					else
+						dst_array[*offset + data_type - ++lcl_index] = '0';
+				}
+
+				dst_array[*offset + data_type] = ',';
+				*offset += (data_type + 1);
+				lcl_index = 0;
+			}
+			break;
+	case FLOAT_DATA:
+			data_type = FLOAT_SIZE_;
+
+			for(index = 0;index < *count; index++)
+			{
+				float data;
+				int lcl_int = 0;
+				data = ((float*)data_array)[index];
+				if(data >=0)
+					dst_array[*offset] = '+';
+				else
+				{
+					dst_array[*offset] = '-';
+					data = -data;
+				}
+
+				if(data > MAX_FLOAT_VALUE)
+					data = MAX_FLOAT_VALUE;
+
+					data *= 100;
+					lcl_int = (int)data;
+
+				while(lcl_int != 0 && lcl_index < data_type - 1)
+				{
+					if(lcl_index == DECIMAL_POINT_PLACE)
+						dst_array[*offset + data_type - ++lcl_index] = '.';
+					else
+					{
+						dst_array[*offset + data_type - ++lcl_index] = (lcl_int % 10) + '0';
+						lcl_int = lcl_int / 10;
+					}
+				}
+				while(lcl_index != (data_type-1))
+				{
+					if(lcl_index == DECIMAL_POINT_PLACE)
+						dst_array[*offset + data_type - ++lcl_index] = '.';
+					else
+						dst_array[*offset + data_type - ++lcl_index] = '0';
+				}
+
+				dst_array[*offset + data_type] = ',';
+				*offset += (data_type + 1);
+				lcl_index = 0;
+			}
+			break;
+	case CHAR_DATA:
+		data_type = CHAR_SIZE_;
+		for(index = 0;index < *count; index++)
+		{
+			signed char data;
+			data = ((signed char*)data_array)[index];
+			if(data >=0)
+				dst_array[*offset] = '+';
+			else
+			{
+				dst_array[*offset] = '-';
+				data = -data;
+			}
+			if(data > MAX_CHAR_VALUE)
+				data = MAX_CHAR_VALUE;
+
+			if(data == 0)
+			{
+				dst_array[*offset + data_type - ++lcl_index] = (data % 10) + '0';
 			}
 			else
 			{
-				loop_break = true;
-				if (Rx_Data[lcl_index] != ':')
-					Directory_Name[i++] = Rx_Data[lcl_index];
+				while (data != 0 && lcl_index < data_type - 1)
+				{
+					dst_array[*offset + data_type - ++lcl_index] = (data % 10)+ '0';
+					data /= 10;
+				}
 			}
+
+			dst_array[*offset + data_type] = ',';
+			*offset += (data_type + 1);
+			lcl_index = 0;
 		}
-		else
-			return RESULT_ERROR;
-		lcl_index++;
+
+			break;
 	}
-
-	if (Timeout <= 0)
-		return RESULT_ERROR;
-
-	Directory_Number = atoi((char*)(Directory_Name));
-	Directory_Number--;
-
-	if(Delete_Dir_Count < Directory_Number)
-		Delete_Dir_Count++;
-	else
-		return RESULT_ERROR;
-
-	Directory_Name[0] = '_';
-	itoa(Delete_Dir_Count,(char*)(Directory_Name+1),10);
-	BMS_COM_Write_Data(Directory_Name,strlen((char*)Directory_Name));
-	FRESULT res = f_unlink((char*)Directory_Name);
-
-	Update_Log_Summary_File();
-
-	return RESULT_OK;
-
+	*count = 0;
 }
 
-uint8_t Create_Log_Summary_File()
-{
-	uint32_t Rx_Flash_Data = 0;
-	uint64_t Tx_Flash_Data = 0;
-	uint8_t Summary_File_Data[] = "File data to be filled\r\n";
-	uint8_t Dir_String[] = "Directory_Count:1    \t";
-	uint8_t File_String[] = "File_Count:0   \r\n";
-	uint16_t String_Count = 0;
-
-	MCU_Flash_Read(DIRECTORY_NAME_START_ADDRESS,DIRECTORY_NAME_END_ADDRESS,&Rx_Flash_Data);
-
-	if(Rx_Flash_Data != 0x00000001)
-	{
-		Tx_Flash_Data = 0x000000001;
-		MCU_Flash_Write(DIRECTORY_NAME_START_ADDRESS,DIRECTORY_NAME_END_ADDRESS,&Tx_Flash_Data);
-
-		if(f_mount(&FatFs,"0",1) != FR_OK)
-			return RESULT_ERROR;
-
-		if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_ALWAYS | FA_WRITE | FA_READ) != FR_OK)
-			return RESULT_ERROR;
-
-		if((String_Count = f_write(&File,Dir_String,sizeof(Dir_String),&BytesWritten)) != FR_OK)
-			return RESULT_ERROR;
-
-		if(f_write(&File,File_String,(sizeof(File_String)-1),&BytesWritten) != FR_OK)
-			return RESULT_ERROR;
-
-		if(f_write(&File,Summary_File_Data,strlen((char*)Summary_File_Data),&BytesWritten) != FR_OK)
-			return RESULT_ERROR;
-
-		f_sync(&File);
-
-//		BMS_COM_Write_Data("Log_Summary_File_OK\r",20);
-	}
-
-return RESULT_OK;
-}
-
-static uint8_t Update_Log_Summary_File()
-{
-	uint8_t Buffer[10];
-
-	if(f_mount(&FatFs,"0",1) != FR_OK)
-		return RESULT_ERROR;
-
-	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
-		return RESULT_ERROR;
-
-	itoa(File_Number,(char*)Buffer,10);
-	f_lseek(&File,34);
-	f_write(&File,Buffer,4,&BytesWritten);
-	f_sync(&File);
-	memset(Buffer,0,sizeof(Buffer));
-
-	f_lseek(&File,16);
-	itoa(Directory_Number,(char*)Buffer,10);
-	f_write(&File,Buffer,4,&BytesWritten);
-	f_sync(&File);
-
-
-	return RESULT_OK;
-}
-
-uint8_t Get_File_Dir_Counts()
-{
-	uint8_t Rx_Data[10],Data = 0;
-	char Count[10];
-	uint8_t Timeout = 10,lcl_index = 0, i = 0;
-
-	if(f_mount(&FatFs,"0",1) != FR_OK)
-		return RESULT_ERROR;
-
-	if(f_open(&File,"0:/Log_Summary_File.txt",FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
-		return RESULT_ERROR;
-
-	f_lseek(&File,34);
-
-	while (( Data != FILE_COUNT_TERMINATOR) && (Timeout-- > 0))
-	{
-		f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten);
-		Data = Rx_Data[lcl_index];
-		Count[i++] = Data;
-		lcl_index++;
-	}
-
-	if(Timeout < 0)
-		return RESULT_ERROR;
-
-	File_Number = atoi(Count);
-
-	memset(Rx_Data,0,sizeof(Rx_Data));
-	memset(Count,0,sizeof(Count));
-	i = 0;
-
-	f_lseek(&File,16);
-
-	while ((Data != DIR_COUNT_TERMINATOR) && (Timeout-- > 0))
-	{
-		f_read(&File,&Rx_Data[lcl_index],1,&BytesWritten);
-		Data = Rx_Data[lcl_index];
-		Count[i++] = Data;
-		lcl_index++;
-	}
-
-	if(Timeout < 0)
-		return RESULT_ERROR;
-
-	Directory_Number = atoi(Count);
-
-return RESULT_OK;
-}
