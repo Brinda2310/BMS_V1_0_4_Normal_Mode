@@ -44,6 +44,15 @@ RTC_Data RTC_Info;
 uint8_t Showtime[30] = "test_string\r";
 uint8_t RecData = 0;
 
+const uint8_t BMS_Firmware_Version[3] =
+{
+		0,			//Major release version--modified when code is being merged to Master branch.
+		0,			//Current stable code release-- modified when code is being merged to Develop branch.
+		1			//Beta code release--modified when code is being merged to test_develop branch.
+};
+
+bool Start_Log = false;
+
 int main(void)
 {
 	HAL_Init();
@@ -90,19 +99,28 @@ int main(void)
 		switch(RecData)
 		{
 			case 'A':
-				if(Create_BMS_Log_File() == 0)
+				if(Create_BMS_Log_File() == 1)
 				{
 					BMS_COM_Write_Data("Log_file_Created\r",17);
 				}
 				break;
+
 			case 'B':
-				Log_All_Data();
-				BMS_COM_Write_Data("Data_Written\r",13);
+				Start_Log = true;
+				BMS_COM_Write_Data("Log Started\r",13);
 				break;
 
+			case 'C':
+				Start_Log = false;
+				BMS_COM_Write_Data("Log_Stopped\r",13);
+				break;
+
+			default:
+				break;
 		}
 
 		RecData = 0;
+
 		if(_1Hz_Flag == true)
 		{
 			_1Hz_Flag = false;
@@ -110,7 +128,14 @@ int main(void)
 
 		if (_50Hz_Flag == true )
 		{
-			GPIO_Write(GPIO_B,BOARD_LED,PIN_TOGGLE);
+			if(Start_Log == true)
+			{
+				if(Log_All_Data() == 1)
+				{
+					GPIO_Write(GPIO_B,BOARD_LED,PIN_TOGGLE);
+				}
+			}
+
 			_50Hz_Flag = false;
 		}
 

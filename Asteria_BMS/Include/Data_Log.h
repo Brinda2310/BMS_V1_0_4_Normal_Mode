@@ -89,6 +89,7 @@ typedef struct
 }Log_Vars;
 
 extern Log_Vars Log_Variables;
+extern const uint8_t BMS_Firmware_Version[3];
 
 //extern Log_SD_Summary_Vars SD_Summary_Data;
 extern bool Log_Status;
@@ -100,6 +101,6 @@ extern uint8_t Check_SD_Card;
 
 uint8_t Create_BMS_Log_File();
 void log_sprintf(void *data_array,char *dst_array,unsigned char *count,int *offset,unsigned char data_type);
-void Log_All_Data();
+uint8_t Log_All_Data();
 
 #endif /* DATA_LOG_H_ */
