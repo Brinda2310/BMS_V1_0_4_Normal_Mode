@@ -7,7 +7,6 @@
 
 #include "Data_Log.h"
 
-DIR Directory;
 FATFS FatFs;
 FIL BMS_Log_File;
 FIL Summary_File;
@@ -18,7 +17,7 @@ Log_Vars Log_Variables;
 
 char GPS_Date_Time[19];
 
-char  String_Buffer[512];
+char String_Buffer[512];
 
 bool Log_Status = 1;
 
@@ -30,7 +29,7 @@ int *String_Index, Memory_Address1 = 0;
 uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/Test_.txt";
+char File_Name[50];
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -46,6 +45,10 @@ uint8_t Create_BMS_Log_File()
 	String_Index = &Memory_Address1;
 	Index_Counter = &Memory_Address2;
 
+	*String_Index = 0;
+	memset(String_Buffer,0,sizeof(String_Buffer));
+
+	/* The gps fix flag has to be used in place of 1 */
 	if(1)
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 6, 4, 2017,12,22,50);
 	else

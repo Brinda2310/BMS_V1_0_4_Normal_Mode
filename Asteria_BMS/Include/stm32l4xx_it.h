@@ -49,6 +49,8 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
+#include "stdbool.h"
+
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void SVC_Handler(void);
@@ -57,6 +59,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 
 extern uint64_t SysTickCounter;
+extern bool Done ;
 
 #ifdef __cplusplus
 }

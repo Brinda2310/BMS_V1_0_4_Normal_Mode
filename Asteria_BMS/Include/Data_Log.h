@@ -17,13 +17,6 @@
 #define DIRECTORY_NAME_START_ADDRESS				ADDR_FLASH_PAGE_127
 #define DIRECTORY_NAME_END_ADDRESS					ADDR_FLASH_PAGE_127+8
 
-#define THOUSANDS_DIGIT_POS							6
-#define HUNDREDS_DIGIT_POS							(THOUSANDS_DIGIT_POS + 1)
-#define TENS_DIGIT_POS								(HUNDREDS_DIGIT_POS + 1)
-#define UNITS_DIGIT_POS								(TENS_DIGIT_POS + 1)
-#define DIR_COUNT_TERMINATOR						0x09
-#define FILE_COUNT_TERMINATOR						0x0A
-
 /* Maximum file count in each directory */
 #define MAX_FILE_COUNT
 

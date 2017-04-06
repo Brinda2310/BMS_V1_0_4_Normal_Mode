@@ -16,16 +16,6 @@
 #include "ff.h"
 #include "Data_Log.h"
 
-#define THOUSANDS_DIGIT_POS					6
-#define HUNDREDS_DIGIT_POS					(THOUSANDS_DIGIT_POS + 1)
-#define TENS_DIGIT_POS						(HUNDREDS_DIGIT_POS + 1)
-#define UNITS_DIGIT_POS						(TENS_DIGIT_POS + 1)
-
-#ifdef BMS_VERSION
-	#define FLASH_USER_START_ADDR   		ADDR_FLASH_PAGE_16
-	#define FLASH_USER_END_ADDR     		(ADDR_FLASH_PAGE_16+16)
-#endif
-
 void Set_System_Clock_Frequency(void);
 
 typedef struct
@@ -78,8 +68,10 @@ int main(void)
 
 	while(1)
 	{
-		if((SysTickCounter % 1000) == 0)
+		if((SysTickCounter % 1000) == 0 && Done == true)
 		{
+			BMS_COM_Write_Data("High\r", 5);
+			Done = false;
 //			if (GPIO_Read(GPIO_B, GPIO_PIN_4) == PIN_HIGH)
 //			{
 //				BMS_COM_Write_Data("High", 5);

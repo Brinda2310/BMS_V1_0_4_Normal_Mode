@@ -17,7 +17,7 @@
 #include "stm32l4xx_it.h"
 
 uint64_t SysTickCounter = 0;
-
+bool Done = false;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -37,6 +37,7 @@ uint64_t SysTickCounter = 0;
 void SysTick_Handler(void)
 {
 	SysTickCounter++;
+	Done = true;
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();
 #ifdef USE_RTOS_SYSTICK
