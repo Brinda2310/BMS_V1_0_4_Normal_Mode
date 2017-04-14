@@ -160,6 +160,8 @@ uint8_t Log_All_Data()
 
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
+	f_open(&BMS_Log_File,File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+	f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
 
 //	int length = 0;
 

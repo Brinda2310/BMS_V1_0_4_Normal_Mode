@@ -34,7 +34,7 @@
 /********************************************* Timer Related Macros ****************************************************/
 #define _100uS_PRESCALAR								7999
 
-#define PWM_FUNCTION									DISABLE
+#define PWM_FUNCTION									ENABLE
 #define TIM1_PWM_PRESCALAR								1000000
 #define TIM2_PWM_PRESCALAR								1000000
 
@@ -81,7 +81,7 @@
 /********************************************* USART Related Macros ****************************************************/
 #define NUM_OF_USARTS									2
 
-#define USART1_REMAP									DISABLE
+#define USART1_REMAP									ENABLE
 #define USART1_INT_MODE									ENABLE
 #define USART1_PRIORITY									3
 #define USART1_SUBPRIORITY								0
@@ -164,6 +164,8 @@
 
 #define SPI_DATA_TIMEOUT								3000
 
+#define MCU_WAKEUP_PIN									GPIO_PIN_8
+#define WAKEUP_EDGE										GPIO_MODE_IT_RISING
 
 #else
 #define I2C_100KHZ										0
