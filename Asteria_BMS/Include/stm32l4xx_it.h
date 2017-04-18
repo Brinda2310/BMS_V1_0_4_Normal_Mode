@@ -50,6 +50,9 @@
 /* Exported functions ------------------------------------------------------- */
 
 #include "stdbool.h"
+#include "Power_Management.h"
+
+ #define MCU_WAKEUP_PIN									GPIO_PIN_12
 
 void NMI_Handler(void);
 void HardFault_Handler(void);
@@ -59,6 +62,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 
 extern uint64_t SysTickCounter;
+
 extern bool Done ;
 
 #ifdef __cplusplus

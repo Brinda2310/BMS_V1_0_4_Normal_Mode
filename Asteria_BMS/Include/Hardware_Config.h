@@ -191,8 +191,7 @@
 
 #define SPI_DATA_TIMEOUT								3000
 
-#define MCU_WAKEUP_PIN									GPIO_PIN_8
-#define WAKEUP_EDGE										GPIO_MODE_IT_RISING
+#define WAKEUP_EDGE										GPIO_MODE_IT_FALLING
 
 #else
 #define I2C_100KHZ										0

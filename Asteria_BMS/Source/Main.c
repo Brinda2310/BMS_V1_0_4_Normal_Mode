@@ -46,6 +46,7 @@ int main(void)
 {
 	HAL_Init();
 	Set_System_Clock_Frequency();
+//	SystemClock_Config();
 	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
 
 	BMS_Timers_Init();
@@ -86,8 +87,9 @@ int main(void)
 
 		if(RecData == 'A')
 		{
-			f_close(&BMS_Log_File);
-			Start_Log = false;
+			Enter_Sleep_Mode();
+//			f_close(&BMS_Log_File);
+//			Start_Log = false;
 		}
 		if(RecData == 'B')
 		{
@@ -101,10 +103,10 @@ int main(void)
 
 		if (_50Hz_Flag == true)
 		{
-			if (Log_All_Data() == 1 && Start_Log == true)
-			{
+//			if (Log_All_Data() == 1 && Start_Log == true)
+//			{
 				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
-			}
+//			}
 			_50Hz_Flag = false;
 		}
 	}

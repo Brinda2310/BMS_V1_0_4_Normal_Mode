@@ -17,7 +17,6 @@
 #include "stm32l4xx_it.h"
 
 uint64_t SysTickCounter = 0;
-bool Done = false;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -37,10 +36,15 @@ bool Done = false;
 void SysTick_Handler(void)
 {
 	SysTickCounter++;
-	Done = true;
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();
 #ifdef USE_RTOS_SYSTICK
 	osSystickHandler();
 #endif
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
+  Exit_Sleep_Mode();
 }
