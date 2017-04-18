@@ -68,6 +68,8 @@ int main(void)
 	{
 		BMS_COM_Write_Data("Log_file_Created\r", 17);
 	}
+	else
+		BMS_COM_Write_Data("Wrong\r", 6);
 //	f_open(&BMS_Log_File,File_Name,FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
 	Start_Log = true;
 	while(1)

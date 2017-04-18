@@ -23,22 +23,28 @@
 	#include "stm32l4xx_hal.h"
 	#include "stm32l4xx_it.h"
 
+/* Define the macros to enable the hardware peripherals */
+
+#define USE_TIMER2
+#define USE_USART1
+#define USE_I2C1
+#define USE_SPI1
+
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
 /********************************************* GPIO Related Macros ****************************************************/
-#define BOARD_LED					GPIO_PIN_5
-#define SD_CARD_CS					GPIO_PIN_4
-#define SD_CARD_DETECT				GPIO_PIN_2
+#define BOARD_LED										GPIO_PIN_3
+#define SD_CARD_CS										GPIO_PIN_4
 
 /********************************************* Timer Related Macros ****************************************************/
 #define _100uS_PRESCALAR								7999
 
-#define PWM_FUNCTION									ENABLE
+#define PWM_FUNCTION									DISABLE
+
+#if PWM_FUNCTION == ENABLE
 #define TIM1_PWM_PRESCALAR								1000000
 #define TIM2_PWM_PRESCALAR								1000000
-
-#define NUM_OF_TIMERS									4
 
 #define TIM1_HANDLE_INDEX								0
 #define TIM2_HANDLE_INDEX								1
@@ -46,7 +52,7 @@
 #define TIM16_HANDLE_INDEX								3
 
 #define NUM_OF_PWM_TIMERS								4
-#define TIM1_CHANNEL1									ENABLE
+#define TIM1_CHANNEL1									DISABLE
 #define TIM1_CHANNEL2									DISABLE
 #define TIM1_CHANNEL3									DISABLE
 #define TIM1_CHANNEL4									DISABLE
@@ -65,47 +71,61 @@
 
 #define TIM16_CHANNEL1									DISABLE
 
+#endif
+
+#ifdef USE_TIMER2
 #define TIMER2_INT_MODE									ENABLE
 #define TIMER2_PRIORITY									0
 #define TIMER2_SUBPRIORITY								0
+#endif
 
-#define TIMER6_INT_MODE									ENABLE
+#ifdef USE_TIMER6
+#define TIMER6_INT_MODE									DISABLE
 #define TIMER6_PRIORITY									1
 #define TIMER6_SUBPRIORITY								0
+#endif
 
-#define TIMER7_INT_MODE									ENABLE
+#ifdef USE_TIMER7
+#define TIMER7_INT_MODE									DISABLE
 #define TIMER7_PRIORITY									2
 #define TIMER7_SUBPRIORITY								0
-
+#endif
 
 /********************************************* USART Related Macros ****************************************************/
-#define NUM_OF_USARTS									2
+#define NUM_OF_USARTS									1
 
+#ifdef USE_USART1
 #define USART1_REMAP									ENABLE
 #define USART1_INT_MODE									ENABLE
 #define USART1_PRIORITY									3
 #define USART1_SUBPRIORITY								0
+#endif
 
+#ifdef USE_USART2
 #define USART2_INT_MODE									ENABLE
 #define USART2_PRIORITY									4
 #define USART2_SUBPRIORITY								0
+#endif
 
 #define USART1_HANDLE_INDEX								0
 #define USART2_HANDLE_INDEX								1
 
-
 /********************************************* I2C Related Macros ****************************************************/
 #define NUM_OF_I2C_BUSES								2
 
+#ifdef USE_I2C1
 #define I2C1_REMAP										DISABLE
 #define I2C1_INT_MODE									DISABLE
 #define I2C1_PRIOIRTY									5
 #define I2C1_SUBPRIOIRTY								0
+#endif
 
+#ifdef USE_I2C3
 #define I2C3_REMAP										DISABLE
 #define I2C3_INT_MODE									DISABLE
 #define I2C3_PRIOIRTY									6
 #define I2C3_SUBPRIOIRTY								0
+#endif
 
 #define I2C1_HANDLE_INDEX								0
 #define I2C3_HANDLE_INDEX								1
@@ -119,6 +139,7 @@
 
 #define NUM_OF_SPI_BUSES								2
 
+#ifdef USE_SPI1
 #define SPI1_REMAP										DISABLE
 #define SPI1_PRIORITY									7
 #define SPI1_SUBPRIORITY								0
@@ -138,6 +159,7 @@
  * SPI1_MOSI PB5
  *
  * */
+
 #if SPI1_REMAP == DISABLE
 	#define SPI1_CLK										GPIO_PIN_1
 	#define SPI1_MISO										GPIO_PIN_6
@@ -148,19 +170,24 @@
 	#define SPI1_MOSI										GPIO_PIN_7
 #endif
 
+#define SPI1_POLLING_MODE								ENABLE
+#define SPI1_INT_MODE									DISABLE
+#define SPI1_DMA_MODE									DISABLE
+
+#endif
+
+#ifdef USE_SPI3
 #define SPI3_REMAP										DISABLE
 #define SPI3_PRIORITY									8
 #define SPI3_SUBPRIORITY								0
 #define SPI3_HANDLE_INDEX								1
 #define SPI3_HANDLE_INDEX								1
 
-#define SPI1_POLLING_MODE								ENABLE
-#define SPI1_INT_MODE									DISABLE
-#define SPI1_DMA_MODE									DISABLE
-
 #define SPI3_POLLING_MODE								DISABLE
 #define SPI3_INT_MODE									DISABLE
 #define SPI3_DMA_MODE									DISABLE
+
+#endif
 
 #define SPI_DATA_TIMEOUT								3000
 

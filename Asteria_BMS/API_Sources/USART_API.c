@@ -32,6 +32,7 @@ uint8_t USART_Init(uint8_t USART_Num,int32_t Baud_Rate)
 	{
 	case USART_1:
 
+#ifdef USE_USART1
 		/* If USART1_REMAP is enabled in Hadware_Config.h file then use the respective pins */
 		#if USART1_REMAP == ENABLE
 
@@ -88,9 +89,9 @@ uint8_t USART_Init(uint8_t USART_Num,int32_t Baud_Rate)
 		if(HAL_UART_Init(&USARTHandle[USART1_HANDLE_INDEX]) != HAL_OK)
 			Result = RESULT_ERROR;
 		break;
-
+#endif
 	case USART_2:
-
+#ifdef USE_USART2
 		/* Enable the clocks for USART2 and port pins
 		 * Configure the pins for alternate functions PA2(TX) and PA3(RX)*/
 		__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -130,6 +131,8 @@ uint8_t USART_Init(uint8_t USART_Num,int32_t Baud_Rate)
 			Result = RESULT_ERROR;
 
 		break;
+#endif
+
 	default:
 		Result = RESULT_ERROR;
 		break;
@@ -153,12 +156,16 @@ uint8_t USART_DeInit(uint8_t USART_Num)
 	switch (USART_Num)
 	{
 		case USART_1:
-			if(HAL_USART_DeInit((USART_HandleTypeDef*)&USARTHandle[USART1_HANDLE_INDEX]) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART1
+				if(HAL_USART_DeInit((USART_HandleTypeDef*)&USARTHandle[USART1_HANDLE_INDEX]) != HAL_OK)
+					Result = RESULT_ERROR;
+			#endif
 			break;
 		case USART_2:
-			if(HAL_USART_DeInit((USART_HandleTypeDef*)&USARTHandle[USART2_HANDLE_INDEX]) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART2
+				if(HAL_USART_DeInit((USART_HandleTypeDef*)&USARTHandle[USART2_HANDLE_INDEX]) != HAL_OK)
+					Result = RESULT_ERROR;
+			#endif
 			break;
 		default:
 			Result = RESULT_ERROR;
@@ -183,12 +190,16 @@ uint8_t USART_Write(uint8_t USART_Num, void *TxBuffer,uint16_t Size)
 	switch (USART_Num)
 	{
 		case USART_1:
-			if(HAL_UART_Transmit_IT(&USARTHandle[USART1_HANDLE_INDEX], (uint8_t*)TxBuffer, Size) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART1
+				if(HAL_UART_Transmit_IT(&USARTHandle[USART1_HANDLE_INDEX], (uint8_t*)TxBuffer, Size) != HAL_OK)
+					Result = RESULT_ERROR;
+			#endif
 			break;
 		case USART_2:
-			if(HAL_UART_Transmit_IT(&USARTHandle[USART2_HANDLE_INDEX], (uint8_t*)TxBuffer, Size) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART2
+				if(HAL_UART_Transmit_IT(&USARTHandle[USART2_HANDLE_INDEX], (uint8_t*)TxBuffer, Size) != HAL_OK)
+					Result = RESULT_ERROR;
+			#endif
 			break;
 		default:
 			Result = RESULT_ERROR;
@@ -213,13 +224,17 @@ uint8_t USART_Read(uint8_t USART_Num, void *RxBufffer,uint16_t Size)
 	switch (USART_Num)
 	{
 		case USART_1:
-			if(HAL_UART_Receive_IT(&USARTHandle[USART1_HANDLE_INDEX], (uint8_t*)RxBufffer, Size) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART1
+				if(HAL_UART_Receive_IT(&USARTHandle[USART1_HANDLE_INDEX], (uint8_t*)RxBufffer, Size) != HAL_OK)
+					Result = RESULT_ERROR;
+			#endif
 			break;
 		case USART_2:
-			if(HAL_UART_Receive_IT(&USARTHandle[USART2_HANDLE_INDEX], (uint8_t*)RxBufffer, Size) != HAL_OK)
-				Result = RESULT_ERROR;
+			#ifdef USE_USART2
+				if(HAL_UART_Receive_IT(&USARTHandle[USART2_HANDLE_INDEX], (uint8_t*)RxBufffer, Size) != HAL_OK)
+					Result = RESULT_ERROR;
 			break;
+			#endif
 		default:
 			break;
 	}
@@ -233,15 +248,20 @@ return Result;
  *			Here the defined handlers are for stm32l432kc micro controller
  * */
 #ifdef BMS_VERSION
+#ifdef USE_USART1
 void USART1_IRQHandler(void)
 {
 	HAL_UART_IRQHandler(&USARTHandle[USART1_HANDLE_INDEX]);
 }
+#endif
 
+#ifdef USE_USART2
 void USART2_IRQHandler(void)
 {
 	HAL_UART_IRQHandler(&USARTHandle[USART2_HANDLE_INDEX]);
 }
+#endif
+
 #endif
 
 
