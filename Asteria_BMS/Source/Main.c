@@ -44,6 +44,7 @@ bool Start_Log = false;
 
 int main(void)
 {
+	static int Permanent_Variable = 0;
 	HAL_Init();
 	Set_System_Clock_Frequency();
 //	SystemClock_Config();
@@ -87,6 +88,7 @@ int main(void)
 
 		if(RecData == 'A')
 		{
+			Sleep_Mode = true;
 			Enter_Sleep_Mode();
 //			f_close(&BMS_Log_File);
 //			Start_Log = false;
@@ -105,6 +107,16 @@ int main(void)
 		{
 //			if (Log_All_Data() == 1 && Start_Log == true)
 //			{
+				Permanent_Variable++;
+				if((Permanent_Variable % 50) == 0)
+				{
+					itoa(Permanent_Variable, (char*) Showtime, 10);
+					BMS_COM_Write_Data(Showtime, strlen((char*) Showtime));
+
+					Delay_Millis(5);
+					BMS_COM_Write_Data("\r", 1);
+					memset(Showtime, 0, sizeof(Showtime));
+				}
 				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
 //			}
 			_50Hz_Flag = false;

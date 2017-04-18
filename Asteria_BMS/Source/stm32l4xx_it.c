@@ -17,6 +17,7 @@
 #include "stm32l4xx_it.h"
 
 uint64_t SysTickCounter = 0;
+bool Sleep_Mode = false;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -43,8 +44,12 @@ void SysTick_Handler(void)
 #endif
 }
 
-void EXTI15_10_IRQHandler(void)
+void EXTI9_5_IRQHandler(void)
 {
   HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
-  Exit_Sleep_Mode();
+  if(Sleep_Mode == true)
+  {
+	  Exit_Sleep_Mode();
+	  Sleep_Mode = false;
+  }
 }

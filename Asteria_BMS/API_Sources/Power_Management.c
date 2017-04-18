@@ -10,18 +10,7 @@ void Enter_Sleep_Mode()
 {
 #ifdef BMS_VERSION
 	GPIO_InitTypeDef  GPIO_InitStruct;
-
-	SystemClock_Config();
-
-	__HAL_FLASH_PREFETCH_BUFFER_DISABLE();
-
-	 /* Enable Power Clock */
 	__HAL_RCC_PWR_CLK_ENABLE();
-
-	__HAL_FLASH_SLEEP_POWERDOWN_ENABLE();
-
-	/* Configure the system Power */
-	SystemPower_Config();
 
 	RCC->AHB1SMENR = 0x0;
 	RCC->AHB2SMENR = 0x0;
@@ -31,7 +20,6 @@ void Enter_Sleep_Mode()
 	RCC->APB1SMENR2 = 0x0;
 	RCC->APB2SMENR = 0x0;
 
-	/* Configure PA.12 as input with External interrupt */
 	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Mode = WAKEUP_EDGE;
@@ -40,8 +28,8 @@ void Enter_Sleep_Mode()
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	NVIC_SetPriority((IRQn_Type) (EXTI15_10_IRQn), 0x03);
-	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI15_10_IRQn));
+	NVIC_SetPriority((IRQn_Type) (EXTI9_5_IRQn), 0x03);
+	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI9_5_IRQn));
 
 	/* Reduce the System clock to below 2 MHz */
 	SystemClock_Decrease();
@@ -72,7 +60,7 @@ void SystemPower_Config(void)
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStructure);
 
-	/* Disable GPIOs clock */
+	/* Disable GPIOs clock to reduce the power consumption */
 	__HAL_RCC_GPIOA_CLK_DISABLE();
 	__HAL_RCC_GPIOB_CLK_DISABLE();
 	__HAL_RCC_GPIOC_CLK_DISABLE();
@@ -84,6 +72,9 @@ void Exit_Sleep_Mode()
 {
 #ifdef BMS_VERSION
     HAL_PWREx_DisableLowPowerRunMode();
+    /* Reinitialize all the peripherals as they were disabled before MCU going to sleep; But sleep mode holds
+     * the global variables values to their previous state as before going to sleep */
+    HAL_Init();
     Set_System_Clock_Frequency();
 	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
     BMS_Timers_Init();
@@ -160,35 +151,4 @@ void Set_System_Clock_Frequency(void)
 	{
 	}
 #endif
-}
-
-void SystemClock_Config(void)
-{
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-
-  HAL_RCC_DeInit();
-
-  /* MSI is enabled after System reset, configure HSI */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
-  RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-  }
-
-  /* Select HSI as system clock source and configure the HCLK, PCLK1 and PCLK2
-     clocks dividers */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-  }
 }
