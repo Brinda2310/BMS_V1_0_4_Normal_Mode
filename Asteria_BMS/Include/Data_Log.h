@@ -83,6 +83,9 @@ typedef struct
 
 extern Log_Vars Log_Variables;
 extern const uint8_t BMS_Firmware_Version[3];
+extern FATFS FatFs;
+extern FIL BMS_Log_File;
+extern char File_Name[50];
 
 //extern Log_SD_Summary_Vars SD_Summary_Data;
 extern bool Log_Status;

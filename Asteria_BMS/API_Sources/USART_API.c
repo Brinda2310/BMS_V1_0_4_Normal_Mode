@@ -165,7 +165,7 @@ uint8_t USART_DeInit(uint8_t USART_Num)
 			break;
 	}
 #endif
-	return RESULT_OK;
+	return Result;
 }
 
 /**

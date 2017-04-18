@@ -48,19 +48,17 @@ int main(void)
 	Set_System_Clock_Frequency();
 	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
 
-//	GPIO_Init(GPIO_B,GPIO_PIN_4,GPIO_INPUT,NOPULL);
-
 	BMS_Timers_Init();
 	BMS_COM_Init();
 	RTC_Init();
 
 	RTC_Info.Day = WEDNESDAY;
-	RTC_Info.Date = 0x05;
+	RTC_Info.Date = 0x14;
 	RTC_Info.Month = APRIL;
 	RTC_Info.Year = 0x17;
 
-	RTC_Info.Hours = 0x13;
-	RTC_Info.Minutes = 0x30;
+	RTC_Info.Hours = 0x11;
+	RTC_Info.Minutes = 0x40;
 	RTC_Info.Seconds = 0x00;
 
 	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
@@ -70,21 +68,12 @@ int main(void)
 	{
 		BMS_COM_Write_Data("Log_file_Created\r", 17);
 	}
+//	f_open(&BMS_Log_File,File_Name,FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+	Start_Log = true;
 	while(1)
 	{
 //		if(_50Hz_Flag == true)
 //		{
-//			GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
-//			BMS_COM_Write_Data("High\r", 5);
-//			_50Hz_Flag = false;
-//			if (GPIO_Read(GPIO_B, GPIO_PIN_4) == PIN_HIGH)
-//			{
-//				BMS_COM_Write_Data("High", 5);
-//			}
-//			else
-//			{
-//				BMS_COM_Write_Data("LOW", 5);
-//			}
 //			RTC_TimeShow(Showtime);
 //			BMS_COM_Write_Data(Showtime,9);
 //			Delay_Millis(5);
@@ -93,47 +82,29 @@ int main(void)
 
 		BMS_COM_Read_Data(&RecData, 1);
 
-		switch(RecData)
+		if(RecData == 'A')
 		{
-			case 'A':
-				if(Create_BMS_Log_File() == 1)
-				{
-					BMS_COM_Write_Data("Log_file_Created\r",17);
-				}
-				break;
-
-			case 'B':
-				Start_Log = true;
-				BMS_COM_Write_Data("Log Started\r",13);
-				break;
-
-			case 'C':
-				Start_Log = false;
-				Stop_Log();
-				BMS_COM_Write_Data("Log_Stopped\r",13);
-				break;
-
-			default:
-				break;
+			f_close(&BMS_Log_File);
+			Start_Log = false;
+		}
+		if(RecData == 'B')
+		{
+			f_mount(&FatFs,"0",1);
+			f_open(&BMS_Log_File,File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+			f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
+			Start_Log = true;
 		}
 
 		RecData = 0;
 
-		if (_50Hz_Flag == true )
+		if (_50Hz_Flag == true)
 		{
-			BMS_COM_Write_Data("High\r", 5);
-
-			if (Start_Log == true)
+			if (Log_All_Data() == 1 && Start_Log == true)
 			{
-				if (Log_All_Data() == 1)
-				{
-					GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
-				}
+				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
 			}
 			_50Hz_Flag = false;
 		}
-
-//		Delay_Millis(50);
 	}
 }
 

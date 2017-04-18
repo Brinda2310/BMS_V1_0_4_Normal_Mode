@@ -27,7 +27,7 @@
 #define ENABLE											!DISABLE
 
 /********************************************* GPIO Related Macros ****************************************************/
-#define BOARD_LED					GPIO_PIN_3
+#define BOARD_LED					GPIO_PIN_5
 #define SD_CARD_CS					GPIO_PIN_4
 #define SD_CARD_DETECT				GPIO_PIN_2
 
@@ -139,9 +139,9 @@
  *
  * */
 #if SPI1_REMAP == DISABLE
-	#define SPI1_CLK										GPIO_PIN_5
+	#define SPI1_CLK										GPIO_PIN_1
 	#define SPI1_MISO										GPIO_PIN_6
-	#define SPI1_MOSI										GPIO_PIN_7
+	#define SPI1_MOSI										GPIO_PIN_12
 #elif SPI1_REMAP == ENABLE
 	#define SPI1_CLK										GPIO_PIN_5
 	#define SPI1_MISO										GPIO_PIN_11

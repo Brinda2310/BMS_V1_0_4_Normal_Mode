@@ -21,7 +21,6 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 {
 	uint32_t FirstPage = 0, NoOfPages = 0;
 	uint32_t PageError = 0,Index = 0;
-	bool EraseSuccessful = false;
 	uint8_t Result = RESULT_OK;
 	uint32_t Address;
 	uint8_t Timeout = 10;
