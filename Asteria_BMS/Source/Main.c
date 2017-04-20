@@ -33,7 +33,7 @@ RTC_Data RTC_Info;
 uint8_t Showtime[30];
 uint8_t RecData = 0;
 
-uint8_t data[4] = {0xAA,0xBB,0xCC,0xDD};
+uint8_t data[4] = {0x11,0x22,0x33,0x44};
 uint8_t ReadEEPROMData[10];
 uint8_t Counter = 0;
 
@@ -45,7 +45,7 @@ const uint8_t BMS_Firmware_Version[3] =
 };
 
 bool Start_Log = false;
-uint8_t ISL_Status = 0x00;
+uint8_t Status_Byte = 0x00;
 
 int main(void)
 {
@@ -60,18 +60,18 @@ int main(void)
 	ISL94203_Init();
 	RTC_Init();
 
-	RTC_Info.Day = WEDNESDAY;
-	RTC_Info.Date = 0x14;
-	RTC_Info.Month = APRIL;
-	RTC_Info.Year = 0x17;
-
-	RTC_Info.Hours = 0x11;
-	RTC_Info.Minutes = 0x40;
-	RTC_Info.Seconds = 0x00;
-
-	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
-	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
-
+//	RTC_Info.Day = THURSDAY;
+//	RTC_Info.Date = 0x20;
+//	RTC_Info.Month = APRIL;
+//	RTC_Info.Year = 0x17;
+//
+//	RTC_Info.Hours = 0x18;
+//	RTC_Info.Minutes = 0x12;
+//	RTC_Info.Seconds = 0x40;
+//
+//	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
+//	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
+//
 	ISL94203_User_EEPROM_Write(USER_EEPROM_START_ADDRESS,data,4);
 
 	memset(data,0,sizeof(data));
@@ -126,28 +126,30 @@ int main(void)
 		if (_50Hz_Flag == true)
 		{
 			Counter++;
-			if ((Log_All_Data() == 1)  && Start_Log == 1)
-			{
-				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
-			}
 			_50Hz_Flag = false;
 		}
 
 		if(Counter >= 50)
 		{
-			ISL94203_Read_Status_Register(&ISL_Status);
-			if((ISL_Status & 0x40) == 0x40)
+			if ((Log_All_Data() == 1)  && Start_Log == 1)
+			{
+				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
+			}
+
+			ISL94203_RAM_Status_Register(RAM_0x83_STATUS,&Status_Byte);
+			if((Status_Byte & IS_ISL_IN_SLEEP) == IS_ISL_IN_SLEEP)
 			{
 				BMS_COM_Write_Data("Sleep\r", 6);
 			}
 			else
 				BMS_COM_Write_Data("No Sleep\r", 9);
 			Counter = 0;
-			ISL_Status = 0;
-//			RTC_TimeShow(Showtime);
-//			BMS_COM_Write_Data(Showtime, strlen((char*) Showtime));
-//			Delay_Millis(3);
-//			memset(Showtime, 0, sizeof(Showtime));
+			Status_Byte = 0;
+			RTC_TimeShow(Showtime);
+			Delay_Millis(2);
+			BMS_COM_Write_Data(Showtime, strlen((char*) Showtime));
+			Delay_Millis(2);
+			memset(Showtime, 0, sizeof(Showtime));
 		}
 	}
 }

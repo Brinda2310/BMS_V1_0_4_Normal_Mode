@@ -62,8 +62,8 @@ void ISL94203_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Da
 
 	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Memory_Address,1);
 
-	Delay_Millis(4);
-
+//	Delay_Millis(4);
+//
 	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Buffer,4);
 
 	ISL94203_RAM_Access_Enable();
@@ -74,11 +74,8 @@ void ISL94203_Force_Sleep()
 	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 }
 
-void ISL94203_Read_Status_Register(uint8_t *Data)
+void ISL94203_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data)
 {
-	uint8_t Status_Reg_Address = 0x83;
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Status_Reg_Address,1);
+	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Register_Address,1);
 	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Data,1);
-	Delay_Millis(5);
-
 }
