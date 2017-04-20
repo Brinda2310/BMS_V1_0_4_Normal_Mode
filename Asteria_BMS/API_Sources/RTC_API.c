@@ -130,9 +130,6 @@ uint8_t RTC_Set_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds)
 	TimeStruct.Minutes = *Minutes;
 	TimeStruct.Seconds = *Seconds;							// 30 seconds
 
-//	TimeStruct.Hours = 0x10;
-//	TimeStruct.Minutes = 0x48;
-//	TimeStruct.Seconds = 0x00;							// 30 seconds
 	TimeStruct.TimeFormat = RTC_HOURFORMAT12_AM;
 	TimeStruct.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
 	TimeStruct.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -209,5 +206,5 @@ void RTC_TimeShow(uint8_t* showtime)
   /* Get the RTC current Date */
   HAL_RTC_GetDate(&RtcHandle, &sdatestructureget, RTC_FORMAT_BIN);
   /* Display time Format : hh:mm:ss */
-  sprintf((char*)showtime,"%02d:%02d:%02d\r\n",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+  sprintf((char*)showtime,"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
 }

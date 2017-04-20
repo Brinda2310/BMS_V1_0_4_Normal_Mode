@@ -21,7 +21,7 @@ void Enter_Sleep_Mode()
 	RCC->APB2SMENR = 0x0;
 
 	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Mode = WAKEUP_EDGE;
 
 	/* Enable GPIOA clock */

@@ -130,7 +130,7 @@
 #define I2C1_HANDLE_INDEX								0
 #define I2C3_HANDLE_INDEX								1
 
-#define I2C_100KHZ										0x90942027
+//#define I2C_100KHZ										0x90942027
 #define I2C_400KHZ										0x90310309
 #define I2C_1MHZ										0x40200204
 #define I2C_DATA_TIMEOUT								100
@@ -191,7 +191,7 @@
 
 #define SPI_DATA_TIMEOUT								3000
 
-#define WAKEUP_EDGE										GPIO_MODE_IT_FALLING
+#define WAKEUP_EDGE										GPIO_MODE_IT_RISING
 
 #else
 #define I2C_100KHZ										0

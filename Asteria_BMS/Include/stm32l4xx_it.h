@@ -52,7 +52,7 @@
 #include "stdbool.h"
 #include "Power_Management.h"
 
- #define MCU_WAKEUP_PIN									GPIO_PIN_8
+ #define MCU_WAKEUP_PIN									GPIO_PIN_7
 
 void NMI_Handler(void);
 void HardFault_Handler(void);
