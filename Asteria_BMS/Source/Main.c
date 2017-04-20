@@ -46,6 +46,7 @@ const uint8_t BMS_Firmware_Version[3] =
 
 bool Start_Log = false;
 uint8_t Status_Byte = 0x00;
+uint8_t Cell_Voltage[8];
 
 int main(void)
 {
@@ -115,6 +116,18 @@ int main(void)
 			case 'E':
 				ISL94203_Force_Sleep();
 				break;
+			case 'F':
+				Read_Cell_Voltages(CELL1_VOLTAGE,Cell_Voltage);
+				Read_Cell_Voltages(CELL2_VOLTAGE,Cell_Voltage+2);
+				Read_Cell_Voltages(CELL3_VOLTAGE,Cell_Voltage+4);
+				Read_Cell_Voltages(CELL4_VOLTAGE,Cell_Voltage+6);
+
+				BMS_COM_Write_Data(Cell_Voltage,sizeof(Cell_Voltage));
+				Delay_Millis(6);
+				memset(Cell_Voltage,0,sizeof(Cell_Voltage));
+
+				break;
+
 
 //			default:
 //				BMS_COM_Write_Data("Wrong Input\r",12);
@@ -137,7 +150,7 @@ int main(void)
 			}
 
 			ISL94203_RAM_Status_Register(RAM_0x83_STATUS,&Status_Byte);
-			if((Status_Byte & IS_ISL_IN_SLEEP) == IS_ISL_IN_SLEEP)
+			if(Status_Byte & IS_ISL_IN_SLEEP)
 			{
 				BMS_COM_Write_Data("Sleep\r", 6);
 			}

@@ -23,6 +23,18 @@
 #define RAM_0x82_STATUS											0x82
 #define RAM_0x83_STATUS											0x83
 
+#define PACK_CURRENT									0x8E
+#define CELL1_VOLTAGE									0x90
+#define CELL2_VOLTAGE									0x92
+#define CELL3_VOLTAGE									0x94
+#define CELL4_VOLTAGE									0x96
+#define CELL5_VOLTAGE									0x98
+#define CELL6_VOLTAGE									0x9A
+#define CELL7_VOLTAGE									0x9C
+#define CELL8_VOLTAGE									0x9E
+
+#define ISL_INTERNAL_TEMP								0xA0
+#define PACK_VOLTAGE									0xA6
 /* RAM location 0x80 status flags */
 #define IS_CHARGE_UNDER_TEMP									(1 << 7)
 #define IS_CHARGE_OVER_TEMP										(1 << 6)
@@ -72,10 +84,13 @@ typedef enum
 void ISL94203_Init();
 void ISL94203_EEPROM_Access_Enable();
 void ISL94203_RAM_Access_Enable();
-void ISL94203_Force_Sleep();
 ISL_WriteStatus ISL94203_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
 void ISL94203_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size);
+void ISL94203_Force_Sleep();
 void ISL94203_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data);
+void Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Data);
+void Read_Pack_Data(uint8_t Register_Address,uint8_t *Data);
+
 
 
 #endif /* BMS_ISL94203_H_ */

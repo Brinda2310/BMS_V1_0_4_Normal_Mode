@@ -28,7 +28,7 @@ int *String_Index, Memory_Address1 = 0;
 uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-06_16-31-50_BMS_1.txt";
+char File_Name[50] = "0:/2017-04-06_16-31-50_BMS_2.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
