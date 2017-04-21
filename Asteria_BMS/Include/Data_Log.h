@@ -53,32 +53,26 @@ enum data_sizes
 	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 8,SHORT_FLOAT_SIZE_ = 6,LONG_SIZE_ = 10
 };
 
+enum Pack_Status
+{
+	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
+};
 typedef struct
 {
 	uint32_t Start_Time;
 	uint32_t End_Time;
-	float C1_Voltage;
-	float C2_Voltage;
-	float C3_Voltage;
-	float C4_Voltage;
-	float C5_Voltage;
-	float C6_Voltage;
 
-	float Pack_Voltage;
 	uint16_t Total_Capacity;
 	uint16_t Capacity_Used;
 	uint16_t Pack_Cycles;
 	uint8_t Charging_Discharging_Status;
 
-	float Temperature;
 	float Final_Pack_Voltage;
 
 	uint32_t Flight_Time;
 	uint32_t Health_Status_Register;
 	char GPS_Date[10];
 	char Battery_Charge_Discharge_Date[10];
-
-
 }Log_Vars;
 
 extern Log_Vars Log_Variables;

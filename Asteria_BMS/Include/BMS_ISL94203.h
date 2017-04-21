@@ -10,13 +10,13 @@
 
 #include "I2C_API.h"
 
-#define ISL94203_ADDRESS									0x50
+#define BMS_ADDRESS									0x50
 #define I2C_OWN_ADDRESS										0x0F
 #define EEPROM_PAGE_SIZE									4
 #define EEPROM_WRITE_DELAY									30
 #define USER_EEPROM_START_ADDRESS							0x50
 #define I2C_100KHZ											0x90942027
-#define ISL_I2C												I2C_1
+#define BMS_I2C												I2C_1
 
 #define RAM_0x80_STATUS											0x80
 #define RAM_0x81_STATUS											0x81
@@ -33,7 +33,7 @@
 #define CELL7_VOLTAGE									0x9C
 #define CELL8_VOLTAGE									0x9E
 
-#define ISL_INTERNAL_TEMP								0xA0
+#define BMS_PACK_TEMPERATURE							0xA0
 #define PACK_VOLTAGE									0xA6
 /* RAM location 0x80 status flags */
 #define IS_CHARGE_UNDER_TEMP									(1 << 7)
@@ -68,6 +68,8 @@
 #define IS_CELL_BALANCE_UNDER_T									(1 << 1)
 #define IS_CELL_BALANCE_OVER_T									(1 << 0)
 
+#define SENSE_RESISTOR_VALUE									1
+#define CURRENT_GAIN											5
 typedef struct
 {
 	uint8_t Charge_Under_Temp:1;
@@ -81,16 +83,33 @@ typedef enum
 	WRITE_OK = 0,WRITE_ERROR
 }ISL_WriteStatus;
 
-void ISL94203_Init();
-void ISL94203_EEPROM_Access_Enable();
-void ISL94203_RAM_Access_Enable();
-ISL_WriteStatus ISL94203_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
-void ISL94203_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size);
-void ISL94203_Force_Sleep();
-void ISL94203_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data);
-void Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Data);
-void Read_Pack_Data(uint8_t Register_Address,uint8_t *Data);
+typedef struct
+{
+	float Cell1_Voltage;
+	float Cell2_Voltage;
+	float Cell3_Voltage;
+	float Cell4_Voltage;
+	float Cell5_Voltage;
+	float Cell6_Voltage;
+	float Cell7_Voltage;
+	float Cell8_Voltage;
 
+	float Pack_Voltage;
+	float Pack_Current;
+	float Pack_Temperature;
+}ISL_943203_Data;
 
+ISL_943203_Data BMS_Data;
+void BMS_Init();
+void BMS_EEPROM_Access_Enable();
+void BMS_RAM_Access_Enable();
+ISL_WriteStatus BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
+void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size);
+void BMS_Force_Sleep();
+void BMS_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data);
+void BMS_Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Data);
+void BMS_Read_Pack_Data(uint8_t Register_Address);
+void BMS_Read_Pack_Temperature();
+void Convert_Bytes_To_Short(uint8_t *Data,uint16_t *Short_Data);
 
-#endif /* BMS_ISL94203_H_ */
+#endif /* BMS_BMS_H_ */

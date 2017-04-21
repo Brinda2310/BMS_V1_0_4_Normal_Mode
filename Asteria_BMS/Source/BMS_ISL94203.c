@@ -12,29 +12,24 @@ uint8_t EEPROM_ENABLE_DATA[2] = {0x89,0x01};
 uint8_t RAM_ENABLE_DATA[2] = {0x89,0x00};
 uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 
-void ISL94203_Init()
+void BMS_Init()
 {
-	I2C_Init(ISL_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
+	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
 }
 
-void ISL94203_EEPROM_Access_Enable()
+void BMS_EEPROM_Access_Enable()
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,EEPROM_ENABLE_DATA,sizeof(EEPROM_ENABLE_DATA));
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,EEPROM_ENABLE_DATA,sizeof(EEPROM_ENABLE_DATA));
 }
 
-void ISL94203_RAM_Access_Enable()
+void BMS_RAM_Access_Enable()
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
 }
 
-void Access_RAM_Data()
+ISL_WriteStatus BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
-
-}
-
-ISL_WriteStatus ISL94203_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
-{
-	ISL94203_EEPROM_Access_Enable();
+	BMS_EEPROM_Access_Enable();
 	Delay_Millis(1);
 	if(Data_Size > EEPROM_PAGE_SIZE)
 	{
@@ -47,38 +42,38 @@ ISL_WriteStatus ISL94203_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_
 		{
 			Data[0] = Memory_Address++;
 			Data[1] = Data_Ptr[Counter];
-			I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,Data,2);
+			I2C_WriteData(BMS_I2C,BMS_ADDRESS,Data,2);
 			Delay_Millis(EEPROM_WRITE_DELAY);
 		}
 		return WRITE_OK;
 	}
-	ISL94203_RAM_Access_Enable();
+	BMS_RAM_Access_Enable();
 }
 
 /*
  * Function to read the user EEPROM data from ISL94203
  */
-void ISL94203_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size)
+void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size)
 {
 	/* Enable the EEPROM access otherwise values will not be stored */
-	ISL94203_EEPROM_Access_Enable();
+	BMS_EEPROM_Access_Enable();
 
 	/* EEPROM location from which data is to be read */
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Memory_Address,1);
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Memory_Address,1);
 
 	/* Read the number of bytes that from the EEPROM location */
-	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Buffer,4);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Buffer,4);
 
 	/* Disable the EEPROM access to access the RAM */
-	ISL94203_RAM_Access_Enable();
+	BMS_RAM_Access_Enable();
 }
 
 /*
  * Function to put ISL94203 into the sleep mode
  */
-void ISL94203_Force_Sleep()
+void BMS_Force_Sleep()
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 }
 /*
  * This function gives the status flags of various RAM registers
@@ -88,26 +83,98 @@ void ISL94203_Force_Sleep()
  * RAM_0x82_STATUS
  * RAM_0x83_STATUS
  */
-void ISL94203_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data)
+void BMS_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data)
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Register_Address,1);
-	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Data,1);
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Data,1);
+}
+static void Convert_To_Cell_Voltages(uint8_t *Data)
+{
+//	char Buffer[50];
+	uint16_t Cell1_V,Cell2_V,Cell3_V,Cell4_V,Cell5_V,Cell6_V,Cell7_V,Cell8_V;
+
+	Cell1_V = (*Data++) | (*Data++ << 8);
+	Cell2_V = (*Data++) | (*Data++ << 8);
+	Cell3_V = (*Data++) | (*Data++ << 8);
+	Cell4_V = (*Data++) | (*Data++ << 8);
+	Cell5_V = (*Data++) | (*Data++ << 8);
+	Cell6_V = (*Data++) | (*Data++ << 8);
+	Cell7_V = (*Data++) | (*Data++ << 8);
+	Cell8_V = (*Data++) | (*Data++ << 8);
+
+	BMS_Data.Cell1_Voltage = (Cell1_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell2_Voltage = (Cell2_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell3_Voltage = (Cell3_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell4_Voltage = (Cell4_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell5_Voltage = (Cell5_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell6_Voltage = (Cell6_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell7_Voltage = (Cell7_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell8_Voltage = (Cell8_V * 1.8 * 8)/ (4095 * 3);
+
+//	uint8_t Length = 0;
+//	Length += sprintf(Buffer,"%0.3f\r",BMS_Data.Cell1_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell2_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell3_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell4_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell5_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell6_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell7_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell8_Voltage);
+//
+//	BMS_COM_Write_Data(Buffer,Length);
+//	Delay_Millis(5);
 }
 /*
  * This function can give individual cell voltages inside the pack
  */
-void Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Data)
+void BMS_Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Received_Data)
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Register_Address,1);
-	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Data,2);
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
+	/* Sequential read method of ISL is used to read all the cell voltages as they are in sequence in EEPROM */
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,16);
+	Delay_Millis(2);
+	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
+	 * to find the actual cell voltage */
+	Convert_To_Cell_Voltages(Received_Data);
 }
 
 /*
  * This function can give the pack current and pack voltage
  * The parameters that can be passed to this function are PACK_VOLTAGE and PACK_CURRENT
  */
-void Read_Pack_Data(uint8_t Register_Address,uint8_t *Data)
+void BMS_Read_Pack_Data(uint8_t Register_Address)
 {
-	I2C_WriteData(ISL_I2C,ISL94203_ADDRESS,&Register_Address,1);
-	I2C_ReadData(ISL_I2C,ISL94203_ADDRESS|0x01,Data,2);
+	uint8_t Received_Data[2];
+
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,2);
+
+	if(Register_Address == PACK_VOLTAGE)
+	{
+		uint16_t Converted_Pack_Voltage;
+		Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Voltage);
+		BMS_Data.Pack_Voltage = (Converted_Pack_Voltage * 1.8 * 32)/(4095);
+	}
+	else if (Register_Address == PACK_CURRENT)
+	{
+		uint16_t Converted_Pack_Current;
+		Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Current);
+		BMS_Data.Pack_Current = (((float)Converted_Pack_Current * 1800) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
+	}
+}
+
+void BMS_Read_Pack_Temperature()
+{
+	uint8_t Received_Data[2];
+	uint8_t Register_Address = BMS_PACK_TEMPERATURE;
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,2);
+	uint16_t Converted_Pack_Temperature = 0;
+	Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Temperature);
+	BMS_Data.Pack_Temperature = ((float)Converted_Pack_Temperature * 1.8)/(4095);
+
+}
+void Convert_Bytes_To_Short(uint8_t *Data,uint16_t *Short_Data)
+{
+	*Short_Data = (*Data++) | ((*Data++) << 8);
 }

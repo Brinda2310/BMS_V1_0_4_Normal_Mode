@@ -28,7 +28,7 @@ int *String_Index, Memory_Address1 = 0;
 uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-06_16-31-50_BMS_2.txt";
+char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_3.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -49,7 +49,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 6, 4, 2017,16,31,50);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 21, 4, 2017,14,25,50);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -180,16 +180,16 @@ uint8_t Log_All_Data()
 	Long_Values[(*Index_Counter)++] = (SysTickCounter/1000);								// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Float_Values[(*Index_Counter)++] = 3.20;										// Cell1 Voltage
-	Float_Values[(*Index_Counter)++] = 3.11;										// Cell2 Voltage
-	Float_Values[(*Index_Counter)++] = 2.56;										// Cell3 Voltage
-	Float_Values[(*Index_Counter)++] = 3.38;										// Cell4 Voltage
-	Float_Values[(*Index_Counter)++] = 2.89;										// Cell5 Voltage
-	Float_Values[(*Index_Counter)++] = 1.45;										// Cell6 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell1_Voltage;										// Cell1 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell2_Voltage;										// Cell2 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell3_Voltage;										// Cell3 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell6_Voltage;										// Cell4 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell7_Voltage;										// Cell5 Voltage
+	Float_Values[(*Index_Counter)++] = BMS_Data.Cell8_Voltage;										// Cell6 Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = 25.68;										// Pack Voltage
-	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
+	Float_Values[(*Index_Counter)++] = BMS_Data.Pack_Voltage;										// Pack Voltage
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Int_Values[(*Index_Counter)++] = 11000;											// Total Capacity
 	Int_Values[(*Index_Counter)++] = 1000;											// Used Capacity
@@ -201,10 +201,10 @@ uint8_t Log_All_Data()
 	Int_Values[(*Index_Counter)++] = 800;											// Charge/Discharge Rate
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
-	Char_Values[(*Index_Counter)++] = 1;											// Charge/Discharge Status
+	Char_Values[(*Index_Counter)++] = Log_Variables.Charging_Discharging_Status;	// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
-	Float_Values[(*Index_Counter)++] = 35.6;										// Temperature of Pack Read By Sensor
+	Float_Values[(*Index_Counter)++] = BMS_Data.Pack_Temperature;										// Temperature of Pack Read By Sensor
 	Float_Values[(*Index_Counter)++] = 19.6;										// Final Pack Voltage read after charge/discharge cycle
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
