@@ -61,10 +61,6 @@ typedef struct
 {
 	uint32_t Start_Time;
 	uint32_t End_Time;
-
-	uint16_t Total_Capacity;
-	uint16_t Capacity_Used;
-	uint16_t Pack_Cycles;
 	uint8_t Charging_Discharging_Status;
 
 	float Final_Pack_Voltage;
@@ -81,7 +77,6 @@ extern FATFS FatFs;
 extern FIL BMS_Log_File;
 extern char File_Name[50];
 
-//extern Log_SD_Summary_Vars SD_Summary_Data;
 extern bool Log_Status;
 
 uint16_t Total_Num_of_Files;

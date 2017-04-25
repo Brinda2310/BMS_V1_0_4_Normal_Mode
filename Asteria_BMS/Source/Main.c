@@ -28,15 +28,6 @@ typedef struct
 	uint8_t Seconds;
 }RTC_Data;
 
-RTC_Data RTC_Info;
-
-uint8_t Showtime[30];
-uint8_t RecData = 0;
-
-uint8_t data[4] = {0x11,0x22,0x33,0x44};
-uint8_t ReadEEPROMData[10];
-uint8_t Counter = 0;
-
 const uint8_t BMS_Firmware_Version[3] =
 {
 		0,			//Major release version--modified when code is being merged to Master branch.
@@ -45,8 +36,12 @@ const uint8_t BMS_Firmware_Version[3] =
 };
 
 bool Start_Log = false;
-uint8_t Status_Byte_0x83 = 0x00,Status_Byte_0x82 = 0x00;
-uint8_t Cell_Voltage[16];
+RTC_Data RTC_Info;
+
+uint8_t RecData = 0;
+
+uint8_t data[4] = {0x11,0x22,0x33,0x44};
+uint8_t ReadEEPROMData[10];
 
 int main(void)
 {
@@ -87,6 +82,8 @@ int main(void)
 		BMS_COM_Write_Data("SD Card Not Present\r", 20);
 	}
 
+//	BMS_Estimate_Initial_Capacity();
+
 	while(1)
 	{
 		BMS_COM_Read_Data(&RecData, 1);
@@ -119,7 +116,6 @@ int main(void)
 			case 'F':
 				break;
 
-
 //			default:
 //				BMS_COM_Write_Data("Wrong Input\r",12);
 //				break;
@@ -129,84 +125,62 @@ int main(void)
 
 		if (_25Hz_Flag == true)
 		{
-			Counter++;
-			BMS_Read_Cell_Voltages(CELL1_VOLTAGE,Cell_Voltage);
-			BMS_Read_Pack_Data(PACK_VOLTAGE);
-			BMS_Read_Pack_Data(PACK_CURRENT);
+			BMS_Read_Cell_Voltages();
+			BMS_Read_Pack_Voltage();
+			BMS_Read_Pack_Current();
 			BMS_Read_Pack_Temperature();
-
-			BMS_RAM_Status_Register(RAM_0x83_STATUS,&Status_Byte_0x83);
-			BMS_RAM_Status_Register(RAM_0x82_STATUS,&Status_Byte_0x82);
-
-			if(Status_Byte_0x82 & IS_PACK_CHARGING)
-			{
-				Log_Variables.Charging_Discharging_Status = CHARGING;
-				//BMS_COM_Write_Data("Charging\r", 9);
-			}
-
-			if (Status_Byte_0x82 & IS_PACK_DISCHARGING)
-			{
-				Log_Variables.Charging_Discharging_Status = DISCHARGING;
-				BMS_COM_Write_Data("Discharging\r", 12);
-			}
-			else
-				Log_Variables.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
-
-
+			BMS_Read_RAM_Status_Register();
+			BMS_Estimate_Capacity_Used();
 
 			_25Hz_Flag = false;
 		}
 
 		if(_1Hz_Flag == true)
 		{
-			uint8_t Buffer[50];
-			uint8_t Length1 = sprintf(Buffer,"%0.3f\r",BMS_Data.Pack_Voltage);
+			char Buffer[200];
+			uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
+			BMS_COM_Write_Data(Buffer,Length1);
+			Delay_Millis(5);
+
+			Length1 = sprintf(Buffer,"Pack_Current = %0.3fA\r",Get_BMS_Pack_Current());
+			BMS_COM_Write_Data(Buffer,Length1);
+			Delay_Millis(5);
+
+			Length1 = sprintf(Buffer,"Pack_Temp = %0.3fmV\r",Get_BMS_Pack_Temperature());
 			BMS_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(2);
 
-			Length1 = sprintf(Buffer,"%0.3f\r",BMS_Data.Pack_Current);
-			BMS_COM_Write_Data(Buffer,Length1);
-			Delay_Millis(2);
-
-			Length1 = sprintf(Buffer,"%0.3f\r",BMS_Data.Pack_Temperature);
-			BMS_COM_Write_Data(Buffer,Length1);
-			Delay_Millis(2);
-
-			uint8_t Length = 0;
-			Length += sprintf(Buffer, "%0.3f\r", BMS_Data.Cell1_Voltage);
-			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell2_Voltage);
-			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell3_Voltage);
-//			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell4_Voltage);
-//			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell5_Voltage);
-			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell6_Voltage);
-			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell7_Voltage);
-			Length += sprintf(&Buffer[Length], "%0.3f\r",BMS_Data.Cell8_Voltage);
+			uint16_t Length = 0;
+			Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
+			Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
+			Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
+			Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
+			Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
+			Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 
 			BMS_COM_Write_Data(Buffer, Length);
-			Delay_Millis(8);
+			Delay_Millis(10);
 
 			if ((Log_All_Data() == 1)  && Start_Log == 1)
 			{
 				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
 			}
-
-			if(Status_Byte_0x83 & IS_ISL_IN_SLEEP)
+			if(Status_Flag.BMS_In_Sleep == YES)
 			{
-				BMS_COM_Write_Data("Sleep\r", 6);
+				BMS_COM_Write_Data("In sleep mode\r",14);
 			}
 			else
-				BMS_COM_Write_Data("No Sleep\r", 9);
+			{
+				BMS_COM_Write_Data("Non-sleep\r",10);
+			}
+			Delay_Millis(2);
+			if(Status_Flag.Pack_Discharging == YES)
+			{
+				BMS_COM_Write_Data("Discharging\r",14);
+			}
+			else
+				BMS_COM_Write_Data("Low power mode\r",15);
 
-			Delay_Millis(5);
-
-			Counter = 0;
-			Status_Byte_0x82 = 0;
-			Status_Byte_0x83 = 0;
-//			RTC_TimeShow(Showtime);
-//			Delay_Millis(2);
-//			BMS_COM_Write_Data(Showtime, strlen((char*) Showtime));
-//			Delay_Millis(2);
-//			memset(Showtime, 0, sizeof(Showtime));
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));
 		}

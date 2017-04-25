@@ -16,24 +16,21 @@ Log_Vars Log_Variables;
 
 char GPS_Date_Time[25];
 
-char String_Buffer[512];
+static char String_Buffer[512];
 
 bool Log_Status = 1;
 
 /* Variable to handle the user buffer index */
-int *String_Index, Memory_Address1 = 0;
+static int *String_Index, Memory_Address1 = 0;
 
 /* Variable temp_var is defined just to get any free memory location which is to be assigned to index_counter; otherwise defining pointer
  * without initialization will be dangling pointer */
-uint8_t *Index_Counter,Memory_Address2 = 0;
+static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
 char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_3.txt";
 
 uint16_t Stop_Time_Cursor = 0;
-
-/* This variables becomes SD_NOT_PRESENT whenever any error occurs with fatfs operation */
-uint8_t Check_SD_Card = SDC_PRESENT;
 
 uint8_t Create_BMS_Log_File()
 {
@@ -99,7 +96,6 @@ uint8_t Create_BMS_Log_File()
 	File_Name[lcl_counter++] = 't';
 	File_Name[lcl_counter++] = '\0';
 
-
 	if(f_mount(&FatFs,"0",1) != FR_OK)
 	{
 		Log_Status = 0;
@@ -130,7 +126,7 @@ uint8_t Create_BMS_Log_File()
 	*String_Index+= sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 	*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-	*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Total_Capacity,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
+	*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Total_Capacity,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
 	*String_Index += sprintf(&String_Buffer[*String_Index],"C/D Status,Temperature,Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
 
 	if(f_write(&BMS_Log_File,String_Buffer,*String_Index,&BytesWritten) != FR_OK)
@@ -174,26 +170,27 @@ uint8_t Log_All_Data()
 
 	String_Buffer[(*String_Index)++] = ',';
 
-	Long_Values[(*Index_Counter)++] = (SysTickCounter/1000);								// Start Time
+	Long_Values[(*Index_Counter)++] = (Get_System_Time()/1000);								// Start Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Long_Values[(*Index_Counter)++] = (SysTickCounter/1000);								// End Time
+	Long_Values[(*Index_Counter)++] = (Get_System_Time()/1000);								// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell1_Voltage;										// Cell1 Voltage
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell2_Voltage;										// Cell2 Voltage
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell3_Voltage;										// Cell3 Voltage
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell6_Voltage;										// Cell4 Voltage
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell7_Voltage;										// Cell5 Voltage
-	Float_Values[(*Index_Counter)++] = BMS_Data.Cell8_Voltage;										// Cell6 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();										// Cell1 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell2_Voltage();										// Cell2 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell3_Voltage();										// Cell3 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell6_Voltage();										// Cell4 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell7_Voltage();										// Cell5 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell8_Voltage();										// Cell6 Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = BMS_Data.Pack_Voltage;										// Pack Voltage
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();										// Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 11000;											// Total Capacity
-	Int_Values[(*Index_Counter)++] = 1000;											// Used Capacity
-	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current()/1000);										// Pack Voltage
+	Float_Values[(*Index_Counter)++] = (float)BMS_Get_Initial_Capacity();											// Total Capacity
+	Float_Values[(*Index_Counter)++] = BMS_Get_Total_Capacity_Used();											// Used Capacity
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Int_Values[(*Index_Counter)++] = 5;												// Pack Cycles
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
@@ -204,7 +201,7 @@ uint8_t Log_All_Data()
 	Char_Values[(*Index_Counter)++] = Log_Variables.Charging_Discharging_Status;	// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
-	Float_Values[(*Index_Counter)++] = BMS_Data.Pack_Temperature;										// Temperature of Pack Read By Sensor
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();										// Temperature of Pack Read By Sensor
 	Float_Values[(*Index_Counter)++] = 19.6;										// Final Pack Voltage read after charge/discharge cycle
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 

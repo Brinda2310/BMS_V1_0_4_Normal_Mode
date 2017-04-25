@@ -12,22 +12,28 @@ uint8_t EEPROM_ENABLE_DATA[2] = {0x89,0x01};
 uint8_t RAM_ENABLE_DATA[2] = {0x89,0x00};
 uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 
+double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
+uint32_t Current_Time = 0,Previous_Time = 0;
+
+static ISL_943203_Data BMS_Data;
+BMS_Status_Flags Status_Flag;
+
 void BMS_Init()
 {
 	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
 }
 
-void BMS_EEPROM_Access_Enable()
+static void BMS_EEPROM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,EEPROM_ENABLE_DATA,sizeof(EEPROM_ENABLE_DATA));
 }
 
-void BMS_RAM_Access_Enable()
+static void BMS_RAM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
 }
 
-ISL_WriteStatus BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
+uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
 	BMS_EEPROM_Access_Enable();
 	Delay_Millis(1);
@@ -75,44 +81,61 @@ void BMS_Force_Sleep()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 }
+
+static void Set_BMS_Status_Flags(uint32_t Flags)
+{
+	if(Flags & IS_ISL_IN_SLEEP)
+	{
+		Status_Flag.BMS_In_Sleep = YES;
+	}
+	else
+	{
+		Status_Flag.BMS_In_Sleep = NO;
+	}
+
+	if(Flags & IS_PACK_DISCHARGING)
+	{
+		Status_Flag.Pack_Discharging = YES;
+	}
+	else
+		Status_Flag.Pack_Discharging = NO;
+}
+
 /*
  * This function gives the status flags of various RAM registers
- * The parameters to this function should be
- * RAM_0x80_STATUS
- * RAM_0x81_STATUS
- * RAM_0x82_STATUS
- * RAM_0x83_STATUS
  */
-void BMS_RAM_Status_Register(uint8_t Register_Address,uint8_t *Data)
+void BMS_Read_RAM_Status_Register()
 {
+	typedef union
+	{
+		uint8_t Data[4];
+		uint32_t Stat_Flags;
+	}Bytes_to_integer;
+
+	Bytes_to_integer RAM_Flags;
+
+	uint8_t Register_Address = RAM_STATUS_REG_ADDRESS;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Data,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4);
+	Set_BMS_Status_Flags(RAM_Flags.Stat_Flags);
 }
+
 static void Convert_To_Cell_Voltages(uint8_t *Data)
 {
-//	char Buffer[50];
-	uint16_t Cell1_V,Cell2_V,Cell3_V,Cell4_V,Cell5_V,Cell6_V,Cell7_V,Cell8_V;
+	unsigned short  *Integers;
+	Integers = (unsigned short*)Data;
 
-	Cell1_V = (*Data++) | (*Data++ << 8);
-	Cell2_V = (*Data++) | (*Data++ << 8);
-	Cell3_V = (*Data++) | (*Data++ << 8);
-	Cell4_V = (*Data++) | (*Data++ << 8);
-	Cell5_V = (*Data++) | (*Data++ << 8);
-	Cell6_V = (*Data++) | (*Data++ << 8);
-	Cell7_V = (*Data++) | (*Data++ << 8);
-	Cell8_V = (*Data++) | (*Data++ << 8);
-
-	BMS_Data.Cell1_Voltage = (Cell1_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell2_Voltage = (Cell2_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell3_Voltage = (Cell3_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell4_Voltage = (Cell4_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell5_Voltage = (Cell5_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell6_Voltage = (Cell6_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell7_Voltage = (Cell7_V * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell8_Voltage = (Cell8_V * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell2_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell3_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell4_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell5_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell6_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 
 //	uint8_t Length = 0;
-//	Length += sprintf(Buffer,"%0.3f\r",BMS_Data.Cell1_Voltage);
+//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell1_Voltage);
 //	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell2_Voltage);
 //	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell3_Voltage);
 //	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell4_Voltage);
@@ -127,54 +150,153 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 /*
  * This function can give individual cell voltages inside the pack
  */
-void BMS_Read_Cell_Voltages(uint8_t Register_Address,uint8_t *Received_Data)
+void BMS_Read_Cell_Voltages()
 {
+	uint8_t *Cell_Voltages;
+	Cell_Voltages = (uint8_t*)malloc(sizeof(uint8_t) * NUMBER_OF_CELLS);
+
+	uint8_t Register_Address = CELL_VOLTAGE_ADDR;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
 	/* Sequential read method of ISL is used to read all the cell voltages as they are in sequence in EEPROM */
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,16);
-	Delay_Millis(2);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,NUMBER_OF_CELLS);
 	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
 	 * to find the actual cell voltage */
-	Convert_To_Cell_Voltages(Received_Data);
+	Convert_To_Cell_Voltages(Cell_Voltages);
+	free(Cell_Voltages);
+}
+
+void BMS_Estimate_Initial_Capacity(void)
+{
+	static uint8_t Counter = 0;
+	if(_25Hz_Flag == true)
+	{
+		Counter++;
+		BMS_Estimate_Capacity_Used();
+		_25Hz_Flag = false;
+	}
+}
+
+double BMS_Get_Initial_Capacity()
+{
+	return BMS_Data.Total_Pack_Capacity;
+}
+
+void BMS_Estimate_Capacity_Used()
+{
+	Current_Time = Get_System_Time();
+	Current_Amperes = Get_BMS_Pack_Current();
+	BMS_Data.Capacity_Used += ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
+	Previous_Amperes = Current_Amperes;
+	Previous_Time = Current_Time;
+}
+
+double BMS_Get_Total_Capacity_Used()
+{
+	return BMS_Data.Capacity_Used;
 }
 
 /*
  * This function can give the pack current and pack voltage
  * The parameters that can be passed to this function are PACK_VOLTAGE and PACK_CURRENT
  */
-void BMS_Read_Pack_Data(uint8_t Register_Address)
+void BMS_Read_Pack_Voltage()
 {
-	uint8_t Received_Data[2];
+	uint16_t *Pack_Data;
+	uint8_t Address = PACK_VOLTAGE_ADDR;
 
-	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,2);
+	Pack_Data = (uint16_t*)malloc(2);
 
-	if(Register_Address == PACK_VOLTAGE)
-	{
-		uint16_t Converted_Pack_Voltage;
-		Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Voltage);
-		BMS_Data.Pack_Voltage = (Converted_Pack_Voltage * 1.8 * 32)/(4095);
-	}
-	else if (Register_Address == PACK_CURRENT)
-	{
-		uint16_t Converted_Pack_Current;
-		Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Current);
-		BMS_Data.Pack_Current = (((float)Converted_Pack_Current * 1800) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
-	}
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)Pack_Data,2);
+
+	BMS_Data.Pack_Voltage = ((*(uint16_t*)Pack_Data) * 1.8 * 32)/(4095);
+
+	free(Pack_Data);
+}
+
+void BMS_Read_Pack_Current()
+{
+	uint16_t *Pack_Data;
+	uint8_t Address = PACK_CURRENT_ADDR;
+
+	Pack_Data = (uint16_t*)malloc(2);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)Pack_Data, 2);
+
+	BMS_Data.Pack_Current = (((float)(*Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
+
+	free(Pack_Data);
 }
 
 void BMS_Read_Pack_Temperature()
 {
-	uint8_t Received_Data[2];
-	uint8_t Register_Address = BMS_PACK_TEMPERATURE;
-	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Received_Data,2);
-	uint16_t Converted_Pack_Temperature = 0;
-	Convert_Bytes_To_Short(Received_Data,&Converted_Pack_Temperature);
-	BMS_Data.Pack_Temperature = ((float)Converted_Pack_Temperature * 1.8)/(4095);
+	uint16_t *Pack_Data;
+	uint8_t Address = PACK_TEMPERATURE_ADDR;
 
+	Pack_Data = (uint16_t*)malloc(2);
+
+	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*) Pack_Data,2);
+
+	BMS_Data.Pack_Temperature = ((float)(*Pack_Data) * 1.8)/(4095);
+
+	free(Pack_Data);
 }
-void Convert_Bytes_To_Short(uint8_t *Data,uint16_t *Short_Data)
+
+float Get_Cell1_Voltage()
 {
-	*Short_Data = (*Data++) | ((*Data++) << 8);
+	return BMS_Data.Cell1_Voltage;
 }
+
+float Get_Cell2_Voltage()
+{
+	return BMS_Data.Cell2_Voltage;
+}
+
+float Get_Cell3_Voltage()
+{
+	return BMS_Data.Cell3_Voltage;
+}
+
+float Get_Cell4_Voltage()
+{
+	return BMS_Data.Cell4_Voltage;
+}
+
+float Get_Cell5_Voltage()
+{
+	return BMS_Data.Cell5_Voltage;
+}
+
+float Get_Cell6_Voltage()
+{
+	return BMS_Data.Cell6_Voltage;
+}
+
+float Get_Cell7_Voltage()
+{
+	return BMS_Data.Cell7_Voltage;
+}
+
+float Get_Cell8_Voltage()
+{
+	return BMS_Data.Cell8_Voltage;
+}
+
+float Get_BMS_Pack_Voltage()
+{
+	return BMS_Data.Pack_Voltage;
+}
+
+float Get_BMS_Pack_Current()
+{
+	/* Convert the ampere current to milli amperes by mutliplying by 1000 */
+	return (BMS_Data.Pack_Current * 1000);
+}
+
+float Get_BMS_Pack_Temperature()
+{
+	return BMS_Data.Pack_Temperature;
+}
+
