@@ -5,8 +5,8 @@
  *      Author: NIKHIL
  */
 
-#ifndef BMS_ISL94203_H_
-#define BMS_ISL94203_H_
+#ifndef BMS_ASIC_H_
+#define BMS_ASIC_H_
 
 #include "I2C_API.h"
 

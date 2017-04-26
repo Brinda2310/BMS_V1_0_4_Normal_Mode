@@ -5,7 +5,7 @@
  *      Author: NIKHIL
  */
 
-#include "BMS_ISL94203.h"
+#include <BMS_ASIC.h>
 #include "BMS_Timing.h"
 
 uint8_t EEPROM_ENABLE_DATA[2] = {0x89,0x01};

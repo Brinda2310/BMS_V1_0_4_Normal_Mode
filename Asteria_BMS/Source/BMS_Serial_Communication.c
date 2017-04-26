@@ -5,7 +5,7 @@
  *      Author: NIKHIL
  */
 
-#include "BMS_Communication.h"
+#include <BMS_Serial_Communication.h>
 
 void BMS_COM_Init()
 {

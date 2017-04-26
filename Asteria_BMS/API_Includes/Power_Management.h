@@ -8,10 +8,10 @@
 #ifndef POWER_MANAGEMENT_H_
 #define POWER_MANAGEMENT_H_
 
+#include <BMS_ASIC.h>
+#include <BMS_Serial_Communication.h>
 #include "Hardware_Config.h"
-#include "BMS_Communication.h"
 #include "BMS_Timing.h"
-#include "BMS_ISL94203.h"
 #include "GPIO_API.h"
 
 void MCU_Sleep_Mode_Init();

@@ -7,14 +7,14 @@
  * @brief   Default main function.
  ******************************************************************************
 */
+#include <BMS_ASIC.h>
+#include <BMS_Data_Log.h>
+#include <BMS_Serial_Communication.h>
 #include "BMS_Timing.h"
-#include "BMS_Communication.h"
-#include "BMS_ISL94203.h"
 #include "FLASH_API.h"
 #include "RTC_API.h"
 #include "GPIO_API.h"
 #include "ff.h"
-#include "Data_Log.h"
 #include "Power_Management.h"
 
 typedef struct

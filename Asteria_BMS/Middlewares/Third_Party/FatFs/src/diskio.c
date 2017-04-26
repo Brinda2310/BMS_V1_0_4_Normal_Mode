@@ -36,8 +36,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <SD_SPI.h>
 #include "diskio.h"
-#include "sd_spi.h"
 
 #define BLOCK_SIZE                512
 

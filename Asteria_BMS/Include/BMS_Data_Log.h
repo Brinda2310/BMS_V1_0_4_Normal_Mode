@@ -5,13 +5,13 @@
  *      Author: NIKHIL
  */
 
-#ifndef DATA_LOG_H_
-#define DATA_LOG_H_
+#ifndef BMS_DATA_LOG_H_
+#define BMS_DATA_LOG_H_
 
+#include <BMS_Serial_Communication.h>
 #include "TIMER_API.h"
 #include "ff.h"
 #include "GPIO_API.h"
-#include "BMS_Communication.h"
 #include "FLASH_API.h"
 
 #define DIRECTORY_NAME_START_ADDRESS				ADDR_FLASH_PAGE_127
@@ -89,4 +89,4 @@ void log_sprintf(void *data_array,char *dst_array,unsigned char *count,int *offs
 uint8_t Log_All_Data();
 void Stop_Log();
 
-#endif /* DATA_LOG_H_ */
+#endif /* BMS_DATA_LOG_H_ */
