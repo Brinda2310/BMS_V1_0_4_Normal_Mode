@@ -18,7 +18,7 @@ uint32_t Current_Time = 0,Previous_Time = 0;
 static ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 
-void BMS_Init()
+void BMS_ASIC_Init()
 {
 	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
 }

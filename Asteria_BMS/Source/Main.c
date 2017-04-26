@@ -10,11 +10,10 @@
 #include <BMS_ASIC.h>
 #include <BMS_Data_Log.h>
 #include <BMS_Serial_Communication.h>
-#include "BMS_Timing.h"
+#include <BMS_GPIOs.h>
+#include <BMS_Timing.h>
 #include "FLASH_API.h"
 #include "RTC_API.h"
-#include "GPIO_API.h"
-#include "ff.h"
 #include "Power_Management.h"
 
 typedef struct
@@ -48,12 +47,15 @@ int main(void)
 	HAL_Init();
 	Set_System_Clock_Frequency();
 
-	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
-
 	Delay_Millis(5000);
 	BMS_Timers_Init();
-	BMS_COM_Init();
-	BMS_Init();
+#if DEBUG_COM == ENABLE
+	BMS_Debug_COM_Init();
+#endif
+	BMS_Status_LEDs_Init();
+	BMS_Switch_Init();
+
+	BMS_ASIC_Init();
 	RTC_Init();
 
 	RTC_Info.Day = FRIDAY;
@@ -74,19 +76,19 @@ int main(void)
 
 	if(Create_BMS_Log_File() == 1)
 	{
-		BMS_COM_Write_Data("Log_file_Created\r", 17);
+		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
 		Start_Log = true;
 	}
 	else
 	{
-		BMS_COM_Write_Data("SD Card Not Present\r", 20);
+		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
 	}
 
 //	BMS_Estimate_Initial_Capacity();
 
 	while(1)
 	{
-		BMS_COM_Read_Data(&RecData, 1);
+		BMS_Debug_COM_Read_Data(&RecData, 1);
 
 		switch(RecData)
 		{
@@ -106,7 +108,7 @@ int main(void)
 				break;
 			case 'D':
 				BMS_User_EEPROM_Read(USER_EEPROM_START_ADDRESS,ReadEEPROMData, 4);
-				BMS_COM_Write_Data(ReadEEPROMData, 4);
+				BMS_Debug_COM_Write_Data(ReadEEPROMData, 4);
 				Delay_Millis(5);
 				memset(ReadEEPROMData, 0, sizeof(ReadEEPROMData));
 				break;
@@ -117,7 +119,7 @@ int main(void)
 				break;
 
 //			default:
-//				BMS_COM_Write_Data("Wrong Input\r",12);
+//				BMS_Debug_COM_Write_Data("Wrong Input\r",12);
 //				break;
 		}
 
@@ -125,12 +127,26 @@ int main(void)
 
 		if (_25Hz_Flag == true)
 		{
+			static uint16_t Counter = 0;
+
+			if (BMS_Read_Switch_Status() == PRESSED && Counter != 100)
+			{
+				Counter++;
+				if(Counter >= 100)
+				{
+					BMS_Show_LED_Status();
+				}
+
+			}
+			else
+			{
+				Counter = 0;
+			}
 			BMS_Read_Cell_Voltages();
 			BMS_Read_Pack_Voltage();
 			BMS_Read_Pack_Current();
 			BMS_Read_Pack_Temperature();
 			BMS_Read_RAM_Status_Register();
-			BMS_Estimate_Capacity_Used();
 
 			_25Hz_Flag = false;
 		}
@@ -139,15 +155,15 @@ int main(void)
 		{
 			char Buffer[200];
 			uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
-			BMS_COM_Write_Data(Buffer,Length1);
+			BMS_Debug_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(5);
 
 			Length1 = sprintf(Buffer,"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
-			BMS_COM_Write_Data(Buffer,Length1);
+			BMS_Debug_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(5);
 
 			Length1 = sprintf(Buffer,"Pack_Temp = %0.3fmV\r",Get_BMS_Pack_Temperature());
-			BMS_COM_Write_Data(Buffer,Length1);
+			BMS_Debug_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(2);
 
 			uint16_t Length = 0;
@@ -158,28 +174,28 @@ int main(void)
 			Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
 			Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 
-			BMS_COM_Write_Data(Buffer, Length);
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 			Delay_Millis(10);
 
 			if ((Log_All_Data() == 1)  && Start_Log == 1)
 			{
-				GPIO_Write(GPIO_B, BOARD_LED, PIN_TOGGLE);
+				GPIO_Write(GPIO_A, LED_1, PIN_TOGGLE);
 			}
 			if(Status_Flag.BMS_In_Sleep == YES)
 			{
-				BMS_COM_Write_Data("In sleep mode\r",14);
+				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
 			}
 			else
 			{
-				BMS_COM_Write_Data("Non-sleep\r",10);
+				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
 			}
 			Delay_Millis(2);
 			if(Status_Flag.Pack_Discharging == YES)
 			{
-				BMS_COM_Write_Data("Discharging\r",14);
+				BMS_Debug_COM_Write_Data("Discharging\r",14);
 			}
 			else
-				BMS_COM_Write_Data("Low power mode\r",15);
+				BMS_Debug_COM_Write_Data("Low power mode\r",15);
 
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));

@@ -21,21 +21,21 @@ static char String_Buffer[512];
 bool Log_Status = 1;
 
 /* Variable to handle the user buffer index */
-static int *String_Index, Memory_Address1 = 0;
+static uint32_t *String_Index, Memory_Address1 = 0;
 
 /* Variable temp_var is defined just to get any free memory location which is to be assigned to index_counter; otherwise defining pointer
  * without initialization will be dangling pointer */
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_4.txt";
+char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_5.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
 uint8_t Create_BMS_Log_File()
 {
-	uint8_t String_Length = 0;
-	uint8_t lcl_counter = 0,Number_in_String[6];
+//	uint8_t String_Length = 0;
+//	uint8_t lcl_counter = 0,Number_in_String[6];
 	uint8_t Result = 1;
 
 	String_Index = &Memory_Address1;
@@ -266,7 +266,7 @@ void Stop_Log()
  * 		data_type : it can be INT_DATA/SHORT_INT_DATA/FLOAT_DATA/SHORT_FLOAT_DATA/LONG/CHAR_DATA
  *
  * */
-void log_sprintf(void *data_array,char *dst_array,unsigned char *count,int *offset,unsigned char data_type)
+void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type)
 {
 	unsigned char index = 0;
 	int lcl_index = 0 ;

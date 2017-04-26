@@ -55,7 +55,7 @@
 
 #define NUMBER_OF_CELLS											2*8
 #define SENSE_RESISTOR_VALUE									1e-3
-#define CURRENT_GAIN											50
+#define CURRENT_GAIN											5
 
 enum Write_Result
 {
@@ -131,7 +131,8 @@ typedef struct
 	uint16_t Pack_Cycles;
 }ISL_943203_Data;
 
-void BMS_Init();
+void BMS_ASIC_Init();
+void BMS_Status_LEDs_Init();
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
 void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size);
 void BMS_Force_Sleep();

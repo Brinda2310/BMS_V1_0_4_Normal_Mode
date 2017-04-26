@@ -794,6 +794,8 @@ void SD_IO_Init(void)
   uint8_t counter = 0;
 
   GPIO_Init(GPIO_A,SD_CARD_CS,GPIO_OUTPUT,PULLUP);
+//  GPIO_Init(GPIO_B,SD_CARD_DETECT,GPIO_INPUT,PULLUP);
+
 
   /*------------Put SD in SPI mode--------------*/
   /* SD SPI Configuration */
@@ -837,7 +839,7 @@ void SD_Status()
 {
 	SdStatus = SD_PRESENT;
 
-//	if(GPIO_Read(GPIO_A,SD_CARD_DETECT) == PIN_HIGH)
+//	if(GPIO_Read(GPIO_B,SD_CARD_DETECT) == PIN_HIGH)
 //		SdStatus = SD_NOT_PRESENT;
 //	else
 //		SdStatus = SD_PRESENT;

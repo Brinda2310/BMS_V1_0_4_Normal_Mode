@@ -76,9 +76,9 @@ void Exit_Sleep_Mode()
      * the global variables values to their previous state as before going to sleep */
     HAL_Init();
     Set_System_Clock_Frequency();
-	GPIO_Init(GPIO_B,BOARD_LED,GPIO_OUTPUT,PULLUP);
+	GPIO_Init(GPIO_A,LED_1,GPIO_OUTPUT,PULLUP);
     BMS_Timers_Init();
-    BMS_COM_Init();
+    BMS_Debug_COM_Init();
 #endif
 }
 

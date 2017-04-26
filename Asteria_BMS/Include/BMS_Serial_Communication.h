@@ -12,8 +12,8 @@
 
 #define SYSTEM_BUAD_RATE							115200
 
-void BMS_COM_Init(void);
-void BMS_COM_Read_Data(uint8_t *Data_Ptr,uint16_t Size);
-void BMS_COM_Write_Data(void *Data_Ptr,uint16_t Size);
+void BMS_Debug_COM_Init(void);
+void BMS_Debug_COM_Read_Data(uint8_t *Data_Ptr,uint16_t Size);
+void BMS_Debug_COM_Write_Data(void *Data_Ptr,uint16_t Size);
 
 #endif /* BMS_SERIAL_COMMUNICATION_H_ */
