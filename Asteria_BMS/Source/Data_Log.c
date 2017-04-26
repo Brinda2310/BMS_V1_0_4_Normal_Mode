@@ -28,7 +28,7 @@ static int *String_Index, Memory_Address1 = 0;
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_3.txt";
+char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_4.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -50,51 +50,51 @@ uint8_t Create_BMS_Log_File()
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
-	/* File name for log file inside the directory */
-	File_Name[lcl_counter++] = '0';
-	File_Name[lcl_counter++] = ':';
-	File_Name[lcl_counter++] = '/';
-
-	/* Fill the file_name buffer with start time and date; Assuming GPS has given the date and time */
-	File_Name[lcl_counter++] = GPS_Date_Time[6];
-	File_Name[lcl_counter++] = GPS_Date_Time[7];
-	File_Name[lcl_counter++] = GPS_Date_Time[8];
-	File_Name[lcl_counter++] = GPS_Date_Time[9];
-	File_Name[lcl_counter++] = '-';
-	File_Name[lcl_counter++] = GPS_Date_Time[3];
-	File_Name[lcl_counter++] = GPS_Date_Time[4];
-	File_Name[lcl_counter++] = '-';
-	File_Name[lcl_counter++] = GPS_Date_Time[0];
-	File_Name[lcl_counter++] = GPS_Date_Time[1];
-	File_Name[lcl_counter++] = '_';
-
-	for (int index = 0; index < 8; index++)
-	{
-		File_Name[lcl_counter++] = GPS_Date_Time[11 + index];
-	}
-	File_Name[lcl_counter++] = '_';
-	File_Name[lcl_counter++] = 'B';
-	File_Name[lcl_counter++] = 'M';
-	File_Name[lcl_counter++] = 'S';
-	File_Name[lcl_counter++] = '_';
-
-	/* Assuming this file count is read from internal flash */
-	Total_Num_of_Files++;
-
-	/* Convert the number into string */
-	itoa(Total_Num_of_Files, (char*) Number_in_String, 10);
-
-	String_Length = strlen((char*) Number_in_String);
-
-	/* Add the file number in file name */
-	for (int index = 0; index < String_Length; index++) {
-		File_Name[lcl_counter++] = Number_in_String[index];
-	}
-	File_Name[lcl_counter++] = '.';
-	File_Name[lcl_counter++] = 't';
-	File_Name[lcl_counter++] = 'x';
-	File_Name[lcl_counter++] = 't';
-	File_Name[lcl_counter++] = '\0';
+//	/* File name for log file inside the directory */
+//	File_Name[lcl_counter++] = '0';
+//	File_Name[lcl_counter++] = ':';
+//	File_Name[lcl_counter++] = '/';
+//
+//	/* Fill the file_name buffer with start time and date; Assuming GPS has given the date and time */
+//	File_Name[lcl_counter++] = GPS_Date_Time[6];
+//	File_Name[lcl_counter++] = GPS_Date_Time[7];
+//	File_Name[lcl_counter++] = GPS_Date_Time[8];
+//	File_Name[lcl_counter++] = GPS_Date_Time[9];
+//	File_Name[lcl_counter++] = '-';
+//	File_Name[lcl_counter++] = GPS_Date_Time[3];
+//	File_Name[lcl_counter++] = GPS_Date_Time[4];
+//	File_Name[lcl_counter++] = '-';
+//	File_Name[lcl_counter++] = GPS_Date_Time[0];
+//	File_Name[lcl_counter++] = GPS_Date_Time[1];
+//	File_Name[lcl_counter++] = '_';
+//
+//	for (int index = 0; index < 8; index++)
+//	{
+//		File_Name[lcl_counter++] = GPS_Date_Time[11 + index];
+//	}
+//	File_Name[lcl_counter++] = '_';
+//	File_Name[lcl_counter++] = 'B';
+//	File_Name[lcl_counter++] = 'M';
+//	File_Name[lcl_counter++] = 'S';
+//	File_Name[lcl_counter++] = '_';
+//
+//	/* Assuming this file count is read from internal flash */
+//	Total_Num_of_Files++;
+//
+//	/* Convert the number into string */
+//	itoa(Total_Num_of_Files, (char*) Number_in_String, 10);
+//
+//	String_Length = strlen((char*) Number_in_String);
+//
+//	/* Add the file number in file name */
+//	for (int index = 0; index < String_Length; index++) {
+//		File_Name[lcl_counter++] = Number_in_String[index];
+//	}
+//	File_Name[lcl_counter++] = '.';
+//	File_Name[lcl_counter++] = 't';
+//	File_Name[lcl_counter++] = 'x';
+//	File_Name[lcl_counter++] = 't';
+//	File_Name[lcl_counter++] = '\0';
 
 	if(f_mount(&FatFs,"0",1) != FR_OK)
 	{

@@ -142,7 +142,7 @@ int main(void)
 			BMS_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(5);
 
-			Length1 = sprintf(Buffer,"Pack_Current = %0.3fA\r",Get_BMS_Pack_Current());
+			Length1 = sprintf(Buffer,"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
 			BMS_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(5);
 

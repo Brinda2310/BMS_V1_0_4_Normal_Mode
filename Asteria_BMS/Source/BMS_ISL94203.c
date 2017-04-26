@@ -152,8 +152,7 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
  */
 void BMS_Read_Cell_Voltages()
 {
-	uint8_t *Cell_Voltages;
-	Cell_Voltages = (uint8_t*)malloc(sizeof(uint8_t) * NUMBER_OF_CELLS);
+	uint8_t Cell_Voltages[NUMBER_OF_CELLS];
 
 	uint8_t Register_Address = CELL_VOLTAGE_ADDR;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
@@ -162,7 +161,6 @@ void BMS_Read_Cell_Voltages()
 	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
 	 * to find the actual cell voltage */
 	Convert_To_Cell_Voltages(Cell_Voltages);
-	free(Cell_Voltages);
 }
 
 void BMS_Estimate_Initial_Capacity(void)
@@ -201,47 +199,37 @@ double BMS_Get_Total_Capacity_Used()
  */
 void BMS_Read_Pack_Voltage()
 {
-	uint16_t *Pack_Data;
+	uint16_t Pack_Data;
 	uint8_t Address = PACK_VOLTAGE_ADDR;
 
-	Pack_Data = (uint16_t*)malloc(2);
-
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)Pack_Data,2);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
 
-	BMS_Data.Pack_Voltage = ((*(uint16_t*)Pack_Data) * 1.8 * 32)/(4095);
-
-	free(Pack_Data);
+	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Data) * 1.8 * 32)/(4095);
 }
 
 void BMS_Read_Pack_Current()
 {
-	uint16_t *Pack_Data;
+	uint16_t Pack_Data;
 	uint8_t Address = PACK_CURRENT_ADDR;
 
-	Pack_Data = (uint16_t*)malloc(2);
-
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)Pack_Data, 2);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
 
-	BMS_Data.Pack_Current = (((float)(*Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
+	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
 
-	free(Pack_Data);
 }
 
 void BMS_Read_Pack_Temperature()
 {
-	uint16_t *Pack_Data;
+	uint16_t Pack_Data;
 	uint8_t Address = PACK_TEMPERATURE_ADDR;
 
-	Pack_Data = (uint16_t*)malloc(2);
-
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*) Pack_Data,2);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
 
-	BMS_Data.Pack_Temperature = ((float)(*Pack_Data) * 1.8)/(4095);
+	BMS_Data.Pack_Temperature = ((float)(Pack_Data) * 1.8)/(4095);
 
-	free(Pack_Data);
 }
 
 float Get_Cell1_Voltage()
