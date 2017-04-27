@@ -182,7 +182,7 @@ int main(void)
 				{
 					ISL_Sleep = true;
 					BMS_Debug_COM_Write_Data("Went to sleep\r",14);
-//					BMS_Force_Sleep();
+					BMS_Force_Sleep();
 				}
 			}
 			else if (((uint16_t)Get_BMS_Pack_Current() > 50))
@@ -190,37 +190,38 @@ int main(void)
 				Time_Count_BMS_Sleep = 0;
 				ISL_Sleep = false;
 			}
-
 			_25Hz_Flag = false;
 		}
 
-
-		if(_1Hz_Flag == true && ISL_Sleep == false)
+		if(_1Hz_Flag == true)
 		{
 			char Buffer[200];
-			Delay_Millis(2);
-			uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
-			BMS_Debug_COM_Write_Data(Buffer,Length1);
-			Delay_Millis(5);
 
-			Length1 = sprintf(Buffer,"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
-			BMS_Debug_COM_Write_Data(Buffer,Length1);
-			Delay_Millis(5);
+			if(ISL_Sleep == false)
+			{
+				uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
+				BMS_Debug_COM_Write_Data(Buffer,Length1);
+				Delay_Millis(5);
 
-			Length1 = sprintf(Buffer,"Pack_Temp = %0.3fmV\r",Get_BMS_Pack_Temperature());
-			BMS_Debug_COM_Write_Data(Buffer,Length1);
-			Delay_Millis(2);
+				Length1 = sprintf(Buffer,"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
+				BMS_Debug_COM_Write_Data(Buffer,Length1);
+				Delay_Millis(5);
 
-			uint16_t Length = 0;
-			Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
-			Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
-			Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
-			Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
-			Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
-			Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
+				Length1 = sprintf(Buffer,"Pack_Temp = %0.3fmV\r",Get_BMS_Pack_Temperature());
+				BMS_Debug_COM_Write_Data(Buffer,Length1);
+				Delay_Millis(2);
 
-			BMS_Debug_COM_Write_Data(Buffer, Length);
-			Delay_Millis(10);
+				uint16_t Length = 0;
+				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
+
+				BMS_Debug_COM_Write_Data(Buffer, Length);
+				Delay_Millis(10);
+			}
 
 			if ((Log_All_Data() == 1)  && Start_Log == 1)
 			{
@@ -230,22 +231,22 @@ int main(void)
 			{
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 			}
-//			Delay_Millis(2);
-//			if(Status_Flag.BMS_In_Sleep == YES)
-//			{
-//				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
-//			}
-//			else
-//			{
-//				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
-//			}
-//			Delay_Millis(2);
-//			if(Status_Flag.Pack_Discharging == YES)
-//			{
-//				BMS_Debug_COM_Write_Data("Discharging\r",14);
-//			}
-//			else
-//				BMS_Debug_COM_Write_Data("Low power mode\r",15);
+			Delay_Millis(2);
+			if(Status_Flag.BMS_In_Sleep == YES)
+			{
+				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+			}
+			else
+			{
+				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+			}
+			Delay_Millis(2);
+			if(Status_Flag.Pack_Discharging == YES)
+			{
+				BMS_Debug_COM_Write_Data("Discharging\r",14);
+			}
+			else
+				BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
 
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));
