@@ -36,20 +36,8 @@
 #define DEBUG_COM										ENABLE
 
 /********************************************* GPIO Related Macros ****************************************************/
-//#define BOARD_LED										GPIO_PIN_5
 #define SD_CARD_CS										GPIO_PIN_4
-#define SD_CARD_DETECT									GPIO_PIN_3
-#define BMS_SWITCH										GPIO_PIN_2
-
-#define LED_1											GPIO_PIN_5
-
-#define LED_2											GPIO_PIN_7
-#define LED_3											GPIO_PIN_6
-#define LED_4											GPIO_PIN_5
-
-#define LED_5											GPIO_PIN_11
-
-
+#define SD_CARD_DETECT									GPIO_PIN_2
 
 /********************************************* Timer Related Macros ****************************************************/
 #define _100uS_PRESCALAR								7999

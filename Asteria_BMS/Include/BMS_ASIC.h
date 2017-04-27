@@ -55,7 +55,7 @@
 
 #define NUMBER_OF_CELLS											2*8
 #define SENSE_RESISTOR_VALUE									1e-3
-#define CURRENT_GAIN											5
+#define CURRENT_GAIN											50
 
 enum Write_Result
 {

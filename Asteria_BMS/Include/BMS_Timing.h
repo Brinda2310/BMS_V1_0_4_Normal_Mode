@@ -11,6 +11,16 @@
 #include "TIMER_API.h"
 
 #define _40ms_PERIOD 			40
+#define _1_SECONDS				25
+#define _2_SECONDS				(2*_1_SECONDS)
+#define _3_SECONDS				(3*_1_SECONDS)
+#define _4_SECONDS				(4*_1_SECONDS)
+#define _5_SECONDS				(5*_1_SECONDS)
+
+#define LOW_CONSUMPTION_DELAY	(10*_1_SECONDS)
+
+#define SHORT_PERIOD			_2_SECONDS
+#define LONG_PEROID				_4_SECONDS
 
 extern bool _25Hz_Flag,_1Hz_Flag;
 

@@ -41,6 +41,12 @@ uint8_t RecData = 0;
 
 uint8_t data[4] = {0x11,0x22,0x33,0x44};
 uint8_t ReadEEPROMData[10];
+uint16_t Time_Count_Switch_Press = 0;
+uint16_t Time_Count_BMS_Sleep = 0;
+bool ISL_Sleep = false;
+bool Short_Time_Elapsed = false,Long_Time_Elapsed = false;
+
+char Buffer[20];
 
 int main(void)
 {
@@ -127,33 +133,72 @@ int main(void)
 
 		if (_25Hz_Flag == true)
 		{
-			static uint16_t Counter = 0;
-
-			if (BMS_Read_Switch_Status() == PRESSED && Counter != 100)
+			if (BMS_Read_Switch_Status() == PRESSED)
 			{
-				Counter++;
-				if(Counter >= 100)
+				Time_Count_Switch_Press++;
+//				sprintf(Buffer,"%d\r",Time_Count_Switch_Press);
+//				BMS_Debug_COM_Write_Data(Buffer,strlen(Buffer));
+//				Delay_Millis(2);
+				if(Time_Count_Switch_Press >= LONG_PEROID)
 				{
-					BMS_Show_LED_Status();
+					Long_Time_Elapsed = true;
 				}
 
+				if(Time_Count_Switch_Press >= SHORT_PERIOD)
+				{
+					Short_Time_Elapsed = true;
+				}
 			}
 			else
 			{
-				Counter = 0;
+				if(Long_Time_Elapsed == true)
+				{
+					BMS_Show_LED_Status(2);
+					Short_Time_Elapsed = false;
+					Long_Time_Elapsed = false;
+				}
+				if(Short_Time_Elapsed == true)
+				{
+					Short_Time_Elapsed = false;
+					BMS_Show_LED_Status(1);
+				}
+				Time_Count_Switch_Press = 0;
 			}
+
 			BMS_Read_Cell_Voltages();
 			BMS_Read_Pack_Voltage();
 			BMS_Read_Pack_Current();
 			BMS_Read_Pack_Temperature();
 			BMS_Read_RAM_Status_Register();
 
+			if(((uint16_t)Get_BMS_Pack_Current() < 50) && ((uint16_t)Get_BMS_Pack_Voltage()) < 25 && ISL_Sleep == false)
+			{
+				Time_Count_BMS_Sleep++;
+				sprintf(Buffer, "%d\r", Time_Count_BMS_Sleep);
+				BMS_Debug_COM_Write_Data(Buffer, strlen(Buffer));
+				Delay_Millis(5);
+//
+				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY)
+				{
+					ISL_Sleep = true;
+					BMS_Debug_COM_Write_Data("Went to sleep\r",14);
+//					BMS_Force_Sleep();
+				}
+			}
+			else if (((uint16_t)Get_BMS_Pack_Current() > 50))
+			{
+				Time_Count_BMS_Sleep = 0;
+				ISL_Sleep = false;
+			}
+
 			_25Hz_Flag = false;
 		}
 
-		if(_1Hz_Flag == true)
+
+		if(_1Hz_Flag == true && ISL_Sleep == false)
 		{
 			char Buffer[200];
+			Delay_Millis(2);
 			uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
 			BMS_Debug_COM_Write_Data(Buffer,Length1);
 			Delay_Millis(5);
@@ -179,23 +224,28 @@ int main(void)
 
 			if ((Log_All_Data() == 1)  && Start_Log == 1)
 			{
-				GPIO_Write(GPIO_A, LED_1, PIN_TOGGLE);
-			}
-			if(Status_Flag.BMS_In_Sleep == YES)
-			{
-				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+				BMS_Debug_COM_Write_Data("Written\r",8);
 			}
 			else
 			{
-				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+				BMS_Debug_COM_Write_Data("Write Error\r",12);
 			}
-			Delay_Millis(2);
-			if(Status_Flag.Pack_Discharging == YES)
-			{
-				BMS_Debug_COM_Write_Data("Discharging\r",14);
-			}
-			else
-				BMS_Debug_COM_Write_Data("Low power mode\r",15);
+//			Delay_Millis(2);
+//			if(Status_Flag.BMS_In_Sleep == YES)
+//			{
+//				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+//			}
+//			else
+//			{
+//				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+//			}
+//			Delay_Millis(2);
+//			if(Status_Flag.Pack_Discharging == YES)
+//			{
+//				BMS_Debug_COM_Write_Data("Discharging\r",14);
+//			}
+//			else
+//				BMS_Debug_COM_Write_Data("Low power mode\r",15);
 
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));

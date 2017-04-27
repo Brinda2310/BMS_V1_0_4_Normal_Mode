@@ -6,15 +6,16 @@
  */
 
 #include "BMS_GPIOs.h"
+#include <BMS_Serial_Communication.h>
 
 void BMS_Switch_Init()
 {
-	GPIO_Init(GPIO_A,BMS_SWITCH,GPIO_INPUT,PULLUP);
+	GPIO_Init(GPIO_A,GPIO_PIN_11,GPIO_INPUT,PULLUP);
 }
 
 uint8_t BMS_Read_Switch_Status()
 {
-	if(GPIO_Read(GPIO_A,BMS_SWITCH) == PIN_LOW)
+	if(GPIO_Read(GPIO_A,GPIO_PIN_11) == PIN_LOW)
 	{
 		return PRESSED;
 	}
@@ -26,14 +27,23 @@ uint8_t BMS_Read_Switch_Status()
 
 void BMS_Status_LEDs_Init()
 {
-	GPIO_Init(GPIO_A,LED_1,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(GPIO_B,LED_1,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_B,LED_2,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_B,LED_3,GPIO_OUTPUT,NOPULL);
-	GPIO_Init(GPIO_B,LED_4,GPIO_OUTPUT,NOPULL);
-	GPIO_Init(GPIO_A,LED_5,GPIO_OUTPUT,NOPULL);
+//	GPIO_Init(GPIO_B,LED_4,GPIO_OUTPUT,NOPULL);
+//	GPIO_Init(GPIO_A,LED_5,GPIO_OUTPUT,NOPULL);
 }
 
 void BMS_Show_LED_Status(uint8_t Battery_Status)
 {
-	GPIO_Write(GPIO_A,LED_1,PIN_TOGGLE);
+	if(Battery_Status == 1)
+	{
+		GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
+		BMS_Debug_COM_Write_Data("Short Press\r",12);
+//		Delay_Millis(2);
+	}
+	else if (Battery_Status == 2)
+	{
+		BMS_Debug_COM_Write_Data("Long Press\r",11);
+	}
 }

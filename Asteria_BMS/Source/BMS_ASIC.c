@@ -36,7 +36,7 @@ static void BMS_RAM_Access_Enable()
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
 	BMS_EEPROM_Access_Enable();
-	Delay_Millis(1);
+//	Delay_Millis(1);
 	if(Data_Size > EEPROM_PAGE_SIZE)
 	{
 		return WRITE_ERROR;
