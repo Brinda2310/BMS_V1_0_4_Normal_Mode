@@ -139,23 +139,16 @@ int main(void)
 			{
 				Time_Count_BMS_Sleep++;
 
-				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && ISL_Sleep == false)
+				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
 				{
 					ISL_Sleep = true;
 					Time_Count_BMS_Sleep = 0;
-#if DEBUG_MANDATORY == ENABLE
-					BMS_Debug_COM_Write_Data("Went to sleep\r",14);
-#endif
 					BMS_Force_Sleep();
 				}
 			}
-			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION) \
-					|| Status_Flag.BMS_In_Sleep == NO)
+			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
 			{
 				Time_Count_BMS_Sleep = 0;
-#if DEBUG_MANDATORY == ENABLE
-					BMS_Debug_COM_Write_Data("Awaken\r",7);
-#endif
 				ISL_Sleep = false;
 			}
 
@@ -164,6 +157,19 @@ int main(void)
 
 		if(_1Hz_Flag == true)
 		{
+			if(Status_Flag.BMS_In_Sleep == YES)
+			{
+#if DEBUG_MANDATORY == ENABLE
+				BMS_Debug_COM_Write_Data("Went to sleep\r",14);
+#endif
+			}
+			else
+			{
+#if DEBUG_MANDATORY == ENABLE
+					BMS_Debug_COM_Write_Data("Awaken\r",7);
+#endif
+			}
+
 			if(ISL_Sleep == false)
 			{
 #if DEBUG_OPTIONAL == ENABLE
