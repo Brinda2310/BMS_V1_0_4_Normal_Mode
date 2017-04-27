@@ -49,7 +49,7 @@ void EXTI9_5_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
   if(Sleep_Mode == true)
   {
-	  Exit_Sleep_Mode();
+	  MCU_Exit_Sleep_Mode();
 	  Sleep_Mode = false;
   }
 }

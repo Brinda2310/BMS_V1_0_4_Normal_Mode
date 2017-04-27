@@ -87,28 +87,39 @@ static void Set_BMS_Status_Flags(uint32_t Flags)
 	if(Flags & IS_ISL_IN_SLEEP)
 	{
 		Status_Flag.BMS_In_Sleep = YES;
+#if DEBUG_OPTIONAL == ENABLE
 		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+#endif
 	}
 	else
 	{
 		Status_Flag.BMS_In_Sleep = NO;
+#if DEBUG_OPTIONAL == ENABLE
 		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+#endif
 	}
 
 	if(Flags & IS_PACK_DISCHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = DISCHARGING;
 		Status_Flag.Pack_Discharging = YES;
+#if DEBUG_OPTIONAL == ENABLE
 		BMS_Debug_COM_Write_Data("Discharging\r",14);
+#endif
 	}
 	else
 	{
 		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
+#if DEBUG_OPTIONAL == ENABLE
 		BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
+#endif
 	}
 }
-
+uint8_t Get_BMS_Charge_Discharge_Status()
+{
+	return BMS_Data.Charging_Discharging_Status;
+}
 /*
  * This function gives the status flags of various RAM registers
  */
@@ -142,18 +153,6 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 
-//	uint8_t Length = 0;
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell1_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell2_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell3_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell4_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell5_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell6_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell7_Voltage);
-//	Length += sprintf(&Buffer[Length],"%0.3f\r",BMS_Data.Cell8_Voltage);
-//
-//	BMS_COM_Write_Data(Buffer,Length);
-//	Delay_Millis(5);
 }
 /*
  * This function can give individual cell voltages inside the pack
@@ -182,7 +181,7 @@ void BMS_Estimate_Initial_Capacity(void)
 	}
 }
 
-double BMS_Get_Initial_Capacity()
+double Get_BMS_Initial_Capacity()
 {
 	return BMS_Data.Total_Pack_Capacity;
 }
@@ -196,7 +195,7 @@ void BMS_Estimate_Capacity_Used()
 	Previous_Time = Current_Time;
 }
 
-double BMS_Get_Capacity_Used()
+double Get_BMS_Capacity_Used()
 {
 	return BMS_Data.Capacity_Used;
 }

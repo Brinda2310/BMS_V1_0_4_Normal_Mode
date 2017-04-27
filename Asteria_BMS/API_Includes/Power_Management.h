@@ -20,7 +20,7 @@ void MCU_Exit_Sleep_Mode();
 void SystemPower_Config(void);
 void SystemClock_Decrease(void);
 void Set_System_Clock_Frequency(void);
-void SystemClock_Config(void);
+//void SystemClock_Config(void);
 
 
 #endif /* POWER_MANAGEMENT_H_ */

@@ -65,6 +65,12 @@ enum Write_Result
 	WRITE_OK = 0,WRITE_ERROR
 };
 
+enum Pack_Status
+{
+	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
+};
+
+
 enum Flag_Results
 {
 	NO = 0, YES
@@ -148,9 +154,11 @@ void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
 
 void BMS_Estimate_Initial_Capacity(void);
-double BMS_Get_Initial_Capacity(void);
-double BMS_Get_Capacity_Used(void);
 void BMS_Estimate_Capacity_Used(void);
+
+uint8_t Get_BMS_Charge_Discharge_Status();
+double Get_BMS_Initial_Capacity(void);
+double Get_BMS_Capacity_Used(void);
 
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);

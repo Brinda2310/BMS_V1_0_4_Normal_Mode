@@ -39,14 +39,14 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity)
 	if(Battery_Capacity == 1)
 	{
 		GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Short Press\r",12);
 #endif
 		Delay_Millis(2);
 	}
 	else if (Battery_Capacity == 2)
 	{
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Long Press\r",11);
 #endif
 	}

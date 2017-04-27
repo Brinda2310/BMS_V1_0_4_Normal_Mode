@@ -53,10 +53,6 @@ enum data_sizes
 	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 8,SHORT_FLOAT_SIZE_ = 6,LONG_SIZE_ = 10
 };
 
-enum Pack_Status
-{
-	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
-};
 typedef struct
 {
 	uint32_t Start_Time;

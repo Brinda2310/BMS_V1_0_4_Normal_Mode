@@ -82,14 +82,14 @@ int main(void)
 
 	if(Create_BMS_Log_File() == RESULT_OK)
 	{
-#if  DEBUG_COM_WRITE == ENABLE
+#if  DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
 #endif
 		Start_Log = true;
 	}
 	else
 	{
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
 #endif
 	}
@@ -115,14 +115,14 @@ int main(void)
 			{
 				if(Long_Time_Elapsed == true)
 				{
-					BMS_Show_LED_Status(2);
+					BMS_Show_LED_Pattern(2);
 					Short_Time_Elapsed = false;
 					Long_Time_Elapsed = false;
 				}
 				if(Short_Time_Elapsed == true)
 				{
 					Short_Time_Elapsed = false;
-					BMS_Show_LED_Status(1);
+					BMS_Show_LED_Pattern(1);
 				}
 				Time_Count_Switch_Press = 0;
 			}
@@ -135,25 +135,30 @@ int main(void)
 			BMS_Estimate_Capacity_Used();
 
 			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) \
-					&& ((uint16_t)Get_BMS_Pack_Voltage()) < MAXIMUM_PACK_VOLTAGE)
+					&& Status_Flag.BMS_In_Sleep == NO)
 			{
 				Time_Count_BMS_Sleep++;
 
-				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY)
+				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && ISL_Sleep == false)
 				{
 					ISL_Sleep = true;
 					Time_Count_BMS_Sleep = 0;
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 					BMS_Debug_COM_Write_Data("Went to sleep\r",14);
 #endif
 					BMS_Force_Sleep();
 				}
 			}
-			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
+			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION) \
+					|| Status_Flag.BMS_In_Sleep == NO)
 			{
 				Time_Count_BMS_Sleep = 0;
+#if DEBUG_MANDATORY == ENABLE
+					BMS_Debug_COM_Write_Data("Awaken\r",7);
+#endif
 				ISL_Sleep = false;
 			}
+
 			_25Hz_Flag = false;
 		}
 
@@ -161,7 +166,7 @@ int main(void)
 		{
 			if(ISL_Sleep == false)
 			{
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_OPTIONAL == ENABLE
 				char Buffer[200];
 
 				uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
@@ -189,15 +194,15 @@ int main(void)
 #endif
 			}
 
-			if ((Log_All_Data() == RESULT_ERROR)  && Start_Log == true)
+			if ((Log_All_Data() == RESULT_OK)  && Start_Log == true)
 			{
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Written\r",8);
 #endif
 			}
 			else
 			{
-#if DEBUG_COM_WRITE == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 #endif
 			}

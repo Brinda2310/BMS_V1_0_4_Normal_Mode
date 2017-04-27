@@ -28,7 +28,7 @@ static uint32_t *String_Index, Memory_Address1 = 0;
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-27_15-35-30_BMS_7.txt";
+char File_Name[50] = "0:/2017-04-27_15-35-30_BMS_8.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -188,8 +188,8 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current()/1000);										// Pack Voltage
-	Float_Values[(*Index_Counter)++] = (float)BMS_Get_Initial_Capacity();											// Total Capacity
-	Float_Values[(*Index_Counter)++] = BMS_Get_Capacity_Used();											// Used Capacity
+	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Initial_Capacity();											// Total Capacity
+	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();											// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Int_Values[(*Index_Counter)++] = 5;												// Pack Cycles
@@ -198,7 +198,7 @@ uint8_t Log_All_Data()
 	Int_Values[(*Index_Counter)++] = 800;												// Charge/Discharge Rate
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
-	Char_Values[(*Index_Counter)++] = Log_Variables.Charging_Discharging_Status;	// Charge/Discharge Status
+	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();	// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();										// Temperature of Pack Read By Sensor

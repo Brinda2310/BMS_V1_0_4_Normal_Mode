@@ -82,9 +82,10 @@ void MCU_Exit_Sleep_Mode()
 #endif
 }
 
-#ifdef BMS_VERSION
+
 void SystemClock_Decrease(void)
 {
+#if BMS_VERSION == BMS_V1
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 
@@ -113,9 +114,8 @@ void SystemClock_Decrease(void)
 
   /* Disable HSI to reduce power consumption since MSI is used from that point */
   __HAL_RCC_HSI_DISABLE();
-
-}
 #endif
+}
 
 void Set_System_Clock_Frequency(void)
 {
