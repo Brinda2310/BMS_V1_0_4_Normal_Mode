@@ -5,6 +5,7 @@
  *      Author: NIKHIL
  */
 #include "Power_Management.h"
+#include "BMS_GPIOs.h"
 
 void MCU_Enter_Sleep_Mode()
 {
@@ -75,13 +76,17 @@ void MCU_Exit_Sleep_Mode()
     /* Reinitialize all the peripherals as they were disabled before MCU going to sleep; But sleep mode holds
      * the global variables values to their previous state as before going to sleep */
     HAL_Init();
-    Set_System_Clock_Frequency();
-    BMS_Status_LEDs_Init();
-    BMS_Timers_Init();
-    BMS_Debug_COM_Init();
+	Set_System_Clock_Frequency();
+	BMS_Timers_Init();
+#if DEBUG_COM == ENABLE
+	BMS_Debug_COM_Init();
+#endif
+	BMS_Status_LEDs_Init();
+	BMS_Switch_Init();
+
+	BMS_ASIC_Init();
 #endif
 }
-
 
 void SystemClock_Decrease(void)
 {

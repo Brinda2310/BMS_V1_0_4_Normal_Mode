@@ -43,7 +43,10 @@ uint8_t data[4] = {0x11,0x22,0x33,0x44};
 uint8_t ReadEEPROMData[10];
 uint16_t Time_Count_Switch_Press = 0;
 uint16_t Time_Count_BMS_Sleep = 0;
+uint16_t Time_Count_MCU_Sleep = 0;
+
 bool ISL_Sleep = false;
+bool MCU_Sleep = false;
 bool Short_Time_Elapsed = false,Long_Time_Elapsed = false;
 
 char Buffer[20];
@@ -141,7 +144,6 @@ int main(void)
 
 				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
 				{
-					ISL_Sleep = true;
 					Time_Count_BMS_Sleep = 0;
 					BMS_Force_Sleep();
 				}
@@ -152,6 +154,26 @@ int main(void)
 				ISL_Sleep = false;
 			}
 
+			if(Status_Flag.BMS_In_Sleep == YES)
+			{
+				ISL_Sleep = true;
+				Time_Count_MCU_Sleep++;
+				if(Time_Count_MCU_Sleep >= MCU_GO_TO_SLEEP_DELAY)
+				{
+					MCU_Sleep = true;
+					Time_Count_MCU_Sleep = 0;
+#if DEBUG_MANDATORY == ENABLE
+					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
+#endif
+					Delay_Millis(5);
+
+					MCU_Enter_Sleep_Mode();
+				}
+			}
+			else
+			{
+				Time_Count_MCU_Sleep = 0;
+			}
 			_25Hz_Flag = false;
 		}
 
@@ -159,6 +181,7 @@ int main(void)
 		{
 			if(Status_Flag.BMS_In_Sleep == YES)
 			{
+				Sleep_Mode = true;
 #if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Went to sleep\r",14);
 #endif
@@ -172,9 +195,9 @@ int main(void)
 
 			if(ISL_Sleep == false)
 			{
-#if DEBUG_OPTIONAL == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 				char Buffer[200];
-
+				Delay_Millis(2);
 				uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
 				BMS_Debug_COM_Write_Data(Buffer,Length1);
 				Delay_Millis(5);
@@ -199,7 +222,6 @@ int main(void)
 				Delay_Millis(10);
 #endif
 			}
-
 			if ((Log_All_Data() == RESULT_OK)  && Start_Log == true)
 			{
 #if DEBUG_MANDATORY == ENABLE
@@ -216,6 +238,7 @@ int main(void)
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));
 		}
+
 	}
 }
 
