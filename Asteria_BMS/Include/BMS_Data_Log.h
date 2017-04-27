@@ -61,8 +61,6 @@ typedef struct
 {
 	uint32_t Start_Time;
 	uint32_t End_Time;
-	uint8_t Charging_Discharging_Status;
-
 	float Final_Pack_Voltage;
 
 	uint32_t Flight_Time;

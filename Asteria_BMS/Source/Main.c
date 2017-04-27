@@ -80,65 +80,27 @@ int main(void)
 
 	memset(data,0,sizeof(data));
 
-	if(Create_BMS_Log_File() == 1)
+	if(Create_BMS_Log_File() == RESULT_OK)
 	{
+#if  DEBUG_COM_WRITE == ENABLE
 		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
+#endif
 		Start_Log = true;
 	}
 	else
 	{
+#if DEBUG_COM_WRITE == ENABLE
 		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
+#endif
 	}
-
-//	BMS_Estimate_Initial_Capacity();
 
 	while(1)
 	{
-		BMS_Debug_COM_Read_Data(&RecData, 1);
-
-		switch(RecData)
-		{
-			case 'A':
-				Start_Log = false;
-				f_close(&BMS_Log_File);
-				break;
-			case 'B':
-				f_mount(&FatFs,"0",1);
-				f_open(&BMS_Log_File,File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ);
-				f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
-				Start_Log = true;
-				break;
-			case 'C':
-				Sleep_Mode = true;
-				Enter_Sleep_Mode();
-				break;
-			case 'D':
-				BMS_User_EEPROM_Read(USER_EEPROM_START_ADDRESS,ReadEEPROMData, 4);
-				BMS_Debug_COM_Write_Data(ReadEEPROMData, 4);
-				Delay_Millis(5);
-				memset(ReadEEPROMData, 0, sizeof(ReadEEPROMData));
-				break;
-			case 'E':
-				BMS_Force_Sleep();
-				break;
-			case 'F':
-				break;
-
-//			default:
-//				BMS_Debug_COM_Write_Data("Wrong Input\r",12);
-//				break;
-		}
-
-		RecData = 0;
-
 		if (_25Hz_Flag == true)
 		{
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Time_Count_Switch_Press++;
-//				sprintf(Buffer,"%d\r",Time_Count_Switch_Press);
-//				BMS_Debug_COM_Write_Data(Buffer,strlen(Buffer));
-//				Delay_Millis(2);
 				if(Time_Count_Switch_Press >= LONG_PEROID)
 				{
 					Long_Time_Elapsed = true;
@@ -170,22 +132,24 @@ int main(void)
 			BMS_Read_Pack_Current();
 			BMS_Read_Pack_Temperature();
 			BMS_Read_RAM_Status_Register();
+			BMS_Estimate_Capacity_Used();
 
-			if(((uint16_t)Get_BMS_Pack_Current() < 50) && ((uint16_t)Get_BMS_Pack_Voltage()) < 25 && ISL_Sleep == false)
+			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) \
+					&& ((uint16_t)Get_BMS_Pack_Voltage()) < MAXIMUM_PACK_VOLTAGE)
 			{
 				Time_Count_BMS_Sleep++;
-				sprintf(Buffer, "%d\r", Time_Count_BMS_Sleep);
-				BMS_Debug_COM_Write_Data(Buffer, strlen(Buffer));
-				Delay_Millis(5);
-//
+
 				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY)
 				{
 					ISL_Sleep = true;
+					Time_Count_BMS_Sleep = 0;
+#if DEBUG_COM_WRITE == ENABLE
 					BMS_Debug_COM_Write_Data("Went to sleep\r",14);
+#endif
 					BMS_Force_Sleep();
 				}
 			}
-			else if (((uint16_t)Get_BMS_Pack_Current() > 50))
+			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
 			{
 				Time_Count_BMS_Sleep = 0;
 				ISL_Sleep = false;
@@ -195,10 +159,11 @@ int main(void)
 
 		if(_1Hz_Flag == true)
 		{
-			char Buffer[200];
-
 			if(ISL_Sleep == false)
 			{
+#if DEBUG_COM_WRITE == ENABLE
+				char Buffer[200];
+
 				uint8_t Length1 = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
 				BMS_Debug_COM_Write_Data(Buffer,Length1);
 				Delay_Millis(5);
@@ -221,32 +186,21 @@ int main(void)
 
 				BMS_Debug_COM_Write_Data(Buffer, Length);
 				Delay_Millis(10);
+#endif
 			}
 
-			if ((Log_All_Data() == 1)  && Start_Log == 1)
+			if ((Log_All_Data() == RESULT_ERROR)  && Start_Log == true)
 			{
+#if DEBUG_COM_WRITE == ENABLE
 				BMS_Debug_COM_Write_Data("Written\r",8);
+#endif
 			}
 			else
 			{
+#if DEBUG_COM_WRITE == ENABLE
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
+#endif
 			}
-			Delay_Millis(2);
-			if(Status_Flag.BMS_In_Sleep == YES)
-			{
-				BMS_Debug_COM_Write_Data("In sleep mode\r",14);
-			}
-			else
-			{
-				BMS_Debug_COM_Write_Data("Non-sleep\r",10);
-			}
-			Delay_Millis(2);
-			if(Status_Flag.Pack_Discharging == YES)
-			{
-				BMS_Debug_COM_Write_Data("Discharging\r",14);
-			}
-			else
-				BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
 
 			_1Hz_Flag = false;
 			memset(Buffer, 0, sizeof(Buffer));

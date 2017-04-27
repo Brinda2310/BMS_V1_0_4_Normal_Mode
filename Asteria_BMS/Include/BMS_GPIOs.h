@@ -28,10 +28,15 @@ enum Switch_Status
 	NOT_PRESSED = 0, PRESSED
 };
 
+enum LED_Pattern
+{
+	ONE_LED_ON = 0, TWO_LEDs_ON,THREE_LEDs_ON,FOUR_LEDs_ON
+};
+
 void BMS_Switch_Init();
 uint8_t BMS_Read_Switch_Status();
 void BMS_Status_LEDs_Init();
-void BMS_Show_LED_Status(uint8_t Battery_Status);
+void BMS_Show_LED_Pattern(uint8_t Battery_Capacity);
 
 
 #endif /* BMS_GPIOS_H_ */

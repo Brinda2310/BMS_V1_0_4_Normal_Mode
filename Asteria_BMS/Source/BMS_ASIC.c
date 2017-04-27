@@ -87,18 +87,26 @@ static void Set_BMS_Status_Flags(uint32_t Flags)
 	if(Flags & IS_ISL_IN_SLEEP)
 	{
 		Status_Flag.BMS_In_Sleep = YES;
+		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
 	}
 	else
 	{
 		Status_Flag.BMS_In_Sleep = NO;
+		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
 	}
 
 	if(Flags & IS_PACK_DISCHARGING)
 	{
+		BMS_Data.Charging_Discharging_Status = DISCHARGING;
 		Status_Flag.Pack_Discharging = YES;
+		BMS_Debug_COM_Write_Data("Discharging\r",14);
 	}
 	else
+	{
+		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
+		BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
+	}
 }
 
 /*
@@ -188,7 +196,7 @@ void BMS_Estimate_Capacity_Used()
 	Previous_Time = Current_Time;
 }
 
-double BMS_Get_Total_Capacity_Used()
+double BMS_Get_Capacity_Used()
 {
 	return BMS_Data.Capacity_Used;
 }

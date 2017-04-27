@@ -28,7 +28,7 @@ static uint32_t *String_Index, Memory_Address1 = 0;
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-21_14-25-50_BMS_5.txt";
+char File_Name[50] = "0:/2017-04-27_15-35-30_BMS_7.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -36,7 +36,7 @@ uint8_t Create_BMS_Log_File()
 {
 //	uint8_t String_Length = 0;
 //	uint8_t lcl_counter = 0,Number_in_String[6];
-	uint8_t Result = 1;
+	uint8_t Result = RESULT_OK;
 
 	String_Index = &Memory_Address1;
 	Index_Counter = &Memory_Address2;
@@ -46,7 +46,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 21, 4, 2017,14,25,50);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 27, 4, 2017,15,35,30);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -99,7 +99,7 @@ uint8_t Create_BMS_Log_File()
 	if(f_mount(&FatFs,"0",1) != FR_OK)
 	{
 		Log_Status = 0;
-		Result = 0;
+		Result = RESULT_ERROR;
 	}
 	/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error in opening the file */
 	/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends on Charging/Power up /
@@ -107,7 +107,7 @@ uint8_t Create_BMS_Log_File()
 	if (f_open(&BMS_Log_File, File_Name, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)	!= FR_OK)
 	{
 		Log_Status = 0;
-		Result = 0;
+		Result = RESULT_ERROR;
 	}
 
 	*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 30 Hz\r\n", BMS_Firmware_Version[0], BMS_Firmware_Version[1],BMS_Firmware_Version[2]);
@@ -131,7 +131,7 @@ uint8_t Create_BMS_Log_File()
 
 	if(f_write(&BMS_Log_File,String_Buffer,*String_Index,&BytesWritten) != FR_OK)
 	{
-		Result = 0;
+		Result = RESULT_ERROR;
 	}
 
 	f_sync(&BMS_Log_File);
@@ -151,7 +151,7 @@ uint8_t Log_All_Data()
 	float Float_Values[6];
 	long Long_Values[4];
 	uint8_t Char_Values[1];
-	uint8_t Result = 1;
+	uint8_t Result = RESULT_OK;
 
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
@@ -185,17 +185,17 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();										// Pack Voltage
-	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current()/1000);										// Pack Voltage
 	Float_Values[(*Index_Counter)++] = (float)BMS_Get_Initial_Capacity();											// Total Capacity
-	Float_Values[(*Index_Counter)++] = BMS_Get_Total_Capacity_Used();											// Used Capacity
+	Float_Values[(*Index_Counter)++] = BMS_Get_Capacity_Used();											// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Int_Values[(*Index_Counter)++] = 5;												// Pack Cycles
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 800;											// Charge/Discharge Rate
+	Int_Values[(*Index_Counter)++] = 800;												// Charge/Discharge Rate
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
 	Char_Values[(*Index_Counter)++] = Log_Variables.Charging_Discharging_Status;	// Charge/Discharge Status
@@ -230,13 +230,13 @@ uint8_t Log_All_Data()
 	if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 	{
 		Log_Status = 0;
-		Result = 0;
+		Result = RESULT_ERROR;
 	}
 
 	Log_Status = 1;
 
 	if(f_sync(&BMS_Log_File) != FR_OK)
-		Result = 0;
+		Result = RESULT_ERROR;
 
 	return Result;
 

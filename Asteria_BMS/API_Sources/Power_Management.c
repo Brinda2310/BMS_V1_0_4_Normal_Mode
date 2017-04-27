@@ -6,7 +6,7 @@
  */
 #include "Power_Management.h"
 
-void Enter_Sleep_Mode()
+void MCU_Enter_Sleep_Mode()
 {
 #ifdef BMS_VERSION
 	GPIO_InitTypeDef  GPIO_InitStruct;
@@ -68,7 +68,7 @@ void SystemPower_Config(void)
 #endif
 }
 
-void Exit_Sleep_Mode()
+void MCU_Exit_Sleep_Mode()
 {
 #ifdef BMS_VERSION
     HAL_PWREx_DisableLowPowerRunMode();

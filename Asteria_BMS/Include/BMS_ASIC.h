@@ -57,6 +57,9 @@
 #define SENSE_RESISTOR_VALUE									1e-3
 #define CURRENT_GAIN											50
 
+#define MINIMUM_CURRENT_CONSUMPTION								50
+#define MAXIMUM_PACK_VOLTAGE									25
+
 enum Write_Result
 {
 	WRITE_OK = 0,WRITE_ERROR
@@ -129,6 +132,8 @@ typedef struct
 	double Capacity_Used;
 
 	uint16_t Pack_Cycles;
+	uint8_t Charging_Discharging_Status;
+
 }ISL_943203_Data;
 
 void BMS_ASIC_Init();
@@ -144,7 +149,7 @@ void BMS_Read_Pack_Temperature(void);
 
 void BMS_Estimate_Initial_Capacity(void);
 double BMS_Get_Initial_Capacity(void);
-double BMS_Get_Total_Capacity_Used(void);
+double BMS_Get_Capacity_Used(void);
 void BMS_Estimate_Capacity_Used(void);
 
 float Get_Cell1_Voltage(void);
