@@ -31,10 +31,11 @@
 #define MAX_INT_VALUE								99999
 #define MAX_SHORT_INT_VALUE							999
 #define MAX_LONG_VALUE								999999999
-#define MAX_FLOAT_VALUE								9999.99
+#define MAX_FLOAT_VALUE								99999.999
 #define MAX_SHORT_FLOAT_VALUE						99.99
 
-#define DECIMAL_POINT_PLACE							2
+#define SF_DECIMAL_POINT_PLACE							2
+#define LF_DECIMAL_POINT_PLACE							3
 
 enum SD_Status
 {
@@ -50,7 +51,7 @@ enum data_types
 /* Sizes(number converted to characters) of the different data types */
 enum data_sizes
 {
-	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 8,SHORT_FLOAT_SIZE_ = 6,LONG_SIZE_ = 10
+	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 10,SHORT_FLOAT_SIZE_ = 7,LONG_SIZE_ = 10
 };
 
 typedef struct

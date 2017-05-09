@@ -55,7 +55,7 @@
 
 #define NUMBER_OF_CELLS											2*8
 #define SENSE_RESISTOR_VALUE									1e-3
-#define CURRENT_GAIN											50
+#define CURRENT_GAIN											5
 
 #define MINIMUM_CURRENT_CONSUMPTION								50
 #define MAXIMUM_PACK_VOLTAGE									25
@@ -132,7 +132,7 @@ typedef struct
 
 	float Pack_Voltage;
 	float Pack_Current;
-	float Pack_Temperature;
+	float Pack_Temperature_Degress;
 
 	double Total_Pack_Capacity;
 	double Capacity_Used;

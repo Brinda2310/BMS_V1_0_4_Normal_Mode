@@ -137,43 +137,42 @@ int main(void)
 			BMS_Read_RAM_Status_Register();
 			BMS_Estimate_Capacity_Used();
 
-			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) \
-					&& Status_Flag.BMS_In_Sleep == NO)
-			{
-				Time_Count_BMS_Sleep++;
-
-				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
-				{
-					Time_Count_BMS_Sleep = 0;
-					BMS_Force_Sleep();
-				}
-			}
-			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
-			{
-				Time_Count_BMS_Sleep = 0;
-				ISL_Sleep = false;
-			}
-
-			if(Status_Flag.BMS_In_Sleep == YES)
-			{
-				ISL_Sleep = true;
-				Time_Count_MCU_Sleep++;
-				if(Time_Count_MCU_Sleep >= MCU_GO_TO_SLEEP_DELAY)
-				{
-					MCU_Sleep = true;
-					Time_Count_MCU_Sleep = 0;
-#if DEBUG_MANDATORY == ENABLE
-					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
-#endif
-					Delay_Millis(5);
-
-					MCU_Enter_Sleep_Mode();
-				}
-			}
-			else
-			{
-				Time_Count_MCU_Sleep = 0;
-			}
+//			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+//			{
+//				Time_Count_BMS_Sleep++;
+//
+//				if(Time_Count_BMS_Sleep >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
+//				{
+//					Time_Count_BMS_Sleep = 0;
+//					BMS_Force_Sleep();
+//				}
+//			}
+//			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
+//			{
+//				Time_Count_BMS_Sleep = 0;
+//				ISL_Sleep = false;
+//			}
+//
+//			if(Status_Flag.BMS_In_Sleep == YES)
+//			{
+//				ISL_Sleep = true;
+//				Time_Count_MCU_Sleep++;
+//				if(Time_Count_MCU_Sleep >= MCU_GO_TO_SLEEP_DELAY)
+//				{
+//					MCU_Sleep = true;
+//					Time_Count_MCU_Sleep = 0;
+//#if DEBUG_MANDATORY == ENABLE
+//					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
+//#endif
+//					Delay_Millis(5);
+//
+//					MCU_Enter_Sleep_Mode();
+//				}
+//			}
+//			else
+//			{
+//				Time_Count_MCU_Sleep = 0;
+//			}
 			_25Hz_Flag = false;
 		}
 
@@ -206,9 +205,9 @@ int main(void)
 				BMS_Debug_COM_Write_Data(Buffer,Length1);
 				Delay_Millis(5);
 
-				Length1 = sprintf(Buffer,"Pack_Temp = %0.3fmV\r",Get_BMS_Pack_Temperature());
+				Length1 = sprintf(Buffer,"Pack_Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 				BMS_Debug_COM_Write_Data(Buffer,Length1);
-				Delay_Millis(2);
+				Delay_Millis(3);
 
 				uint16_t Length = 0;
 				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());

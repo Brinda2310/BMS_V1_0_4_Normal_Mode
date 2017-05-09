@@ -230,13 +230,15 @@ void BMS_Read_Pack_Current()
 void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
+	float Lcl_Temperature_Volts = 0.0;
+
 	uint8_t Address = PACK_TEMPERATURE_ADDR;
 
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
 	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
 
-	BMS_Data.Pack_Temperature = ((float)(Pack_Data) * 1.8)/(4095);
-
+	Lcl_Temperature_Volts = ((float)(Pack_Data) * 1.8)/(4095);
+	BMS_Data.Pack_Temperature_Degress = (((Lcl_Temperature_Volts*1000)/(1.8527)) - 273.15);
 }
 
 float Get_Cell1_Voltage()
@@ -292,6 +294,6 @@ float Get_BMS_Pack_Current()
 
 float Get_BMS_Pack_Temperature()
 {
-	return BMS_Data.Pack_Temperature;
+	return BMS_Data.Pack_Temperature_Degress;
 }
 

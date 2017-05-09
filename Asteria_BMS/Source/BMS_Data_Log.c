@@ -28,7 +28,7 @@ static uint32_t *String_Index, Memory_Address1 = 0;
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started */
-char File_Name[50] = "0:/2017-04-27_15-35-30_BMS_9.txt";
+char File_Name[50] = "0:/2017-04-27_15-35-30_BMS5X_LOG1.txt";
 
 uint16_t Stop_Time_Cursor = 0;
 
@@ -187,7 +187,7 @@ uint8_t Log_All_Data()
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();										// Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current()/1000);										// Pack Voltage
+	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current());										// Pack Voltage
 	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Initial_Capacity();											// Total Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();											// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
@@ -387,13 +387,16 @@ void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offse
 
 				if(data > MAX_SHORT_FLOAT_VALUE)
 					data = MAX_SHORT_FLOAT_VALUE;
-
+#if SF_DECIMAL_POINT_PLACE == 2
 					data *= 100;
+#else
+					data *= 1000;
+#endif
 					lcl_int = (int)data;
 
 				while(lcl_int != 0 && lcl_index < data_type - 1)
 				{
-					if(lcl_index == DECIMAL_POINT_PLACE)
+					if(lcl_index == SF_DECIMAL_POINT_PLACE)
 						dst_array[*offset + data_type - ++lcl_index] = '.';
 					else
 					{
@@ -404,7 +407,7 @@ void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offse
 				}
 				while(lcl_index != (data_type-1))
 				{
-					if(lcl_index == DECIMAL_POINT_PLACE)
+					if(lcl_index == SF_DECIMAL_POINT_PLACE)
 						dst_array[*offset + data_type - ++lcl_index] = '.';
 					else
 						dst_array[*offset + data_type - ++lcl_index] = '0';
@@ -434,12 +437,16 @@ void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offse
 				if(data > MAX_FLOAT_VALUE)
 					data = MAX_FLOAT_VALUE;
 
+#if LF_DECIMAL_POINT_PLACE == 2
 					data *= 100;
+#else
+					data *= 1000;
+#endif
 					lcl_int = (int)data;
 
 				while(lcl_int != 0 && lcl_index < data_type - 1)
 				{
-					if(lcl_index == DECIMAL_POINT_PLACE)
+					if(lcl_index == LF_DECIMAL_POINT_PLACE)
 						dst_array[*offset + data_type - ++lcl_index] = '.';
 					else
 					{
@@ -449,7 +456,7 @@ void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offse
 				}
 				while(lcl_index != (data_type-1))
 				{
-					if(lcl_index == DECIMAL_POINT_PLACE)
+					if(lcl_index == LF_DECIMAL_POINT_PLACE)
 						dst_array[*offset + data_type - ++lcl_index] = '.';
 					else
 						dst_array[*offset + data_type - ++lcl_index] = '0';
