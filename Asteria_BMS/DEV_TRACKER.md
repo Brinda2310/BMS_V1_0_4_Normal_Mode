@@ -37,7 +37,7 @@
   code as well as at the top of the file. This has to be done in the merge pull request itself.
   
   Format of updating the file:
-    *** BMS_CODE  1.2.0 ***   (This line should be sub-heading using the ### in the beginning of the file)
+    *** BMS_CODE  1.0.0 ***   (This line should be sub-heading using the ### in the beginning of the file)
 	
     Files modified:
     Files Added:
@@ -47,7 +47,7 @@
 	**********************
 	
 ### ****BMS_CODE  1.0.0  ****
-	Pull request number: 1
+	Pull request number: 4
 	
 	In this pull request version number is not added.Only added comment in Main.c  
 	
@@ -73,8 +73,9 @@
 		2. Added sleep and wakeup functionality for BMS IC and STM MCU and tested the same
 		3. Added logging structure to log the BMS data for 1Hz
 		4. External switch is tested for wakeup and to show the LED patterns for SOC and SOH(SOC and SOH logic is yet to be implemented)
-		5. The logic is implemented to increase the write/erase cycles of the STM's internal flash and tested the same   	 
-			   		    
+		5. The logic is implemented to increase the write/erase cycles of the STM's internal flash and tested the same  
+		
+
 	Folder Strucuture: 
 		Asteria_BMS:
 			1. Binaries:
@@ -111,4 +112,9 @@
 				(c/c++ settings , include paths for project files)	
 			11. Enter_Character.txt:
 				This is the blank file containing only new line and carriage return characters to exit from CLI after downloading the program
+	
+		Github Issues Resolved:
+			1. RTC Module #2
+			2. ISL94203 Module #1 	 	 
+			   		    			
 						 
