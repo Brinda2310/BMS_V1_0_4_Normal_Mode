@@ -51,7 +51,7 @@
 	
 	In this pull request version number is not added.Only added comment in Main.c  
 	
-    Major Developement:
+    Major Developement on API side:
         1. Generalized APIs for SPI,I2C,GPIO,RTC,FLASH,SD_SPI,USART,TIMERS are developed.
 		2. All APIs contains the functionality for sepcific micro controller i.e. STM32L432KC.
 		   Developer can use the same APIs for other controlles by adding respective controller's low level drivers 
@@ -66,7 +66,14 @@
 		   FLASH - Micro controllers internal flash tested for storing and retrieving user data (4Kb sectors for stm32l432kc)
 		   RTC - RTC functionality is tested for almost 12Hrs and found it correct without any lag/lead in real time.
 		   GPIO - tested for different GPIOs required in application like SD_CARD_SELECT,SD_CHIP_SELECT, BOARD_LED etc
-		   	 
+	
+	Major Development on applicaion side:
+		1. Created the functions for reading all cell voltages, pack voltage,pack temperature, pack current flowing into and out of the pack
+		   and tested the same
+		2. Added sleep and wakeup functionality for BMS IC and STM MCU and tested the same
+		3. Added logging structure to log the BMS data for 1Hz
+		4. External switch is tested for wakeup and to show the LED patterns for SOC and SOH(SOC and SOH logic is yet to be implemented)
+		5. The logic is implemented to increase the write/erase cycles of the STM's internal flash and tested the same   	 
 			   		    
 	Folder Strucuture: 
 		Asteria_BMS:
