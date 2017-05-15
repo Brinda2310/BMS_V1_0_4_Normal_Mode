@@ -4,8 +4,7 @@
  *  Created on: 10-Apr-2017
  *      Author: NIKHIL
  */
-#include "Power_Management.h"
-#include "BMS_GPIOs.h"
+#include <Power_Management.h>
 
 void MCU_Enter_Sleep_Mode()
 {
@@ -137,12 +136,11 @@ void Set_System_Clock_Frequency(void)
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
 	RCC_OscInitStruct.PLL.PLLM = 1;
 	RCC_OscInitStruct.PLL.PLLN = 40;
-	RCC_OscInitStruct.PLL.PLLR = 2;
-	RCC_OscInitStruct.PLL.PLLP = 7;
-	RCC_OscInitStruct.PLL.PLLQ = 4;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
-	}
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
+
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
 	 clocks dividers */
@@ -152,8 +150,7 @@ void Set_System_Clock_Frequency(void)
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
-	{
-	}
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
+
 #endif
 }

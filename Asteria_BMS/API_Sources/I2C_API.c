@@ -7,7 +7,7 @@
  *          module driver
  ******************************************************************************/
 
-#include "I2C_API.h"
+#include <I2C_API.h>
 
 #ifdef BMS_VERSION
 	I2C_HandleTypeDef I2CHandle[NUM_OF_I2C_BUSES];

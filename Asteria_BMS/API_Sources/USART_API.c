@@ -7,7 +7,7 @@
   *          User has to define the controller in Hardware_Config.h file.
   ******************************************************************************/
 
-#include "USART_API.h"
+#include <USART_API.h>
 
 #ifdef BMS_VERSION
 	/* USART Structure defined in HAL layer and the same is used for handling the read/write operations

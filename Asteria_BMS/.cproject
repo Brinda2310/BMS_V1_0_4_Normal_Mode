@@ -22,18 +22,23 @@
 							<option id="fr.ac6.managedbuild.option.gnu.cross.fpu.113955165" name="Floating point hardware" superClass="fr.ac6.managedbuild.option.gnu.cross.fpu" value="fr.ac6.managedbuild.option.gnu.cross.fpu.fpv4-sp-d16" valueType="enumerated"/>
 							<option id="fr.ac6.managedbuild.option.gnu.cross.floatabi.1655575572" name="Floating-point ABI" superClass="fr.ac6.managedbuild.option.gnu.cross.floatabi" value="fr.ac6.managedbuild.option.gnu.cross.floatabi.hard" valueType="enumerated"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="fr.ac6.managedbuild.targetPlatform.gnu.cross.846598406" isAbstract="false" osList="all" superClass="fr.ac6.managedbuild.targetPlatform.gnu.cross"/>
-							<builder buildPath="${workspace_loc:/Asteria_BMS}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.957471207" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/Asteria_BMS}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.957471207" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross">
+								<outputEntries>
+									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Debug"/>
+									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Release"/>
+								</outputEntries>
+							</builder>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.1830577791" name="MCU GCC Compiler" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler">
 								<option id="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level.1222661181" name="Optimization Level" superClass="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false"/>
 								<option id="gnu.c.compiler.option.debugging.level.1575053241" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.771412944" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/CMSIS/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/API_Includes&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/CMSIS/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/HAL_Driver/Inc/Legacy&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/HAL_Driver/Inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Third_Party/FatFs/src&quot;"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/Include"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/CMSIS/core"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/API_Includes"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/CMSIS/device"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/Middlewares/Third_Party/FatFs/src"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1260340683" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NUCLEO_L432KC"/>
@@ -62,13 +67,13 @@
 							<tool id="fr.ac6.managedbuild.tool.gnu.archiver.2000372571" name="MCU GCC Archiver" superClass="fr.ac6.managedbuild.tool.gnu.archiver"/>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.assembler.114493314" name="MCU GCC Assembler" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler">
 								<option id="gnu.both.asm.option.include.paths.746326170" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/API_Includes&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/CMSIS/core&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/CMSIS/device&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/HAL_Driver/Inc/Legacy&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/HAL_Driver/Inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Third_Party/FatFs/src&quot;"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/Include"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/CMSIS/core"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/API_Includes"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/CMSIS/device"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/BMS_CODE/BMS_CODE/Asteria_BMS/Middlewares/Third_Party/FatFs/src"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.155214750" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.assembler.input.473890663" superClass="fr.ac6.managedbuild.tool.gnu.cross.assembler.input"/>
@@ -80,9 +85,8 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="API_Sources"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="HAL_Driver"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Include"/>
-						<entry excluding="Third_Party/FatFs/src/option/cc932.c|Third_Party/FatFs/src/option/cc936.c|Third_Party/FatFs/src/option/ccsbcs.c|Third_Party/FatFs/src/option/cc949.c|Third_Party/FatFs/src/option/cc950.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry excluding="Third_Party/FatFs/src/option/ccsbcs.c|Third_Party/FatFs/src/option/cc932.c|Third_Party/FatFs/src/option/cc936.c|Third_Party/FatFs/src/option/cc949.c|Third_Party/FatFs/src/option/cc950.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Source"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Utilities"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 					</sourceEntries>
 				</configuration>
@@ -171,7 +175,6 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Include"/>
 						<entry excluding="Third_Party/FatFs/src/option/cc932.c|Third_Party/FatFs/src/option/cc936.c|Third_Party/FatFs/src/option/ccsbcs.c|Third_Party/FatFs/src/option/cc949.c|Third_Party/FatFs/src/option/cc950.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Source"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Utilities"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 					</sourceEntries>
 				</configuration>

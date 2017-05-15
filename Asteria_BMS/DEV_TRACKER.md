@@ -37,7 +37,7 @@
   code as well as at the top of the file. This has to be done in the merge pull request itself.
   
   Format of updating the file:
-    *** AP_CODE  1.2.0 ***   (This line should be sub-heading using the ### in the beginning of the file)
+    *** BMS_CODE  1.2.0 ***   (This line should be sub-heading using the ### in the beginning of the file)
 	
     Files modified:
     Files Added:

@@ -15,6 +15,11 @@ extern "C" {
 #include "integer.h"
 #include "LFN.h"
 
+#define MSD_OK				SD_CARD_OK
+//enum MSD_Status
+//{
+//	MSD_OK = 0, MSD_ERROR
+//};
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;

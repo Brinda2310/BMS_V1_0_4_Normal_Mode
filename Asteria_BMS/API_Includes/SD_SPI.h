@@ -1,7 +1,7 @@
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32_ADAFRUIT_SD_H
-#define __STM32_ADAFRUIT_SD_H
+#ifndef __SD_SPI_H
+#define __SD_SPI_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -17,10 +17,9 @@
 #define __IO    volatile   
    
 enum {    
-      SD_OK = 0x00,
-      MSD_OK = 0x00,
-      SD_ERROR = 0x01,
-      SD_TIMEOUT
+      SD_CARD_OK = 0x00,
+	  SD_CARD_ERR,
+	  SD_CARD_TIMEOUT
 };
    
 typedef struct              

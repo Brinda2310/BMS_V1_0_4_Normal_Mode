@@ -1,5 +1,5 @@
 /*
- * BMS_ISL94203.h
+ * BMS_ASIC.h
  *
  *  Created on: 20-Jan-2017
  *      Author: NIKHIL
@@ -10,20 +10,20 @@
 
 #include "I2C_API.h"
 
-#define BMS_ADDRESS											0x50
-#define I2C_OWN_ADDRESS										0x0F
-#define EEPROM_PAGE_SIZE									4
-#define EEPROM_WRITE_DELAY									30
+#define BMS_ADDRESS												0x50
+#define I2C_OWN_ADDRESS											0x0F
+#define EEPROM_PAGE_SIZE										4
+#define EEPROM_WRITE_DELAY										30
 
-#define USER_EEPROM_START_ADDRESS							0x50
-#define BMS_I2C												I2C_1
+#define USER_EEPROM_START_ADDRESS								0x50
+#define BMS_I2C													I2C_1
 
-#define RAM_STATUS_REG_ADDRESS								0x80
+#define RAM_STATUS_REG_ADDRESS									0x80
 
-#define PACK_CURRENT_ADDR									0x8E
-#define CELL_VOLTAGE_ADDR									0x90
-#define PACK_TEMPERATURE_ADDR								0xA0
-#define PACK_VOLTAGE_ADDR									0xA6
+#define PACK_CURRENT_ADDR										0x8E
+#define CELL_VOLTAGE_ADDR										0x90
+#define PACK_TEMPERATURE_ADDR									0xA0
+#define PACK_VOLTAGE_ADDR										0xA6
 
 /* RAM location 0x80 status flags */
 #define IS_ANY_CELL_V_OVER_THRESHOLD							(1 << 0)
@@ -53,29 +53,34 @@
 #define IS_ISL_IN_DOZE											(1 << 29)
 #define IS_ISL_IN_SLEEP											(1 << 30)
 
-#define NUMBER_OF_CELLS											2*8
+#define NUMBER_OF_CELLS											8
+#define CELL_VOLTAGES_DATA_SIZE									(2*NUMBER_OF_CELLS)
 #define SENSE_RESISTOR_VALUE									1e-3
 #define CURRENT_GAIN											5
 
 #define MINIMUM_CURRENT_CONSUMPTION								50
 #define MAXIMUM_PACK_VOLTAGE									25
 
+/* Enums to define the write results */
 enum Write_Result
 {
 	WRITE_OK = 0,WRITE_ERROR
 };
 
+/* Enums to define the current battery status */
 enum Pack_Status
 {
 	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
 };
 
-
+/* Enums to define the flags inside the BMS IC registers */
 enum Flag_Results
 {
 	NO = 0, YES
 };
 
+/* Structure holding all the flags which are queried from BMS IC and same will be updated to use in code
+ * after reading them from registers */
 typedef struct
 {
 	uint8_t Cell_Over_Voltage		:1;
@@ -119,6 +124,7 @@ typedef struct
 extern BMS_Status_Flags Status_Flag;
 extern float Pack_Capacity;
 
+/* Structure holding all the variables to be logged on SD card and to be used in the code */
 typedef struct
 {
 	float Cell1_Voltage;
@@ -142,6 +148,7 @@ typedef struct
 
 }ISL_943203_Data;
 
+/* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
 void BMS_Status_LEDs_Init();
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
@@ -159,7 +166,6 @@ void BMS_Estimate_Capacity_Used(void);
 uint8_t Get_BMS_Charge_Discharge_Status();
 double Get_BMS_Initial_Capacity(void);
 double Get_BMS_Capacity_Used(void);
-
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);
 float Get_Cell3_Voltage(void);

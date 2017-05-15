@@ -1,5 +1,5 @@
 /*
- * Data_Log.h
+ * BMS_Data_Log.h
  *
  *  Created on: 16-Feb-2017
  *      Author: NIKHIL
@@ -8,17 +8,7 @@
 #ifndef BMS_DATA_LOG_H_
 #define BMS_DATA_LOG_H_
 
-#include <BMS_Serial_Communication.h>
-#include "TIMER_API.h"
 #include "ff.h"
-#include "GPIO_API.h"
-#include "FLASH_API.h"
-
-#define DIRECTORY_NAME_START_ADDRESS				ADDR_FLASH_PAGE_127
-#define DIRECTORY_NAME_END_ADDRESS					ADDR_FLASH_PAGE_127+8
-
-/* Maximum file count in each directory */
-#define MAX_FILE_COUNT
 
 /* Base number for converting the integer to strings */
 #define MAX_DIGITS_IN_COUNT							6
@@ -34,8 +24,8 @@
 #define MAX_FLOAT_VALUE								99999.999
 #define MAX_SHORT_FLOAT_VALUE						99.99
 
-#define SF_DECIMAL_POINT_PLACE							2
-#define LF_DECIMAL_POINT_PLACE							3
+#define SF_DECIMAL_POINT_PLACE						2
+#define LF_DECIMAL_POINT_PLACE						3
 
 enum SD_Status
 {
@@ -79,6 +69,7 @@ uint16_t Total_Num_of_Files;
 /* Variable which returns the status as 0 if anything goes wrong in log related functions */
 extern uint8_t Check_SD_Card;
 
+/* Function prototypes */
 uint8_t Create_BMS_Log_File();
 void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type);
 uint8_t Log_All_Data();

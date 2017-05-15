@@ -1,5 +1,5 @@
 /*
- * Data_Log.c
+ * BMS_Data_Log.c
  *
  *  Created on: 16-Feb-2017
  *      Author: NIKHIL
@@ -7,29 +7,35 @@
 
 #include <BMS_Data_Log.h>
 
+/* Global variables for FATFS file operations */
 FATFS FatFs;
 FIL BMS_Log_File;
 FRESULT Result;
 UINT BytesWritten;
 
+/* Structure object to update and write the BMS variables defined inside the structure to the SD card */
 Log_Vars Log_Variables;
 
+/* Variable to update the time and date received from GPS */
 char GPS_Date_Time[25];
 
+/* Character buffer to hold the variables to be written to the SD card */
 static char String_Buffer[512];
 
 bool Log_Status = 1;
 
-/* Variable to handle the user buffer index */
+/* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
 
 /* Variable temp_var is defined just to get any free memory location which is to be assigned to index_counter; otherwise defining pointer
  * without initialization will be dangling pointer */
 static uint8_t *Index_Counter,Memory_Address2 = 0;
 
-/* Buffer to store the file name which is created on SD card as soon as logging is started */
+/* Buffer to store the file name which is created on SD card as soon as logging is started. Right now
+ * this name is hard coded, later it will be changed as per the log summary file */
 char File_Name[50] = "0:/2017-04-27_15-35-30_BMS5X_LOG1.txt";
 
+/* This variable holds the cursor position for stop time to be written to SD card */
 uint16_t Stop_Time_Cursor = 0;
 
 uint8_t Create_BMS_Log_File()
@@ -145,6 +151,7 @@ uint8_t Create_BMS_Log_File()
 	return Result;
 }
 
+/* Function to write all the BMS variables to the SD card */
 uint8_t Log_All_Data()
 {
 	int Int_Values[3];
@@ -155,7 +162,9 @@ uint8_t Log_All_Data()
 
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
+	/* Open the existing file in read and write mode */
 	f_open(&BMS_Log_File,File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+	/* Take the cursor position to the end of file */
 	f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
 
 //	int length = 0;
@@ -176,42 +185,43 @@ uint8_t Log_All_Data()
 	Long_Values[(*Index_Counter)++] = (Get_System_Time()/1000);								// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();										// Cell1 Voltage
-	Float_Values[(*Index_Counter)++] = Get_Cell2_Voltage();										// Cell2 Voltage
-	Float_Values[(*Index_Counter)++] = Get_Cell3_Voltage();										// Cell3 Voltage
-	Float_Values[(*Index_Counter)++] = Get_Cell6_Voltage();										// Cell4 Voltage
-	Float_Values[(*Index_Counter)++] = Get_Cell7_Voltage();										// Cell5 Voltage
-	Float_Values[(*Index_Counter)++] = Get_Cell8_Voltage();										// Cell6 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();									// Cell1 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell2_Voltage();									// Cell2 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell3_Voltage();									// Cell3 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell6_Voltage();									// Cell4 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell7_Voltage();									// Cell5 Voltage
+	Float_Values[(*Index_Counter)++] = Get_Cell8_Voltage();									// Cell6 Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();										// Pack Voltage
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current());										// Pack Voltage
-	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Initial_Capacity();											// Total Capacity
-	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();											// Used Capacity
+	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current());							// Pack Current
+	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Initial_Capacity();					// Total initial Capacity
+	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 5;												// Pack Cycles
+	Int_Values[(*Index_Counter)++] = 5;														// Pack Cycles
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 800;												// Charge/Discharge Rate
+	Int_Values[(*Index_Counter)++] = 800;													// Charge/Discharge Rate
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
-	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();	// Charge/Discharge Status
+	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();										// Temperature of Pack Read By Sensor
-	Float_Values[(*Index_Counter)++] = 19.6;										// Final Pack Voltage read after charge/discharge cycle
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();							// Pack Temperature
+	Float_Values[(*Index_Counter)++] = 19.6;												// Final Pack Voltage read after charge/discharge cycle
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Long_Values[(*Index_Counter)++] = 360;											// Flight Time to be Received From AP
+	Long_Values[(*Index_Counter)++] = 360;													// Flight Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	uint16_t Error_Code = 0x55AA;
 //	Int_Values[(*Index_Counter)++] = 0xF0F0;										// To be updated based on status from BMS IC
 //	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
+	/* Logic to convert the decimal value to binary and storing the same in buffer */
 	for(int i =0 ; i < 16; i++)
 	{
 		if((Error_Code & 0x8000))
@@ -242,6 +252,7 @@ uint8_t Log_All_Data()
 
 }
 
+/* Function to stop the logging as when requested by user */
 void Stop_Log()
 {
 	uint8_t length;

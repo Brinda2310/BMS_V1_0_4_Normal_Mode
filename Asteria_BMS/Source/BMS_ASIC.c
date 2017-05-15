@@ -1,15 +1,19 @@
 /*
- * BMS_ISL94203.c
+ * BMS_ASIC.c
  *
  *  Created on: 20-Jan-2017
  *      Author: NIKHIL
  */
 
 #include <BMS_ASIC.h>
-#include "BMS_Timing.h"
+#include <BMS_Timing.h>
 
+/* Data bytes to be sent over I2C to enable write to ERPROM */
 uint8_t EEPROM_ENABLE_DATA[2] = {0x89,0x01};
+/* Data bytes to be sent over I2C to enable write to RAM  */
 uint8_t RAM_ENABLE_DATA[2] = {0x89,0x00};
+
+/* Data bytes to be sent over I2C to force BMS IC to sleep mode */
 uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
@@ -18,31 +22,46 @@ uint32_t Current_Time = 0,Previous_Time = 0;
 static ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 
+/* Function initializes the I2C communication between MCU and BMS IC */
 void BMS_ASIC_Init()
 {
 	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
 }
 
+/* Function to enable the access to the EERPOM section of BMS IC */
 static void BMS_EEPROM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,EEPROM_ENABLE_DATA,sizeof(EEPROM_ENABLE_DATA));
 }
 
+/* Function to enable the access to the RAM section of BMS IC */
 static void BMS_RAM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
 }
 
+/**
+ * @brief  Function to write the user bytes to the EEPROM section of BMS IC
+ * @param  Memory_Address	: EEPROM address to which data is to be written
+ * @param  Data_Ptr			: Pointer to the data buffer which is to be written to the EEPROM locations
+ * @param  Data_Size 		: Number of bytes to be written to the EEPROM locations
+ * @retval WRITE_ERROR		: Not Successful
+ * 		   WRITE_OK			: Successful
+ */
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
+	/* Before writing to EEPROM it's access needs to be enabled */
 	BMS_EEPROM_Access_Enable();
-//	Delay_Millis(1);
+
+	/* Make sure that data size is of 4 bytes only as BMS IC does not allow more than 4 bytes to write to
+	 * it's user EEPROM */
 	if(Data_Size > EEPROM_PAGE_SIZE)
 	{
 		return WRITE_ERROR;
 	}
 	else
 	{
+		/* Write the user data to the mentioned address; Delay of 30ms is required for each EEPROM byte write */
 		uint8_t Data[5];
 		for(uint8_t Counter = 0; Counter < Data_Size; Counter++)
 		{
@@ -53,11 +72,17 @@ uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t D
 		}
 		return WRITE_OK;
 	}
+	/* Enable back the access to RAM as query data is always received from RAM locations */
 	BMS_RAM_Access_Enable();
 }
 
-/*
- * Function to read the user EEPROM data from ISL94203
+/**
+ * @brief  Function to write the user bytes to the EEPROM section of BMS IC
+ * @param  Memory_Address	: EEPROM address from which data is to be read
+ * @param  Data_Ptr			: Pointer to the buffer to read the EEPROM data
+ * @param  Data_Size 		: Number of bytes to be read from EEPROM locations
+ * @retval WRITE_ERROR		: Not Successful
+ * 		   WRITE_OK			: Successful
  */
 void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size)
 {
@@ -82,6 +107,7 @@ void BMS_Force_Sleep()
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 }
 
+/* Function to set the respective flags defined in the code read from BMS status registers */
 static void Set_BMS_Status_Flags(uint32_t Flags)
 {
 	if(Flags & IS_ISL_IN_SLEEP)
@@ -116,13 +142,14 @@ static void Set_BMS_Status_Flags(uint32_t Flags)
 #endif
 	}
 }
+
+/* Function to return the charging/discharging status of the BMS */
 uint8_t Get_BMS_Charge_Discharge_Status()
 {
 	return BMS_Data.Charging_Discharging_Status;
 }
-/*
- * This function gives the status flags of various RAM registers
- */
+
+/* This function to query the status flags of various RAM registers */
 void BMS_Read_RAM_Status_Register()
 {
 	typedef union
@@ -139,6 +166,7 @@ void BMS_Read_RAM_Status_Register()
 	Set_BMS_Status_Flags(RAM_Flags.Stat_Flags);
 }
 
+/* Function to convert the cell voltages read from ISL registers(HEX) into float values */
 static void Convert_To_Cell_Voltages(uint8_t *Data)
 {
 	unsigned short  *Integers;
@@ -154,22 +182,21 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 
 }
-/*
- * This function can give individual cell voltages inside the pack
- */
+/* Function to read individual cell voltages inside the pack */
 void BMS_Read_Cell_Voltages()
 {
-	uint8_t Cell_Voltages[NUMBER_OF_CELLS];
+	uint8_t Cell_Voltages[CELL_VOLTAGES_DATA_SIZE];
 
 	uint8_t Register_Address = CELL_VOLTAGE_ADDR;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
 	/* Sequential read method of ISL is used to read all the cell voltages as they are in sequence in EEPROM */
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,NUMBER_OF_CELLS);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,CELL_VOLTAGES_DATA_SIZE);
 	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
 	 * to find the actual cell voltage */
 	Convert_To_Cell_Voltages(Cell_Voltages);
 }
 
+/* Function to calculate the battery capacity used */
 void BMS_Estimate_Initial_Capacity(void)
 {
 	static uint8_t Counter = 0;
@@ -200,10 +227,7 @@ double Get_BMS_Capacity_Used()
 	return BMS_Data.Capacity_Used;
 }
 
-/*
- * This function can give the pack current and pack voltage
- * The parameters that can be passed to this function are PACK_VOLTAGE and PACK_CURRENT
- */
+/* Function to read the pack voltage from ISL IC */
 void BMS_Read_Pack_Voltage()
 {
 	uint16_t Pack_Data;
@@ -215,6 +239,7 @@ void BMS_Read_Pack_Voltage()
 	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Data) * 1.8 * 32)/(4095);
 }
 
+/* Function to read the pack current going into or out of pack from ISL IC */
 void BMS_Read_Pack_Current()
 {
 	uint16_t Pack_Data;
@@ -224,9 +249,9 @@ void BMS_Read_Pack_Current()
 	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
 
 	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
-
 }
 
+/* Function to read the pack temperature of pack from ISL IC */
 void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
@@ -241,6 +266,7 @@ void BMS_Read_Pack_Temperature()
 	BMS_Data.Pack_Temperature_Degress = (((Lcl_Temperature_Volts*1000)/(1.8527)) - 273.15);
 }
 
+/* All these function just return the values that are updated from BMS IC registers */
 float Get_Cell1_Voltage()
 {
 	return BMS_Data.Cell1_Voltage;
@@ -288,7 +314,7 @@ float Get_BMS_Pack_Voltage()
 
 float Get_BMS_Pack_Current()
 {
-	/* Convert the ampere current to milli amperes by mutliplying by 1000 */
+	/* Convert the ampere current to milli amperes by multiplying it by 1000 */
 	return (BMS_Data.Pack_Current * 1000);
 }
 

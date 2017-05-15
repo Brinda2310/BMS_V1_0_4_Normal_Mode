@@ -145,9 +145,17 @@
 
 #endif
 
-/* Funtion prototypes */
+/* These enums are passed as one of the parameter to flash write API. If the parameter is ERASE then that
+ * particular 2KB flash sector will be erased otherwise API will write to the next locations without erasing
+ * the flash sector */
+enum Erase_Status
+{
+	DO_NOT_ERASE = 0, ERASE
+};
+
+/* Function prototypes */
 void MCU_Flash_DeInit();
-uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *TxBuffer);
+uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *TxBuffer,bool Erase_Flash_Sector);
 uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint32_t *RxBuffer);
 
 #endif /* FLASH_API_H_ */

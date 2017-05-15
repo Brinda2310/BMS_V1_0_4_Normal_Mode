@@ -12,7 +12,7 @@
 #include <BMS_Serial_Communication.h>
 #include "Hardware_Config.h"
 #include "BMS_Timing.h"
-#include "GPIO_API.h"
+#include <BMS_GPIOs.h>
 
 void MCU_Sleep_Mode_Init();
 void MCU_Enter_Sleep_Mode();

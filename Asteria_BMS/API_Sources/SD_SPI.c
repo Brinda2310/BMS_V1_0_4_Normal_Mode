@@ -26,10 +26,10 @@
 ------------------------------------------------------------------------------*/
 
 /* Includes ------------------------------------------------------------------*/
-#include <SD_SPI.h>
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
+#include "SD_SPI.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 typedef struct {
   uint8_t r1;
@@ -180,7 +180,7 @@ uint8_t SD_GetCardInfo(SD_CardInfo *pCardInfo)
 uint8_t SD_ReadBlocks(uint32_t* pData, uint32_t ReadAddr, uint16_t BlockSize, uint32_t NumberOfBlocks)
 {
   uint32_t offset = 0;
-  uint8_t retr = SD_ERROR;
+  uint8_t retr = SD_CARD_ERR;
   uint8_t *ptr = NULL;
   SD_CmdAnswer_typedef response;
 
@@ -213,7 +213,7 @@ uint8_t SD_ReadBlocks(uint32_t* pData, uint32_t ReadAddr, uint16_t BlockSize, ui
     }
 
     /* Now look for the data token to signify the start of the data */
-    if (SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_OK)
+    if (SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_CARD_OK)
     {
       /* Read the SD block data : read NumByteToRead data */
     	SPI_Transmit(ptr, (uint8_t*)pData + offset, BlockSize);	;
@@ -235,7 +235,7 @@ uint8_t SD_ReadBlocks(uint32_t* pData, uint32_t ReadAddr, uint16_t BlockSize, ui
     SPI_Transmit_Byte(SD_DUMMY_BYTE);
   }
 
-  retr = SD_OK;
+  retr = SD_CARD_OK;
 
 error :
   /* Send dummy byte: 8 Clock pulses of delay */
@@ -250,7 +250,7 @@ error :
 uint8_t SD_WriteBlocks(uint32_t* pData, uint32_t WriteAddr, uint16_t BlockSize, uint32_t NumberOfBlocks)
 {
   uint32_t offset = 0;
-  uint8_t retr = SD_ERROR;
+  uint8_t retr = SD_CARD_ERR;
   uint8_t *ptr = NULL;
   SD_CmdAnswer_typedef response;
 
@@ -308,7 +308,7 @@ uint8_t SD_WriteBlocks(uint32_t* pData, uint32_t WriteAddr, uint16_t BlockSize, 
     SD_Deselect();
     SPI_Transmit_Byte(SD_DUMMY_BYTE);
   }
-  retr = SD_OK;
+  retr = SD_CARD_OK;
 
 error :
   if(ptr != NULL) free(ptr);
@@ -322,7 +322,7 @@ error :
 
 uint8_t SD_Erase(uint32_t StartAddr, uint32_t EndAddr)
 {
-  uint8_t retr = SD_ERROR;
+  uint8_t retr = SD_CARD_ERR;
   SD_CmdAnswer_typedef response;
 
   /* Send CMD32 (Erase group start) and check if the SD acknowledged the erase command: R1 response (0x00: no errors) */
@@ -340,7 +340,7 @@ uint8_t SD_Erase(uint32_t StartAddr, uint32_t EndAddr)
       response = SD_SendCmd(SD_CMD_ERASE, 0, 0xFF, SD_ANSWER_R1B_EXPECTED);
       if (response.r1 == SD_R1_NO_ERROR)
       {
-        retr = SD_OK;
+        retr = SD_CARD_OK;
       }
       SD_Deselect();
       SPI_Transmit_Byte(SD_DUMMY_BYTE);
@@ -363,24 +363,24 @@ uint8_t SD_GetStatus(void)
   /* Find SD status according to card state */
   if(( retr.r1 == SD_R1_NO_ERROR) && ( retr.r2 == SD_R2_NO_ERROR))
   {
-    return SD_OK;
+    return SD_CARD_OK;
   }
 
-  return SD_ERROR;
+  return SD_CARD_ERR;
 }
 
 uint8_t SD_GetCSDRegister(SD_CSD* Csd)
 {
   uint16_t counter = 0;
   uint8_t CSD_Tab[16];
-  uint8_t retr = SD_ERROR;
+  uint8_t retr = SD_CARD_ERR;
   SD_CmdAnswer_typedef response;
 
   /* Send CMD9 (CSD register) or CMD10(CSD register) and Wait for response in the R1 format (0x00 is no errors) */
   response = SD_SendCmd(SD_CMD_SEND_CSD, 0, 0xFF, SD_ANSWER_R1_EXPECTED);
   if(response.r1 == SD_R1_NO_ERROR)
   {
-    if (SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_OK)
+    if (SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_CARD_OK)
     {
       for (counter = 0; counter < 16; counter++)
       {
@@ -464,7 +464,7 @@ uint8_t SD_GetCSDRegister(SD_CSD* Csd)
       Csd->crc               = (CSD_Tab[15] & 0xFE) >> 1;
       Csd->Reserved5         = (CSD_Tab[15] & 0x01);
 
-      retr = SD_OK;
+      retr = SD_CARD_OK;
     }
   }
 
@@ -479,7 +479,7 @@ uint8_t SD_GetCSDRegister(SD_CSD* Csd)
 uint8_t SD_GetCIDRegister(SD_CID* Cid)
 {
   uint32_t counter = 0;
-  uint8_t retr = SD_ERROR;
+  uint8_t retr = SD_CARD_ERR;
   uint8_t CID_Tab[16];
   SD_CmdAnswer_typedef response;
 
@@ -487,7 +487,7 @@ uint8_t SD_GetCIDRegister(SD_CID* Cid)
   response = SD_SendCmd(SD_CMD_SEND_CID, 0, 0xFF, SD_ANSWER_R1_EXPECTED);
   if(response.r1 == SD_R1_NO_ERROR)
   {
-    if(SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_OK)
+    if(SD_WaitData(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ) == SD_CARD_OK)
     {
       /* Store CID register value on CID_Tab */
       for (counter = 0; counter < 16; counter++)
@@ -549,7 +549,7 @@ uint8_t SD_GetCIDRegister(SD_CID* Cid)
       Cid->CID_CRC = (CID_Tab[15] & 0xFE) >> 1;
       Cid->Reserved2 = 1;
 
-      retr = SD_OK;
+      retr = SD_CARD_OK;
     }
   }
 
@@ -666,7 +666,7 @@ uint8_t SD_GoIdleState(void)
     SPI_Transmit_Byte(SD_DUMMY_BYTE);
     if(counter >= SD_MAX_TRY)
     {
-      return SD_ERROR;
+      return SD_CARD_ERR;
     }
   }
   while(response.r1 != SD_R1_IN_IDLE_STATE);
@@ -722,7 +722,7 @@ uint8_t SD_GoIdleState(void)
         SPI_Transmit_Byte(SD_DUMMY_BYTE);
         if(response.r1 != SD_R1_IN_IDLE_STATE)
         {
-          return SD_ERROR;
+          return SD_CARD_ERR;
         }
         /* Send ACMD41 (SD_CMD_SD_APP_OP_COND) to initialize SDHC or SDXC cards: R1 response (0x00: no errors) */
         response = SD_SendCmd(SD_CMD_SD_APP_OP_COND, 0x00000000, 0xFF, SD_ANSWER_R1_EXPECTED);
@@ -738,16 +738,16 @@ uint8_t SD_GoIdleState(void)
     SPI_Transmit_Byte(SD_DUMMY_BYTE);
     if(response.r1 != SD_R1_NO_ERROR)
     {
-      return SD_ERROR;
+      return SD_CARD_ERR;
     }
     flag_SDHC = (response.r2 & 0x40) >> 6;
   }
   else
   {
-    return SD_ERROR;
+    return SD_CARD_ERR;
   }
 
-  return SD_OK;
+  return SD_CARD_OK;
 }
 
 uint8_t SD_ReadData(void)
@@ -782,11 +782,11 @@ uint8_t SD_WaitData(uint8_t data)
   if (timeout == 0)
   {
     /* After time out */
-    return SD_TIMEOUT;
+    return SD_CARD_TIMEOUT;
   }
 
   /* Got correct response */
-  return SD_OK;
+  return SD_CARD_OK;
 }
 
 void SD_IO_Init(void)

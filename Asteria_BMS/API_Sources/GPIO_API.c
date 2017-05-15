@@ -8,7 +8,7 @@
   *          User has to define the controller in Hardware_Config.h file.
   ******************************************************************************/
 
-#include "GPIO_API.h"
+#include <GPIO_API.h>
 
 /**
  * @brief  Initialize the GPIO according to the specified parameters

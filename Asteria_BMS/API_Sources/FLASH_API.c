@@ -5,7 +5,7 @@
   * @brief   This file contains all the functions definations for the FLASH
   *          module driver
   ******************************************************************************/
-#include "FLASH_API.h"
+#include <FLASH_API.h>
 
 static uint32_t Get_Flash_Page_Number(uint32_t Address);
 
@@ -17,7 +17,7 @@ static uint32_t Get_Flash_Page_Number(uint32_t Address);
  * @retval RES_ERROR					: Not Successful
  * 		   RES_OK						: Successful
  */
-uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint64_t *TxBuffer)
+uint8_t MCU_Flash_Write(uint32_t Flash_Start_Address,uint32_t Flash_End_Address,uint64_t *TxBuffer,bool Erase_Flash_Sector)
 {
 	uint32_t FirstPage = 0, NoOfPages = 0;
 	uint32_t PageError = 0,Index = 0;
@@ -31,18 +31,24 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
 
-	FirstPage = Get_Flash_Page_Number(User_Flash_Start_Address);
-	NoOfPages = Get_Flash_Page_Number(User_Flash_End_Address) - FirstPage +  1;
+HAL_StatusTypeDef Res;
+
+if(Erase_Flash_Sector == ERASE)
+{
+	FirstPage = Get_Flash_Page_Number(Flash_Start_Address);
+	NoOfPages = Get_Flash_Page_Number(Flash_End_Address) - FirstPage +  1;
 
 	/* Size of each page is 2KB and stm32l432kc has only one flash bank, Number of pages to be written */
 	EraseInitStruct.TypeErase 	= FLASH_TYPEERASE_PAGES;
 	EraseInitStruct.Banks      	= FLASH_BANK_1;
 	EraseInitStruct.Page       	= FirstPage;
 	EraseInitStruct.NbPages     = NoOfPages;
-
-	HAL_StatusTypeDef Res;
-
 	Res = HAL_FLASHEx_Erase(&EraseInitStruct,&PageError);
+}
+else
+{
+	Res = HAL_OK;
+}
 	/* Flash page has to be erased before writing any data to it */
 	if(Res != HAL_OK)
 	{
@@ -52,8 +58,8 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	}
 	else
 	{
-		Address = User_Flash_Start_Address;
-		while (Address < User_Flash_End_Address && Timeout-- > 0)
+		Address = Flash_Start_Address;
+		while (Address < Flash_End_Address && Timeout-- > 0)
 		{
 			Res = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, Address,TxBuffer[Index++]);
 			/* Write the 8Byte i.e.64 bit data */
@@ -70,26 +76,26 @@ uint8_t MCU_Flash_Write(uint32_t User_Flash_Start_Address,uint32_t User_Flash_En
 	}
 
 	HAL_FLASH_Lock();
-
 #endif
 	return Result;
+
 }
 
 /**
  * @brief  Read data from flash of the micro controller
  * @param  User_Flash_Start_Address		: Start address of flash from where data is to be read
- * @param  User_Flash_End_Address		: End address of flash upto which data is to be read
+ * @param  User_Flash_End_Address		: End address of flash up to which data is to be read
  * @param  RxBuffer						: Pointer to the buffer to which read data is stored
  * @retval RES_ERROR					: Not Successful
  * 		   RES_OK						: Successful
  */
-uint8_t MCU_Flash_Read(uint32_t User_Flash_Start_Address,uint32_t User_Flash_End_Address,uint32_t *RxBuffer)
+uint8_t MCU_Flash_Read(uint32_t Flash_Start_Address,uint32_t Flash_End_Address,uint32_t *RxBuffer)
 {
 	uint32_t Address = 0,Index = 0;
 	uint8_t Result = RESULT_OK;
 #ifdef  BMS_VERSION
-	Address = User_Flash_Start_Address;
-	while(Address < User_Flash_End_Address)
+	Address = Flash_Start_Address;
+	while(Address < Flash_End_Address)
 	{
 		/* Read the 4 bytes data from the mentioned address */
 		RxBuffer[Index++] = *(__IO uint32_t *)Address;
