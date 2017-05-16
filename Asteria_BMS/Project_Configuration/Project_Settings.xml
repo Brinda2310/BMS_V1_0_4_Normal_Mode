@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="S">
+<includepath>${ProjDirPath}/Include</includepath>
+<includepath>${ProjDirPath}/CMSIS/core</includepath>
+<includepath>${ProjDirPath}/API_Includes</includepath>
+<includepath>${ProjDirPath}/CMSIS/device</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
+<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
+
+</language>
+<language name="C Source File">
+<includepath>${ProjDirPath}/Include</includepath>
+<includepath>${ProjDirPath}/CMSIS/core</includepath>
+<includepath>${ProjDirPath}/API_Includes</includepath>
+<includepath>${ProjDirPath}/CMSIS/device</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
+<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+<language name="s">
+<includepath>${ProjDirPath}/Include</includepath>
+<includepath>${ProjDirPath}/API_Includes</includepath>
+<includepath>${ProjDirPath}/CMSIS/core</includepath>
+<includepath>${ProjDirPath}/CMSIS/device</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
+<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
+
+</language>
+<language name="Assembly Source File">
+<includepath>${ProjDirPath}/Include</includepath>
+<includepath>${ProjDirPath}/API_Includes</includepath>
+<includepath>${ProjDirPath}/CMSIS/core</includepath>
+<includepath>${ProjDirPath}/CMSIS/device</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc/Legacy</includepath>
+<includepath>${ProjDirPath}/HAL_Driver/Inc</includepath>
+<includepath>${ProjDirPath}/Middlewares/Third_Party/FatFs/src</includepath>
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="S">
+<macro>
+<name>NUCLEO_L432KC</name><value/>
+</macro>
+<macro>
+<name>STM32L4</name><value/>
+</macro>
+<macro>
+<name>STM32L432KCUx</name><value/>
+</macro>
+<macro>
+<name>STM32</name><value/>
+</macro>
+<macro>
+<name>DEBUG</name><value/>
+</macro>
+<macro>
+<name>USE_HAL_DRIVER</name><value/>
+</macro>
+<macro>
+<name>STM32L432xx</name><value/>
+</macro>
+<macro>
+<name>INCLUDE_FATFS</name><value/>
+</macro>
+
+</language>
+<language name="C Source File">
+<macro>
+<name>NUCLEO_L432KC</name><value/>
+</macro>
+<macro>
+<name>STM32L4</name><value/>
+</macro>
+<macro>
+<name>STM32L432KCUx</name><value/>
+</macro>
+<macro>
+<name>STM32</name><value/>
+</macro>
+<macro>
+<name>DEBUG</name><value/>
+</macro>
+<macro>
+<name>USE_HAL_DRIVER</name><value/>
+</macro>
+<macro>
+<name>STM32L432xx</name><value/>
+</macro>
+<macro>
+<name>INCLUDE_FATFS</name><value/>
+</macro>
+
+</language>
+<language name="Object File">
+
+</language>
+<language name="s">
+
+</language>
+<language name="Assembly Source File">
+
+</language>
+</section>
+</cdtprojectproperties>
