@@ -28,6 +28,10 @@
 #define SF_DECIMAL_POINT_PLACE						2
 #define LF_DECIMAL_POINT_PLACE						3
 
+/* Offsets for each count inside the log summary file */
+#define TOTAL_FILE_COUNT_INDEX						22
+#define POWER_UP_NUMBER_INDEX						46
+
 /* Enums for SD card status
  * @SDC_NOT_PRESENT	: SD card is not present in the slot
  * @SDC_PRESENT		: SD card is present in the slot */
@@ -45,7 +49,7 @@ enum data_types
 /* Sizes(decimal number converted to characters) of the different data types */
 enum data_sizes
 {
-	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 10,SHORT_FLOAT_SIZE_ = 7,LONG_SIZE_ = 10
+	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 10,SHORT_FLOAT_SIZE_ = 6,LONG_SIZE_ = 10
 };
 
 typedef struct
@@ -60,12 +64,23 @@ typedef struct
 	char Battery_Charge_Discharge_Date[10];
 }Log_Vars;
 
+/* Structure holding all the variables related to log summary file */
+typedef struct
+{
+	uint16_t Power_Up_Number;
+	uint16_t Total_Num_of_Files;
+}Log_SD_Summary_Vars;
+
 extern const uint8_t BMS_Firmware_Version[3];
 
 uint16_t Total_Num_of_Files;
 
 /* Function prototypes */
+uint8_t BMS_Log_Init();
+uint8_t Create_Log_Summary_File();
 uint8_t Create_BMS_Log_File();
+uint8_t Write_Count_Log_Summary_File(uint32_t Offset,uint16_t Decimal_Number);
+uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable);
 void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type);
 uint8_t Log_All_Data();
 void Stop_Log();

@@ -42,6 +42,8 @@ uint16_t BMS_Sleep_Time_Count = 0;
 /* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint16_t MCU_Sleep_Time_Count = 0;
 
+uint8_t RecData = 0;
+
 bool ISL_Sleep = false;
 bool MCU_Sleep = false;
 volatile bool Short_Time_Elapsed = false,Long_Time_Elapsed = false;
@@ -92,7 +94,7 @@ int main(void)
 
 	/* Create the LOG file on SD card with hard coded name as of now. Later it will changed with
 	 * respect to the log summary file */
-	if(Create_BMS_Log_File() == RESULT_OK)
+	if(BMS_Log_Init() == RESULT_OK)
 	{
 #if  DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
@@ -107,6 +109,12 @@ int main(void)
 
 	while(1)
 	{
+		BMS_Debug_COM_Read_Data(&RecData,1);
+
+		if(RecData == 'A')
+		{
+			NVIC_SystemReset();
+		}
 		/* This flag will be true after every 40mS in timer application file */
 		if (_25Hz_Flag == true)
 		{
