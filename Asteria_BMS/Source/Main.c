@@ -212,7 +212,7 @@ int main(void)
 			else
 			{
 #if DEBUG_MANDATORY == ENABLE
-					BMS_Debug_COM_Write_Data("Awaken\r",7);
+				BMS_Debug_COM_Write_Data("Awaken\r",7);
 #endif
 			}
 

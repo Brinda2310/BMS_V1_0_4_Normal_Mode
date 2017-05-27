@@ -11,14 +11,14 @@
 /* Function to initialize the switch functionality connected to respective GPIO of MCU */
 void BMS_Switch_Init()
 {
-	GPIO_Init(GPIO_A,GPIO_PIN_11,GPIO_INPUT,PULLUP);
+	GPIO_Init(GPIO_A,BMS_SWITCH,GPIO_INPUT,PULLUP);
 }
 
 /* Function to read the switch status. Switch is pulled up with internal resistor,
  * If pressed pin status will be LOW and if not pressed it will remain to high state */
 uint8_t BMS_Read_Switch_Status()
 {
-	if(GPIO_Read(GPIO_A,GPIO_PIN_11) == PIN_LOW)
+	if(GPIO_Read(GPIO_A,BMS_SWITCH) == PIN_LOW)
 	{
 		return PRESSED;
 	}
@@ -52,11 +52,10 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity)
 {
 	if(Battery_Capacity == SOC)
 	{
-//		GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
 #if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Short Press\r",12);
-#endif
 		Delay_Millis(2);
+#endif
 	}
 	else if (Battery_Capacity == SOH)
 	{

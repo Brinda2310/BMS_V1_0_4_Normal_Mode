@@ -40,34 +40,6 @@ void MCU_Enter_Sleep_Mode()
 #endif
 }
 
-void SystemPower_Config(void)
-{
-#ifdef BMS_VERSION
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-/* Enable GPIOs clock */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOH_CLK_ENABLE();
-
-	GPIO_InitStructure.Pin = GPIO_PIN_All;
-	GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOH, &GPIO_InitStructure);
-
-	/* Disable GPIOs clock to reduce the power consumption */
-	__HAL_RCC_GPIOA_CLK_DISABLE();
-	__HAL_RCC_GPIOB_CLK_DISABLE();
-	__HAL_RCC_GPIOC_CLK_DISABLE();
-	__HAL_RCC_GPIOH_CLK_DISABLE();
-#endif
-}
-
 void MCU_Exit_Sleep_Mode()
 {
 #ifdef BMS_VERSION
@@ -101,9 +73,7 @@ void SystemClock_Decrease(void)
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_0;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-  }
+  HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
   /* Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
@@ -112,9 +82,7 @@ void SystemClock_Decrease(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-  }
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 
   /* Disable HSI to reduce power consumption since MSI is used from that point */
   __HAL_RCC_HSI_DISABLE();

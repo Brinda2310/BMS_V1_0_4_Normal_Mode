@@ -14,7 +14,7 @@
 #define MAX_DIGITS_IN_COUNT							6		/* Specifies the maximum digits in decimal number */
 #define DECIMAL_BASE								10
 #define BINARY_BASE									2
-#define OCTAL_BASE									85
+#define OCTAL_BASE									8
 
 /* Maximum ranges of the variables for different data types */
 #define MAX_CHAR_VALUE								9
