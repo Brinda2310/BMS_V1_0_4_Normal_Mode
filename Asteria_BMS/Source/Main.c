@@ -30,7 +30,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		0			// Beta code release--modified when code is being merged to test_develop branch.
+		1			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 RTC_Data RTC_Info;
