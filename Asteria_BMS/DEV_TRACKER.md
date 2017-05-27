@@ -9,7 +9,7 @@
   This file is meant to track the bug fixes and enhancements done in the BMS code. Each time a pull request is issued, 
   the firmware version is update. 
   
-  The Autopilot code repository has the following branches:
+  The BMS code repository has the following branches:
     1. Master:-Major Code Release which has been thoroughly tested both on bench and in flight.
     2. Develop:-This branch contains the sub-releases. All the code committed to this branch is first tested on the bench in a 
 	   simulation environment, and then tested in the flight. 
