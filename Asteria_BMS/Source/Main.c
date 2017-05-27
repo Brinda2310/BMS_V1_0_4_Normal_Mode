@@ -3,7 +3,7 @@
  * @file    Main.c
  * @author  Nikhil Ingale
  * @version V1.0.0
- * @date    01-December-2013
+ * @date    27-May-2017
  * @brief   Default main function.
  ******************************************************************************
 */
@@ -35,17 +35,16 @@ const uint8_t BMS_Firmware_Version[3] =
 
 RTC_Data RTC_Info;
 
-uint8_t RecData = 0;
-
+/* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
 uint16_t Switch_Press_Time_Count = 0;
+/* Variable to keep the track of time when there is no current consumption so as to force the ISL to sleep */
 uint16_t BMS_Sleep_Time_Count = 0;
+/* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint16_t MCU_Sleep_Time_Count = 0;
 
 bool ISL_Sleep = false;
 bool MCU_Sleep = false;
-bool Short_Time_Elapsed = false,Long_Time_Elapsed = false;
-
-//char Buffer[20];
+volatile bool Short_Time_Elapsed = false,Long_Time_Elapsed = false;
 
 int main(void)
 {
@@ -57,7 +56,7 @@ int main(void)
 
 	/* Delay of 5 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(5000);
+	Delay_Millis(1000);
 
 	/* Initialize the timer to 40mS and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -111,8 +110,8 @@ int main(void)
 		/* This flag will be true after every 40mS in timer application file */
 		if (_25Hz_Flag == true)
 		{
-			/* If the switch is pressed for shorter period of time(2 Seconds) then show SOH on status LEDs
-			 * else if it is pressed for longer period of time (4 Seconds) then show SOC status on LEDs */
+			/* If the switch is pressed for shorter period of time(2 Seconds) then show SOC on status LEDs
+			 * else if it is pressed for longer period of time (4 Seconds) then show SOH status on LEDs */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
@@ -135,15 +134,16 @@ int main(void)
 			/* If switch is pressed for more than 4 Seconds then show SOC status on LEDs*/
 			if (Long_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(SOC);
+				BMS_Show_LED_Pattern(SOH);
 				Short_Time_Elapsed = false;
 				Long_Time_Elapsed = false;
+				Switch_Press_Time_Count = 0;
 			}
 
 			/* If switch is pressed for 2 seconds and released then show the SOH status on LEDs */
 			if (Short_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(1);
+				BMS_Show_LED_Pattern(SOC);
 				Short_Time_Elapsed = false;
 			}
 
@@ -156,6 +156,7 @@ int main(void)
 			BMS_Read_RAM_Status_Register();
 			BMS_Estimate_Capacity_Used();
 
+			BMS_Status_LED_Toggle();
 			/* If current consumption is less than 100mA for continuous 5 minutes and if BMS IC is not
 			 * in sleep mode then MCU forces the BMS IC to sleep mode */
 //			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)

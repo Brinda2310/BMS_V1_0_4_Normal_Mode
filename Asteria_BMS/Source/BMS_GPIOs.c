@@ -14,7 +14,8 @@ void BMS_Switch_Init()
 	GPIO_Init(GPIO_A,GPIO_PIN_11,GPIO_INPUT,PULLUP);
 }
 
-/* Function to read the switch status. If pressed then it returns PRESSED otherwise NOT_PRESSED */
+/* Function to read the switch status. Switch is pulled up with internal resistor,
+ * If pressed pin status will be LOW and if not pressed it will remain to high state */
 uint8_t BMS_Read_Switch_Status()
 {
 	if(GPIO_Read(GPIO_A,GPIO_PIN_11) == PIN_LOW)
@@ -30,12 +31,20 @@ uint8_t BMS_Read_Switch_Status()
 /* Function to initialize the LEDs connected to respective GPIOs of MCU */
 void BMS_Status_LEDs_Init()
 {
-//	GPIO_Init(GPIO_B,LED_1,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(GPIO_B,LED_1,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_B,LED_2,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_B,LED_3,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_B,LED_4,GPIO_OUTPUT,NOPULL);
 //	GPIO_Init(GPIO_A,LED_5,GPIO_OUTPUT,NOPULL);
 }
+
+/* Function to toggle the status LED connected on STM32L4 dev board; Used only for debugging */
+#if DEBUG_STATUS_LED == ENABLE
+void BMS_Status_LED_Toggle()
+{
+	GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
+}
+#endif
 
 /* Function to show the LED pattern upon switch press; It shows SOC and SOH based
  * on time for which switch is pressed */

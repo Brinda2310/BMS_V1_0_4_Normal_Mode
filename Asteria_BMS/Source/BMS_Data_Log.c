@@ -33,7 +33,7 @@ static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started. Right now
  * this name is hard coded, later it will be changed as per the log summary file */
-char File_Name[50] = "0:/2017-04-27_15-35-30_BMS5X_LOG1.txt";
+char File_Name[50] = "0:/2017-05-27_13-50-30_BMS5X_LOG12.txt";
 
 /* This variable holds the cursor position for stop time to be written to SD card */
 uint16_t Stop_Time_Cursor = 0;

@@ -43,6 +43,7 @@ enum LED_Pattern
 void BMS_Switch_Init();
 uint8_t BMS_Read_Switch_Status();
 void BMS_Status_LEDs_Init();
+void BMS_Status_LED_Toggle();
 void BMS_Show_LED_Pattern(uint8_t Battery_Capacity);
 
 #endif /* BMS_GPIOS_H_ */

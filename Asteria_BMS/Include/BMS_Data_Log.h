@@ -11,7 +11,7 @@
 #include "ff.h"
 
 /* Base number for converting the integer to strings */
-#define MAX_DIGITS_IN_COUNT							6
+#define MAX_DIGITS_IN_COUNT							6		/* Specifies the maximum digits in decimal number */
 #define DECIMAL_BASE								10
 #define BINARY_BASE									2
 #define OCTAL_BASE									85
@@ -24,9 +24,13 @@
 #define MAX_FLOAT_VALUE								99999.999
 #define MAX_SHORT_FLOAT_VALUE						99.99
 
+/* Specifies the resolution for float value which can be .99(for 2) or .999(for 3) */
 #define SF_DECIMAL_POINT_PLACE						2
 #define LF_DECIMAL_POINT_PLACE						3
 
+/* Enums for SD card status
+ * @SDC_NOT_PRESENT	: SD card is not present in the slot
+ * @SDC_PRESENT		: SD card is present in the slot */
 enum SD_Status
 {
 	SDC_NOT_PRESENT = 0,SDC_PRESENT
@@ -38,7 +42,7 @@ enum data_types
 	CHAR_DATA = 0,SHORT_INT_DATA,INT_DATA,SHORT_FLOAT_DATA,FLOAT_DATA,LONG_DATA
 };
 
-/* Sizes(number converted to characters) of the different data types */
+/* Sizes(decimal number converted to characters) of the different data types */
 enum data_sizes
 {
 	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 10,SHORT_FLOAT_SIZE_ = 7,LONG_SIZE_ = 10
@@ -56,18 +60,9 @@ typedef struct
 	char Battery_Charge_Discharge_Date[10];
 }Log_Vars;
 
-extern Log_Vars Log_Variables;
 extern const uint8_t BMS_Firmware_Version[3];
-extern FATFS FatFs;
-extern FIL BMS_Log_File;
-extern char File_Name[50];
-
-extern bool Log_Status;
 
 uint16_t Total_Num_of_Files;
-
-/* Variable which returns the status as 0 if anything goes wrong in log related functions */
-extern uint8_t Check_SD_Card;
 
 /* Function prototypes */
 uint8_t Create_BMS_Log_File();

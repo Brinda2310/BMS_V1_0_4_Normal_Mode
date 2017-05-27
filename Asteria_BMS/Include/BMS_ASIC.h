@@ -10,64 +10,70 @@
 
 #include "I2C_API.h"
 
-#define BMS_ADDRESS												0x50
-#define I2C_OWN_ADDRESS											0x0F
-#define EEPROM_PAGE_SIZE										4
-#define EEPROM_WRITE_DELAY										30
+#define BMS_ADDRESS									0x50	/* ISL94203 slave address */
+#define I2C_OWN_ADDRESS								0x0F	/* This is the MCU's own address */
+#define EEPROM_PAGE_SIZE							4		/* Max size of EEPROM page in ISL */
+#define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
-#define USER_EEPROM_START_ADDRESS								0x50
-#define BMS_I2C													I2C_1
+#define USER_EEPROM_START_ADDRESS					0x50	/* ISL's user EEPROM start address */
+#define BMS_I2C										I2C_1	/* I2C bus of MCU to be used for ISL */
 
-#define RAM_STATUS_REG_ADDRESS									0x80
+#define RAM_STATUS_REG_ADDRESS						0x80	/* ISL's RAM status flags address */
 
-#define PACK_CURRENT_ADDR										0x8E
-#define CELL_VOLTAGE_ADDR										0x90
-#define PACK_TEMPERATURE_ADDR									0xA0
-#define PACK_VOLTAGE_ADDR										0xA6
+#define PACK_CURRENT_ADDR							0x8E	/* ISL's pack current register address */
+#define CELL_VOLTAGE_ADDR							0x90	/* ISL's cell voltages register address */
+#define PACK_TEMPERATURE_ADDR						0xA0	/* ISL's internal temperature register address */
+#define PACK_VOLTAGE_ADDR							0xA6	/* ISL's pack voltage register address */
 
 /* RAM location 0x80 status flags */
-#define IS_ANY_CELL_V_OVER_THRESHOLD							(1 << 0)
-#define IS_ANY_CELL_V_UNDER_THRESHOLD							(1 << 2)
-#define IS_DISCHARGE_OVER_TEMP									(1 << 4)
-#define IS_DISCHARGE_UNDER_TEMP									(1 << 5)
-#define IS_CHARGE_OVER_TEMP										(1 << 6)
-#define IS_CHARGE_UNDER_TEMP									(1 << 7)
+#define IS_ANY_CELL_V_OVER_THRESHOLD				(1 << 0)
+#define IS_ANY_CELL_V_UNDER_THRESHOLD				(1 << 2)
+#define IS_DISCHARGE_OVER_TEMP						(1 << 4)
+#define IS_DISCHARGE_UNDER_TEMP						(1 << 5)
+#define IS_CHARGE_OVER_TEMP							(1 << 6)
+#define IS_CHARGE_UNDER_TEMP						(1 << 7)
 
-#define IS_INTERNAL_OVER_TEMP									(1 << 8)
-#define IS_CHARGE_OVER_CURRENT									(1 << 9)
-#define IS_DISCHARGE_OVER_CURRENT								(1 << 10)
-#define IS_DISHARGE_SHORT_CIRCUIT								(1 << 11)
-#define IS_CELL_FAIL											(1 << 12)
-#define IS_OPEN_WIRE											(1 << 13)
-#define IS_END_OF_CHARGE										(1 << 15)
+#define IS_INTERNAL_OVER_TEMP						(1 << 8)
+#define IS_CHARGE_OVER_CURRENT						(1 << 9)
+#define IS_DISCHARGE_OVER_CURRENT					(1 << 10)
+#define IS_DISHARGE_SHORT_CIRCUIT					(1 << 11)
+#define IS_CELL_FAIL								(1 << 12)
+#define IS_OPEN_WIRE								(1 << 13)
+#define IS_END_OF_CHARGE							(1 << 15)
 
-#define IS_PACK_CHARGING										(1 << 18)
-#define IS_PACK_DISCHARGING										(1 << 19)
-#define IS_INTERNAL_SCAN										(1 << 22)
+#define IS_PACK_CHARGING							(1 << 18)
+#define IS_PACK_DISCHARGING							(1 << 19)
+#define IS_INTERNAL_SCAN							(1 << 22)
 
-#define IS_CELL_BALANCE_OVER_T									(1 << 24)
-#define IS_CELL_BALANCE_UNDER_T									(1 << 25)
-#define IS_CELL_BALANCE_OVER_V									(1 << 26)
-#define IS_CELL_BALANCE_UNDER_V									(1 << 27)
-#define IS_ISL_IN_IDLE											(1 << 28)
-#define IS_ISL_IN_DOZE											(1 << 29)
-#define IS_ISL_IN_SLEEP											(1 << 30)
+#define IS_CELL_BALANCE_OVER_T						(1 << 24)
+#define IS_CELL_BALANCE_UNDER_T						(1 << 25)
+#define IS_CELL_BALANCE_OVER_V						(1 << 26)
+#define IS_CELL_BALANCE_UNDER_V						(1 << 27)
+#define IS_ISL_IN_IDLE								(1 << 28)
+#define IS_ISL_IN_DOZE								(1 << 29)
+#define IS_ISL_IN_SLEEP								(1 << 30)
 
-#define NUMBER_OF_CELLS											8
-#define CELL_VOLTAGES_DATA_SIZE									(2*NUMBER_OF_CELLS)
-#define SENSE_RESISTOR_VALUE									1e-3
-#define CURRENT_GAIN											5
+#define NUMBER_OF_CELLS								8		/* The number of cells the battery has */
+#define CELL_VOLTAGES_DATA_SIZE						(2*NUMBER_OF_CELLS)
+#define SENSE_RESISTOR_VALUE						1e-3	/* Current sense resistor value used in hardware */
+#define CURRENT_GAIN								5		/* Set the current gain as per sense resistor value */
 
-#define MINIMUM_CURRENT_CONSUMPTION								50
-#define MAXIMUM_PACK_VOLTAGE									25
+#define MINIMUM_CURRENT_CONSUMPTION					50		/* If current consumption is less than 50mA
+ 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	   for specific time then put the BMS to sleep */
+#define MAXIMUM_PACK_VOLTAGE						25		/* Maximum value of pack voltage */
 
-/* Enums to define the write results */
+/* Enums to define the write results;
+ * @WRITE_OK	: Write operation is successful
+ * @WRITE_ERROR	: Write operation is unsuccessful */
 enum Write_Result
 {
 	WRITE_OK = 0,WRITE_ERROR
 };
 
-/* Enums to define the current battery status */
+/* Enums to define the current battery status
+ * @DISCHARGING 		 : Current is going out of pack
+ * @CHARGING			 : Current is coming into the pack
+ * @LOW_POWER_CONSUMPTION: BMS is in IDLE state */
 enum Pack_Status
 {
 	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
@@ -121,6 +127,7 @@ typedef struct
 
 }BMS_Status_Flags;
 
+/* Variable which holds the value of all the status flags updated at 25Hz */
 extern BMS_Status_Flags Status_Flag;
 extern float Pack_Capacity;
 
