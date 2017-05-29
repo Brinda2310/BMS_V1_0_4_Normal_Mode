@@ -28,6 +28,7 @@
 #define USE_TIMER2
 #define USE_USART1
 #define USE_I2C1
+#define USE_I2C3
 #define USE_SPI1
 
 #define DISABLE											0
@@ -116,9 +117,11 @@
 #define USART2_HANDLE_INDEX								1
 
 /********************************************* I2C Related Macros ****************************************************/
-#define NUM_OF_I2C_BUSES								2
+#define NORMAL_I2C_MODE									0
+#define SMBUS_MODE										(!NORMAL_I2C_MODE)
 
 #ifdef USE_I2C1
+#define I2C1_MODE										NORMAL_I2C_MODE
 #define I2C1_REMAP										DISABLE
 #define I2C1_INT_MODE									DISABLE
 #define I2C1_PRIOIRTY									5
@@ -126,20 +129,29 @@
 #endif
 
 #ifdef USE_I2C3
+#define I2C3_MODE										SMBUS_MODE
 #define I2C3_REMAP										DISABLE
-#define I2C3_INT_MODE									DISABLE
-#define I2C3_PRIOIRTY									6
+#define I2C3_INT_MODE									ENABLE
+#define I2C3_PRIOIRTY									5
 #define I2C3_SUBPRIOIRTY								0
 #endif
 
-#define I2C1_HANDLE_INDEX								0
-#define I2C3_HANDLE_INDEX								1
-
-#define I2C_100KHZ										0x90942027
+#define I2C_100KHZ										0x9032262A
 #define I2C_400KHZ										0x90310309
 #define I2C_1MHZ										0x40200204
 #define I2C_DATA_TIMEOUT								100
 
+#if defined (USE_I2C1) || defined(USE_I2C3)
+#if (I2C1_MODE == NORMAL_I2C_MODE && I2C3_MODE == NORMAL_I2C_MODE) || (I2C1_MODE == SMBUS_MODE && I2C3_MODE == SMBUS_MODE)
+	#define NUM_OF_I2C_BUSES							2
+	#define I2C1_HANDLE_INDEX							0
+	#define I2C3_HANDLE_INDEX							1
+#elif (I2C1_MODE == NORMAL_I2C_MODE &&  I2C3_MODE == SMBUS_MODE) || (I2C1_MODE == SMBUS_MODE &&  I2C3_MODE == NORMAL_I2C_MODE)
+	#define NUM_OF_I2C_BUSES							1
+	#define I2C1_HANDLE_INDEX							0
+	#define I2C3_HANDLE_INDEX							0
+#endif
+#endif
 /********************************************* SPI Related Macros ****************************************************/
 #define NUM_OF_SPI_BUSES								2
 
@@ -213,6 +225,7 @@ enum Results
 #include "stdint.h"
 #include "stdlib.h"
 #include "string.h"
+#include "math.h"
 
 
 #endif /* HARDWARE_CONFIG_H_ */

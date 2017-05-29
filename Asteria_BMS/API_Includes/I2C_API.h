@@ -17,11 +17,17 @@ enum I2C_Number
 {
 	I2C_1 = 0,I2C_3
 };
-
+enum I2C_Modes
+{
+	I2C_MASTER = 0, I2C_SLAVE
+};
 /* Function prototypes */
-uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Address,uint32_t Clock_Frequency);
+uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequency,uint8_t I2C_Mode);
 uint8_t I2C_DeInit(uint8_t I2C_Num);
 uint8_t I2C_WriteData(uint8_t I2C_Num,uint16_t Dev_Address,uint8_t *TxBuffer,uint16_t Size);
 uint8_t I2C_ReadData(uint8_t I2C_Num,uint16_t Dev_Address,uint8_t *RxBuffer,uint8_t Size);
+void SMBUS_Enable_Listen_Mode(uint8_t I2C_Num);
+bool SMBUS_Request_Check(uint8_t *RxBuffer);
+void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size);
 
 #endif /* I2C_API_H_ */

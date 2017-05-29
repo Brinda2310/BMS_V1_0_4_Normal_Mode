@@ -14,6 +14,7 @@
 #include <BMS_Timing.h>
 #include <RTC_API.h>
 #include <Power_Management.h>
+#include <AP_Communication.h>
 
 typedef struct
 {
@@ -42,7 +43,7 @@ uint16_t BMS_Sleep_Time_Count = 0;
 /* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint16_t MCU_Sleep_Time_Count = 0;
 
-uint8_t RecData = 0;
+uint8_t RecData = 0,AP_Request_Data = 0;
 
 bool ISL_Sleep = false;
 bool MCU_Sleep = false;
@@ -76,6 +77,9 @@ int main(void)
 
 	/* Configure the ISL94203 I2C communication to 100KHz */
 	BMS_ASIC_Init();
+
+	/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
+	AP_COM_Init(AP_COM_SMBUS_MODE);
 
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
@@ -268,6 +272,7 @@ int main(void)
 			_1Hz_Flag = false;
 		}
 
+		Check_AP_Request(&AP_Request_Data);
 	}
 }
 

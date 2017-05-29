@@ -16,6 +16,23 @@
 #define EEPROM_PAGE_SIZE							4		/* Max size of EEPROM page in ISL */
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
+/*
+ * Coefficients required for calculating used mAh from the no-load battery voltage
+ * y = 0.051156*z^5 -0.69723*z^4 + 1.9663*z^3 -3.0335^z2 + 14.781*z +79.795
+ * where z = (x - 3.94) / 0.13453
+ * where x is battery voltage;
+ * y is estimated battery capacity remaining (in mAh)
+ */
+#define BATT_EST_COEFF_0 			79.795				//z^0
+#define BATT_EST_COEFF_1 			14.781				//z^1
+#define BATT_EST_COEFF_2 			-3.0335				//z^2
+#define BATT_EST_COEFF_3 			1.9663				//z^3
+#define BATT_EST_COEFF_4 			-0.69723			//z^4
+#define BATT_EST_COEFF_5 			0.051156			//z^5
+#define BATT_EST_Mu					3.94				//constant used 3.94 (mean value)in above equation
+#define BATT_EST_Sigma 				0.13453				//constant used 0.13453 (standard deviation)
+#define BATTERY_CAPACITY			11000
+#define BATTERY_CELLS_COUNT			6
 /* BMS ISL94203 Internal register's addresses */
 #define USER_EEPROM_START_ADDRESS					0x50	/* ISL's user EEPROM start address */
 #define RAM_STATUS_REG_ADDRESS						0x80	/* ISL's RAM status flags address */
@@ -149,8 +166,8 @@ typedef struct
 	float Pack_Current;
 	float Pack_Temperature_Degress;
 
-	double Total_Pack_Capacity;
-	double Capacity_Used;
+	float Pack_Capacity_Remaining;
+	float Pack_Capacity_Used;
 
 	uint16_t Pack_Cycles;
 	uint8_t Charging_Discharging_Status;
@@ -170,10 +187,11 @@ void BMS_Read_Pack_Temperature(void);
 
 void BMS_Estimate_Initial_Capacity(void);
 void BMS_Estimate_Capacity_Used(void);
+float Constrain(float var, float llimit, float ulimit);
 
-uint8_t Get_BMS_Charge_Discharge_Status();
-double Get_BMS_Initial_Capacity(void);
-double Get_BMS_Capacity_Used(void);
+uint8_t Get_BMS_Charge_Discharge_Status(void);
+float Get_BMS_Initial_Capacity(void);
+float Get_BMS_Capacity_Used(void);
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);
 float Get_Cell3_Voltage(void);

@@ -25,7 +25,7 @@ BMS_Status_Flags Status_Flag;
 /* Function initializes the I2C communication between MCU and BMS IC */
 void BMS_ASIC_Init()
 {
-	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ);
+	I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
 }
 
 /* Function to enable the access to the EERPOM section of BMS IC */
@@ -199,32 +199,73 @@ void BMS_Read_Cell_Voltages()
 /* Function to calculate the battery capacity used */
 void BMS_Estimate_Initial_Capacity(void)
 {
-	static uint8_t Counter = 0;
-	if(_25Hz_Flag == true)
+	float Batt_Volt_Per_Cell = 0, volt_z = 0, pow_volt_z = 0, Battery_Estimate = 0;
+
+	Batt_Volt_Per_Cell = Get_BMS_Pack_Voltage() / (float) BATTERY_CELLS_COUNT;
+
+	volt_z = (float) ((float) (Batt_Volt_Per_Cell - BATT_EST_Mu) / (float) BATT_EST_Sigma);
+
+	pow_volt_z = volt_z; //degree 1
+
+	Battery_Estimate = (float) BATT_EST_COEFF_0	+ (float) BATT_EST_COEFF_1 * (float) pow_volt_z;
+
+	pow_volt_z = pow_volt_z * volt_z; //degree 2
+
+	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_2 * (float) pow_volt_z;
+
+	pow_volt_z = pow_volt_z * volt_z; //degree 3
+
+	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_3 * (float) pow_volt_z;
+
+	pow_volt_z = pow_volt_z * volt_z; //degree 4
+
+	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_4 * (float) pow_volt_z;
+
+	pow_volt_z = pow_volt_z * volt_z; //degree 5
+
+	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_5 * (float) pow_volt_z;
+
+	if ((Battery_Estimate > 100))
 	{
-		Counter++;
-		BMS_Estimate_Capacity_Used();
-		_25Hz_Flag = false;
+		BMS_Data.Pack_Capacity_Used = 0;
 	}
+	else if (Battery_Estimate < 0)
+	{
+		BMS_Data.Pack_Capacity_Used = (float) (BATTERY_CAPACITY);
+	}
+	else
+	{
+		BMS_Data.Pack_Capacity_Used = ((1 - (Battery_Estimate / 100)) * (float)(BATTERY_CAPACITY));
+	}
+
+	//	Calculate remaining battery capacity
+	BMS_Data.Pack_Capacity_Remaining = (float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
+	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 }
 
-double Get_BMS_Initial_Capacity()
+/* Function to round off the float variable between lower limit and upper limit */
+float Constrain(float Value, float Lower_Limit, float Upper_Limit)
 {
-	return BMS_Data.Total_Pack_Capacity;
+	if(Value > Upper_Limit)
+	{
+		Value = Upper_Limit;
+	}
+	else if(Value < Lower_Limit)
+	{
+		Value = Lower_Limit;
+	}
+	return Value;
 }
 
 void BMS_Estimate_Capacity_Used()
 {
 	Current_Time = Get_System_Time();
 	Current_Amperes = Get_BMS_Pack_Current();
-	BMS_Data.Capacity_Used += ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
+	BMS_Data.Pack_Capacity_Used += ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
 	Previous_Amperes = Current_Amperes;
 	Previous_Time = Current_Time;
-}
 
-double Get_BMS_Capacity_Used()
-{
-	return BMS_Data.Capacity_Used;
+	BMS_Data.Pack_Capacity_Remaining = (float)(1 - (BMS_Data.Pack_Capacity_Used /(float)BATTERY_CAPACITY)) * 100;
 }
 
 /* Function to read the pack voltage from ISL IC */
@@ -310,6 +351,16 @@ float Get_Cell8_Voltage()
 float Get_BMS_Pack_Voltage()
 {
 	return BMS_Data.Pack_Voltage;
+}
+
+float Get_BMS_Initial_Capacity()
+{
+	return BMS_Data.Pack_Capacity_Remaining;
+}
+
+float Get_BMS_Capacity_Used()
+{
+	return BMS_Data.Pack_Capacity_Used;
 }
 
 float Get_BMS_Pack_Current()

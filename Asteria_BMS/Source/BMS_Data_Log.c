@@ -376,7 +376,6 @@ uint8_t Log_All_Data()
 		Result = RESULT_ERROR;
 	}
 	return Result;
-
 }
 
 /*
