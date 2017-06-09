@@ -50,6 +50,7 @@ static void BMS_RAM_Access_Enable()
  */
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
+	uint8_t Result;
 	/* Before writing to EEPROM it's access needs to be enabled */
 	BMS_EEPROM_Access_Enable();
 
@@ -57,7 +58,7 @@ uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t D
 	 * it's user EEPROM */
 	if(Data_Size > EEPROM_PAGE_SIZE)
 	{
-		return WRITE_ERROR;
+		Result = WRITE_ERROR;
 	}
 	else
 	{
@@ -70,10 +71,12 @@ uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t D
 			I2C_WriteData(BMS_I2C,BMS_ADDRESS,Data,2);
 			Delay_Millis(EEPROM_WRITE_DELAY);
 		}
-		return WRITE_OK;
+		Result = WRITE_OK;
 	}
 	/* Enable back the access to RAM as query data is always received from RAM locations */
 	BMS_RAM_Access_Enable();
+
+	return Result;
 }
 
 /**
@@ -141,8 +144,74 @@ static void Set_BMS_Status_Flags(uint32_t Flags)
 		BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
 #endif
 	}
+
+	if(Flags & IS_PACK_CHARGING)
+	{
+		BMS_Data.Charging_Discharging_Status = CHARGING;
+		Status_Flag.Pack_Discharging = YES;
+#if DEBUG_OPTIONAL == ENABLE
+		BMS_Debug_COM_Write_Data("Discharging\r",14);
+#endif
+	}
+	if(Flags & IS_INTERNAL_SCAN)
+	{
+		Status_Flag.Internal_Scan_Progress = NO;
+#if DEBUG_OPTIONAL == ENABLE
+		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
+#endif
+	}
+	else
+	{
+		Status_Flag.Internal_Scan_Progress = YES;
+#if DEBUG_OPTIONAL == ENABLE
+		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
+#endif
+	}
 }
 
+/* Function to set the gain value to the EEPROM of BMS ASIC */
+uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
+{
+	uint8_t Gain_Value, Result;
+	uint8_t Register_Address = 0, Send_Data_Values[2];
+
+	/* Before writing any value,make sure other settings in the 0x85 register are not disturbed
+	 * So read the value first and then just change the 4th and 5th bit value in the register */
+	Register_Address = CURRENT_GAIN_SETTING_ADDR;
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, &Register_Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, &Gain_Value, 1);
+
+	if (Status_Flag.Internal_Scan_Progress == NO)
+	{
+		switch (Gain_Setting)
+		{
+		case CURRENT_GAIN_5X:
+			Gain_Value = Gain_Value | (1 << 4);
+			Gain_Value &= (~(1 << 5)); /* 4th bit should be 1 and 5th bit should be 0 */
+			break;
+		case CURRENT_GAIN_50X:
+			Gain_Value = Gain_Value & (~(3 << 4)); /* 4th and 5th bit should be zero */
+			break;
+		case CURRENT_GAIN_500X:
+			Gain_Value = Gain_Value | (1 << 5); /* 5th bit should be 1 and 4th bit can be either 0 or 1 */
+			break;
+		default:
+			Gain_Value = Gain_Value | (1 << 4); /* By default gain value should be 5X*/
+			Gain_Value &= (~(1 << 5));
+			break;
+		}
+		Send_Data_Values[0] = CURRENT_GAIN_SETTING_ADDR;
+		Send_Data_Values[1] = Gain_Value;
+		/* Write the current gain value(5X,50X,500X) to 0x85 register */
+		if (I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,sizeof(Send_Data_Values)) == RESULT_OK)
+		{
+			Result = WRITE_OK;
+		}
+		else
+			Result = WRITE_ERROR;
+	}
+	return Result;
+}
 /* Function to return the charging/discharging status of the BMS */
 uint8_t Get_BMS_Charge_Discharge_Status()
 {
@@ -160,7 +229,7 @@ void BMS_Read_RAM_Status_Register()
 
 	Bytes_to_integer RAM_Flags;
 
-	uint8_t Register_Address = RAM_STATUS_REG_ADDRESS;
+	uint8_t Register_Address = RAM_STATUS_REG_ADDR;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
 	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4);
 	Set_BMS_Status_Flags(RAM_Flags.Stat_Flags);
@@ -172,6 +241,7 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 	unsigned short  *Integers;
 	Integers = (unsigned short*)Data;
 
+	/* Hard coded formulae defined by the ASIC manufacturer */
 	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell2_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell3_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
@@ -205,23 +275,23 @@ void BMS_Estimate_Initial_Capacity(void)
 
 	volt_z = (float) ((float) (Batt_Volt_Per_Cell - BATT_EST_Mu) / (float) BATT_EST_Sigma);
 
-	pow_volt_z = volt_z; //degree 1
+	pow_volt_z = volt_z; 				/* Degree 1 */
 
 	Battery_Estimate = (float) BATT_EST_COEFF_0	+ (float) BATT_EST_COEFF_1 * (float) pow_volt_z;
 
-	pow_volt_z = pow_volt_z * volt_z; //degree 2
+	pow_volt_z = pow_volt_z * volt_z; 	/* Degree 2 */
 
 	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_2 * (float) pow_volt_z;
 
-	pow_volt_z = pow_volt_z * volt_z; //degree 3
+	pow_volt_z = pow_volt_z * volt_z; 	/* Degree 3 */
 
 	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_3 * (float) pow_volt_z;
 
-	pow_volt_z = pow_volt_z * volt_z; //degree 4
+	pow_volt_z = pow_volt_z * volt_z; 	/* Degree 4 */
 
 	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_4 * (float) pow_volt_z;
 
-	pow_volt_z = pow_volt_z * volt_z; //degree 5
+	pow_volt_z = pow_volt_z * volt_z; 	/* Degree 5 */
 
 	Battery_Estimate = Battery_Estimate + (float) BATT_EST_COEFF_5 * (float) pow_volt_z;
 
@@ -238,7 +308,7 @@ void BMS_Estimate_Initial_Capacity(void)
 		BMS_Data.Pack_Capacity_Used = ((1 - (Battery_Estimate / 100)) * (float)(BATTERY_CAPACITY));
 	}
 
-	//	Calculate remaining battery capacity
+	/*	Calculate remaining battery capacity */
 	BMS_Data.Pack_Capacity_Remaining = (float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
 	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 }
@@ -277,6 +347,7 @@ void BMS_Read_Pack_Voltage()
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
 	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
 
+	/* Hard coded formula defined by the ASIC manufacturer */
 	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Data) * 1.8 * 32)/(4095);
 }
 
@@ -289,10 +360,11 @@ void BMS_Read_Pack_Current()
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
 
+	/* Hard coded formula defined by ASIC manufacturer */
 	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
 }
 
-/* Function to read the pack temperature of pack from ISL IC */
+/* Function to read the temperature of pack from BMS ASIC */
 void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
@@ -303,11 +375,12 @@ void BMS_Read_Pack_Temperature()
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
 	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
 
+	/* Hard coded formula defined by ASIC manufacturer */
 	Lcl_Temperature_Volts = ((float)(Pack_Data) * 1.8)/(4095);
 	BMS_Data.Pack_Temperature_Degress = (((Lcl_Temperature_Volts*1000)/(1.8527)) - 273.15);
 }
 
-/* All these function just return the values that are updated from BMS IC registers */
+/* All these function just return the values that are updated from BMS ASIC registers */
 float Get_Cell1_Voltage()
 {
 	return BMS_Data.Cell1_Voltage;

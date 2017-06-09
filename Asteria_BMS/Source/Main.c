@@ -96,6 +96,8 @@ int main(void)
 	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
 	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
 
+	/* Set the current gain in the BMS ASIC register */
+	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 	/* Create the LOG file on SD card with hard coded name as of now. Later it will changed with
 	 * respect to the log summary file */
 	if(BMS_Log_Init() == RESULT_OK)
@@ -117,8 +119,10 @@ int main(void)
 
 		if(RecData == 'A')
 		{
-			NVIC_SystemReset();
+			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
+//			NVIC_SystemReset();
 		}
+		RecData = 0;
 		/* This flag will be true after every 40mS in timer application file */
 		if (_25Hz_Flag == true)
 		{
@@ -146,7 +150,7 @@ int main(void)
 			/* If switch is pressed for more than 4 Seconds then show SOC status on LEDs*/
 			if (Long_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(SOH);
+				BMS_Show_LED_Pattern(SOC);
 				Short_Time_Elapsed = false;
 				Long_Time_Elapsed = false;
 				Switch_Press_Time_Count = 0;
@@ -155,7 +159,7 @@ int main(void)
 			/* If switch is pressed for 2 seconds and released then show the SOH status on LEDs */
 			if (Short_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(SOC);
+				BMS_Show_LED_Pattern(SOH);
 				Short_Time_Elapsed = false;
 			}
 
@@ -246,12 +250,13 @@ int main(void)
 				Delay_Millis(3);
 
 				uint16_t Length = 0;
-				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
-				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
-				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
-				Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
-				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
-				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
+				Length = sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_BMS_Capacity_Used());
+//				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 
 				BMS_Debug_COM_Write_Data(Buffer, Length);
 				Delay_Millis(10);

@@ -23,23 +23,32 @@
  * where x is battery voltage;
  * y is estimated battery capacity remaining (in mAh)
  */
-#define BATT_EST_COEFF_0 			79.795				//z^0
-#define BATT_EST_COEFF_1 			14.781				//z^1
-#define BATT_EST_COEFF_2 			-3.0335				//z^2
-#define BATT_EST_COEFF_3 			1.9663				//z^3
-#define BATT_EST_COEFF_4 			-0.69723			//z^4
-#define BATT_EST_COEFF_5 			0.051156			//z^5
-#define BATT_EST_Mu					3.94				//constant used 3.94 (mean value)in above equation
-#define BATT_EST_Sigma 				0.13453				//constant used 0.13453 (standard deviation)
-#define BATTERY_CAPACITY			11000
-#define BATTERY_CELLS_COUNT			6
+#define BATT_EST_COEFF_0 							79.795	/* z^0 */
+#define BATT_EST_COEFF_1 							14.781	/* z^1 */
+#define BATT_EST_COEFF_2 							-3.0335	/* z^2 */
+#define BATT_EST_COEFF_3 							1.9663	/* z^3 */
+#define BATT_EST_COEFF_4 							-0.69723/* z^4 */
+#define BATT_EST_COEFF_5 							0.051156/* z^5 */
+#define BATT_EST_Mu									3.94	/* constant used 3.94 (mean value)in above equation */
+#define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
+
+#define TATTU_BATTERY
+
+#ifdef TATTU_BATTERY										/* TATTU Battery has capacity of 9000mAH */
+#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
+#else
+#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
+#endif
+#define BATTERY_CELLS_COUNT							6
+
 /* BMS ISL94203 Internal register's addresses */
-#define USER_EEPROM_START_ADDRESS					0x50	/* ISL's user EEPROM start address */
-#define RAM_STATUS_REG_ADDRESS						0x80	/* ISL's RAM status flags address */
+#define USER_EEPROM_START_ADDR						0x50	/* ISL's user EEPROM start address */
+#define RAM_STATUS_REG_ADDR							0x80	/* ISL's RAM status flags address */
 #define PACK_CURRENT_ADDR							0x8E	/* ISL's pack current register address */
 #define CELL_VOLTAGE_ADDR							0x90	/* ISL's cell voltages register address */
 #define PACK_TEMPERATURE_ADDR						0xA0	/* ISL's internal temperature register address */
 #define PACK_VOLTAGE_ADDR							0xA6	/* ISL's pack voltage register address */
+#define CURRENT_GAIN_SETTING_ADDR					0x85	/* 4th and 5th bit in this register defined the current gain */
 
 /* Here all the flags are defined which are required for Asteria BMS */
 /* RAM location 0x80 status flags */
@@ -98,10 +107,18 @@ enum Pack_Status
 	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
 };
 
-/* Enums to define the flags inside the BMS IC registers */
+/* Enums to define the flags inside the BMS IC registers
+ * @NO	: Operation not successful / flag value is reset (i.e. 0)
+ * @YES	: Operation successful / flag value is set (i.e.1) */
 enum Flag_Results
 {
 	NO = 0, YES
+};
+
+/* Enums defining the different gain values that can be set in the BMS ASIC */
+enum Current_Gain_Values
+{
+	CURRENT_GAIN_5X = 0, CURRENT_GAIN_50X,CURRENT_GAIN_500X
 };
 
 /* Structure holding all the flags which are queried from BMS IC and same will be updated to use in code
@@ -184,7 +201,7 @@ void BMS_Read_Cell_Voltages(void);
 void BMS_Read_Pack_Voltage(void);
 void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
-
+uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting);
 void BMS_Estimate_Initial_Capacity(void);
 void BMS_Estimate_Capacity_Used(void);
 float Constrain(float var, float llimit, float ulimit);
