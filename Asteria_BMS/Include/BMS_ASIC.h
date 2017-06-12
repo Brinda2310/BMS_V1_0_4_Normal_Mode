@@ -89,6 +89,8 @@
 #define MINIMUM_CURRENT_CONSUMPTION					50		/* If current consumption is less than 50mA
  	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  for specific time then put the BMS to sleep */
 #define MAXIMUM_PACK_VOLTAGE						25		/* Maximum value of pack voltage */
+#define CHARGE_CURRENT_CONSUMPTION					1000
+#define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
 
 /* Enums to define the write results;
  * @WRITE_OK	: Write operation is successful
@@ -186,10 +188,16 @@ typedef struct
 	float Pack_Capacity_Remaining;
 	float Pack_Capacity_Used;
 
-	uint16_t Pack_Cycles;
+	uint32_t Pack_Charge_Cycles;
+	uint32_t Pack_Discharge_Cycles;
+	uint32_t Pack_Total_Cycles;
+
 	uint8_t Charging_Discharging_Status;
 
 }ISL_943203_Data;
+
+extern ISL_943203_Data BMS_Data;
+extern bool Last_Charge_Disharge_Status;
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
@@ -204,10 +212,12 @@ void BMS_Read_Pack_Temperature(void);
 uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting);
 void BMS_Estimate_Initial_Capacity(void);
 void BMS_Estimate_Capacity_Used(void);
+void BMS_Update_Pack_Cycles(void);
+
 float Constrain(float var, float llimit, float ulimit);
 
 uint8_t Get_BMS_Charge_Discharge_Status(void);
-float Get_BMS_Initial_Capacity(void);
+float Get_BMS_Capacity_Remaining();
 float Get_BMS_Capacity_Used(void);
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);

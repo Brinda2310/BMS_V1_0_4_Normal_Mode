@@ -43,6 +43,10 @@ uint16_t BMS_Sleep_Time_Count = 0;
 /* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint16_t MCU_Sleep_Time_Count = 0;
 
+uint16_t Charge_Time_Count = 0;
+uint16_t Discharge_Time_Count = 0;
+bool Update_Pack_Cycles = false;
+
 uint8_t RecData = 0,AP_Request_Data = 0;
 
 bool ISL_Sleep = false;
@@ -98,8 +102,11 @@ int main(void)
 
 	/* Set the current gain in the BMS ASIC register */
 	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
-	/* Create the LOG file on SD card with hard coded name as of now. Later it will changed with
-	 * respect to the log summary file */
+
+	/* Read the pack voltage to calculate the battery capacity used */
+	BMS_Read_Pack_Voltage();
+
+	/* Create the LOG file on SD card by reading the count from log summary file */
 	if(BMS_Log_Init() == RESULT_OK)
 	{
 #if  DEBUG_MANDATORY == ENABLE
@@ -113,14 +120,32 @@ int main(void)
 #endif
 	}
 
+	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
+	 * next values */
+	BMS_Estimate_Initial_Capacity();
+
+	if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+	{
+		Last_Charge_Disharge_Status = CHARGING;
+	}
+	else
+	{
+		Last_Charge_Disharge_Status = DISCHARGING;
+	}
+
+	#if DEBUG_OPTIONAL == ENABLE
+	char Buffer[30],Len = 0;
+	Len = sprintf(Buffer,"%f",Get_BMS_Capacity_Remaining());
+	BMS_Debug_COM_Write_Data(Buffer, Len);
+#endif
+
 	while(1)
 	{
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
 		if(RecData == 'A')
 		{
-			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
-//			NVIC_SystemReset();
+			NVIC_SystemReset();
 		}
 		RecData = 0;
 		/* This flag will be true after every 40mS in timer application file */
@@ -147,19 +172,19 @@ int main(void)
 				Switch_Press_Time_Count = 0;
 			}
 
-			/* If switch is pressed for more than 4 Seconds then show SOC status on LEDs*/
+			/* If switch is pressed for more than 4 Seconds then show SOH status on LEDs*/
 			if (Long_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(SOC);
+				BMS_Show_LED_Pattern(SOH);
 				Short_Time_Elapsed = false;
 				Long_Time_Elapsed = false;
 				Switch_Press_Time_Count = 0;
 			}
 
-			/* If switch is pressed for 2 seconds and released then show the SOH status on LEDs */
+			/* If switch is pressed for 2 seconds and released then show the SOC status on LEDs */
 			if (Short_Time_Elapsed == true)
 			{
-				BMS_Show_LED_Pattern(SOH);
+				BMS_Show_LED_Pattern(SOC);
 				Short_Time_Elapsed = false;
 			}
 
@@ -175,43 +200,93 @@ int main(void)
 			BMS_Status_LED_Toggle();
 			/* If current consumption is less than 100mA for continuous 5 minutes and if BMS IC is not
 			 * in sleep mode then MCU forces the BMS IC to sleep mode */
-//			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
-//			{
-//				BMS_Sleep_Time_Count++;
-//
-//				if(BMS_Sleep_Time_Count >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
-//				{
-//					BMS_Sleep_Time_Count = 0;
-//					BMS_Force_Sleep();
-//				}
-//			}
-//			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
-//			{
-//			   /* If BMS consumes more than 100mA in between then reset the time count to zero */
-//				BMS_Sleep_Time_Count = 0;
-//				ISL_Sleep = false;
-//			}
-//
-//			/* If BMS IC is forced to sleep mode then MCU goes to sleep mode after 20 Seconds */
-//			if(Status_Flag.BMS_In_Sleep == YES)
-//			{
-//				ISL_Sleep = true;
-//				MCU_Sleep_Time_Count++;
-//				if(MCU_Sleep_Time_Count >= MCU_GO_TO_SLEEP_DELAY)
-//				{
-//					MCU_Sleep = true;
-//					MCU_Sleep_Time_Count = 0;
-//#if DEBUG_MANDATORY == ENABLE
-//					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
-//					Delay_Millis(5);
-//#endif
-//					MCU_Enter_Sleep_Mode();
-//				}
-//			}
-//			else
-//			{
-//				MCU_Sleep_Time_Count = 0;
-//			}
+			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+			{
+				BMS_Sleep_Time_Count++;
+
+				if(BMS_Sleep_Time_Count >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
+				{
+					BMS_Sleep_Time_Count = 0;
+					BMS_Force_Sleep();
+				}
+			}
+			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
+			{
+			   /* If BMS consumes more than 100mA in between then reset the time count to zero */
+				BMS_Sleep_Time_Count = 0;
+				ISL_Sleep = false;
+			}
+
+			/* If BMS IC is forced to sleep mode then MCU goes to sleep mode after 20 Seconds */
+			if(Status_Flag.BMS_In_Sleep == YES)
+			{
+				ISL_Sleep = true;
+				MCU_Sleep_Time_Count++;
+				if(MCU_Sleep_Time_Count >= MCU_GO_TO_SLEEP_DELAY)
+				{
+					MCU_Sleep = true;
+					MCU_Sleep_Time_Count = 0;
+#if DEBUG_MANDATORY == ENABLE
+					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
+					Delay_Millis(5);
+#endif
+					MCU_Enter_Sleep_Mode();
+				}
+			}
+			else
+			{
+				MCU_Sleep_Time_Count = 0;
+			}
+
+			if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+			{
+				Discharge_Time_Count = 0;
+				if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+				{
+					Charge_Time_Count++;
+				}
+				else
+				{
+					Charge_Time_Count = 0;
+				}
+
+				if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status != CHARGING)
+				{
+					BMS_Data.Pack_Charge_Cycles++;
+					Update_Pack_Cycles = true;
+					Last_Charge_Disharge_Status = CHARGING;
+					BMS_Update_Pack_Cycles();
+					Charge_Time_Count = 0;
+				}
+			}
+			else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
+			{
+				Charge_Time_Count = 0;
+				if(Get_BMS_Pack_Current() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+				{
+					Discharge_Time_Count++;
+				}
+				else
+				{
+					Discharge_Time_Count = 0;
+				}
+
+				if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status != DISCHARGING)
+				{
+					BMS_Data.Pack_Discharge_Cycles++;
+					Update_Pack_Cycles = true;
+					Last_Charge_Disharge_Status = DISCHARGING;
+					BMS_Update_Pack_Cycles();
+					Discharge_Time_Count = 0;
+				}
+			}
+			else
+			{
+				Charge_Time_Count = 0;
+				Discharge_Time_Count = 0;
+				Update_Pack_Cycles = false;
+			}
+
 			_25Hz_Flag = false;
 		}
 
@@ -250,7 +325,8 @@ int main(void)
 				Delay_Millis(3);
 
 				uint16_t Length = 0;
-				Length = sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_BMS_Capacity_Used());
+				Length += sprintf(Buffer, "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
+				Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f\r", Get_BMS_Capacity_Remaining());
 //				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
 //				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
 //				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());

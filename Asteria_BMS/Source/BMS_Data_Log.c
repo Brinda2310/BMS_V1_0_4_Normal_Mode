@@ -325,7 +325,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current());							// Pack Current
-	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Initial_Capacity();					// Total initial Capacity
+	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Total initial Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 

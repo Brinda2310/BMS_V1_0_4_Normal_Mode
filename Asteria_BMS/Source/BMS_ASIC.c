@@ -19,7 +19,9 @@ uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
 uint32_t Current_Time = 0,Previous_Time = 0;
 
-static ISL_943203_Data BMS_Data;
+bool Last_Charge_Disharge_Status;
+
+ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 
 /* Function initializes the I2C communication between MCU and BMS IC */
@@ -216,6 +218,19 @@ uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
 uint8_t Get_BMS_Charge_Discharge_Status()
 {
 	return BMS_Data.Charging_Discharging_Status;
+}
+
+void BMS_Update_Pack_Cycles()
+{
+	if(BMS_Data.Pack_Charge_Cycles > BMS_Data.Pack_Discharge_Cycles)
+	{
+		BMS_Data.Pack_Total_Cycles = BMS_Data.Pack_Charge_Cycles;
+	}
+	else
+	{
+		BMS_Data.Pack_Total_Cycles = BMS_Data.Pack_Discharge_Cycles;
+	}
+
 }
 
 /* This function to query the status flags of various RAM registers */
@@ -426,7 +441,7 @@ float Get_BMS_Pack_Voltage()
 	return BMS_Data.Pack_Voltage;
 }
 
-float Get_BMS_Initial_Capacity()
+float Get_BMS_Capacity_Remaining()
 {
 	return BMS_Data.Pack_Capacity_Remaining;
 }
