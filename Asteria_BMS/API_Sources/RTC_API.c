@@ -12,6 +12,8 @@
 	RTC_TimeTypeDef TimeStruct;
 #endif
 
+RTC_Data RTC_Info;
+
 uint8_t RTC_Init()
 {
 	uint8_t Result = RESULT_OK;
@@ -83,15 +85,10 @@ uint8_t RTC_Set_Date(uint8_t *Weekday, uint8_t *Date,uint8_t *Month,uint8_t *Yea
 	uint8_t Result = RESULT_OK;
 #ifdef BMS_VERSION
 	RTC_DateTypeDef  DateStruct;
-	DateStruct.Year 	= *Year;							// Year : 2017
+	DateStruct.Year 	= *Year;
 	DateStruct.Month 	= *Month;
-	DateStruct.Date 	= *Date;							// Date : 8
+	DateStruct.Date 	= *Date;
 	DateStruct.WeekDay  = *Weekday;
-
-//	DateStruct.Year 	= 0x17;							// Year : 2017
-//	DateStruct.Month 	= RTC_MONTH_FEBRUARY;
-//	DateStruct.Date 	= 0x10;							// Date : 8
-//	DateStruct.WeekDay  = RTC_WEEKDAY_FRIDAY;
 
 	if(HAL_RTC_SetDate(&RtcHandle,&DateStruct,RTC_FORMAT_BCD) != HAL_OK)
 	{

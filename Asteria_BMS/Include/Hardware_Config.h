@@ -35,7 +35,7 @@
 #define ENABLE											!DISABLE
 
 #define DEBUG_COM										ENABLE
-#define DEBUG_MANDATORY									ENABLE
+#define DEBUG_MANDATORY									DISABLE
 #define DEBUG_STATUS_LED								ENABLE
 #define DEBUG_OPTIONAL									DISABLE
 

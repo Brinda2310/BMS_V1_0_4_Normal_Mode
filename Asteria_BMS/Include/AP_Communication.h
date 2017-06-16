@@ -10,11 +10,14 @@
 
 #include "I2C_API.h"
 #include "BMS_ASIC.h"
+#include "RTC_API.h"
 
 #define BMS_SMBUS_OWN_ADDRESS				0x52
 #define BMS_SMBUS							I2C_3
 
-#define ALL_CELL_VOLTAGES_REG				0x00
+#define MAX_AP_DATA_SIZE					20
+
+#define ALL_CELL_VOLTAGES_REG				0x00	/* Register for all cell voltages */
 #define CELL1_VOLTAGE_REG					0x01
 #define CELL2_VOLTAGE_REG					0x02
 #define CELL3_VOLTAGE_REG					0x03
@@ -23,7 +26,8 @@
 #define CELL6_VOLTAGE_REG					0x06
 #define PACK_CURRENT_REG					0x07
 #define PACK_VOLTAGE_REG					0x08
-#define STATUS_FLAGS_REG					0x09
+#define GPS_PACKET_REG						0x09
+#define STATUS_FLAGS_REG					0x0A
 
 enum AP_COM_Modes
 {
@@ -33,6 +37,6 @@ enum AP_COM_Modes
 
 void AP_COM_Init(uint8_t Communication_Mode);
 //static void BMS_Enable_Listen_Mode();
-void Check_AP_Request(uint8_t *RxBuffer);
+void Check_AP_Request();
 
 #endif /* AP_COMMUNICATION_H_ */

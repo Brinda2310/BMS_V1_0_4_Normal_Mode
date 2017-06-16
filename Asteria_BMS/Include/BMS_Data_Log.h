@@ -73,8 +73,6 @@ typedef struct
 
 extern const uint8_t BMS_Firmware_Version[3];
 
-uint16_t Total_Num_of_Files;
-
 /* Function prototypes */
 uint8_t BMS_Log_Init();
 uint8_t Create_Log_Summary_File();

@@ -17,7 +17,6 @@
 #include "stm32l4xx_it.h"
 
 uint64_t SysTickCounter = 0;
-bool Sleep_Mode = false;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -42,14 +41,4 @@ void SysTick_Handler(void)
 #ifdef USE_RTOS_SYSTICK
 	osSystickHandler();
 #endif
-}
-
-void EXTI9_5_IRQHandler(void)
-{
-  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
-  if(Sleep_Mode == true)
-  {
-	  MCU_Exit_Sleep_Mode();
-	  Sleep_Mode = false;
-  }
 }

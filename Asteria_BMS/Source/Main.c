@@ -12,20 +12,8 @@
 #include <BMS_Serial_Communication.h>
 #include <BMS_GPIOs.h>
 #include <BMS_Timing.h>
-#include <RTC_API.h>
 #include <Power_Management.h>
 #include <AP_Communication.h>
-
-typedef struct
-{
-	uint8_t Day;
-	uint8_t Date;
-	uint8_t Month;
-	uint8_t Year;
-	uint8_t Hours;
-	uint8_t Minutes;
-	uint8_t Seconds;
-}RTC_Data;
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -34,8 +22,6 @@ const uint8_t BMS_Firmware_Version[3] =
 		1			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
-RTC_Data RTC_Info;
-
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
 uint16_t Switch_Press_Time_Count = 0;
 /* Variable to keep the track of time when there is no current consumption so as to force the ISL to sleep */
@@ -43,11 +29,16 @@ uint16_t BMS_Sleep_Time_Count = 0;
 /* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint16_t MCU_Sleep_Time_Count = 0;
 
+/* Variable to keep the track of time since charging is started and increment the cycles accordingly */
 uint16_t Charge_Time_Count = 0;
+/* Variable to keep the track of time since discharging is started and increment the cycles accordingly */
 uint16_t Discharge_Time_Count = 0;
-bool Update_Pack_Cycles = false;
 
-uint8_t RecData = 0,AP_Request_Data = 0;
+/* Variable to avoid multiple increments of the same cycle either charging or discharging */
+bool Update_Pack_Cycles = false;
+uint8_t Start_Charging = -1;
+
+uint8_t RecData = 0;
 
 bool ISL_Sleep = false;
 bool MCU_Sleep = false;
@@ -61,9 +52,9 @@ int main(void)
 	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();
 
-	/* Delay of 5 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
+	/* Delay of 2 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(1000);
+	Delay_Millis(2000);
 
 	/* Initialize the timer to 40mS and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -88,22 +79,10 @@ int main(void)
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
 
-	RTC_Info.Day = FRIDAY;
-	RTC_Info.Date = 0x15;
-	RTC_Info.Month = MAY;
-	RTC_Info.Year = 0x17;
-
-	RTC_Info.Hours = 0x11;
-	RTC_Info.Minutes = 0x05;
-	RTC_Info.Seconds = 0x15;
-
-	RTC_Set_Date(&RTC_Info.Day,&RTC_Info.Date,&RTC_Info.Month,&RTC_Info.Year);
-	RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
-
 	/* Set the current gain in the BMS ASIC register */
 	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
-	/* Read the pack voltage to calculate the battery capacity used */
+	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
 
 	/* Create the LOG file on SD card by reading the count from log summary file */
@@ -124,6 +103,7 @@ int main(void)
 	 * next values */
 	BMS_Estimate_Initial_Capacity();
 
+	/* Initial state of charging/discharging required to calculate the pack cycles used */
 	if(Get_BMS_Charge_Discharge_Status() == CHARGING)
 	{
 		Last_Charge_Disharge_Status = CHARGING;
@@ -133,7 +113,8 @@ int main(void)
 		Last_Charge_Disharge_Status = DISCHARGING;
 	}
 
-	#if DEBUG_OPTIONAL == ENABLE
+	/* Section of the code just to see the correct value of battery capacity remaining over USART */
+#if DEBUG_OPTIONAL == ENABLE
 	char Buffer[30],Len = 0;
 	Len = sprintf(Buffer,"%f",Get_BMS_Capacity_Remaining());
 	BMS_Debug_COM_Write_Data(Buffer, Len);
@@ -141,6 +122,52 @@ int main(void)
 
 	while(1)
 	{
+		if(Wakeup_From_Sleep == true)
+		{
+			/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
+			AP_COM_Init(AP_COM_SMBUS_MODE);
+
+			/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
+			RTC_Init();
+
+			/* Set the current gain in the BMS ASIC register */
+			BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+
+			/* Read the pack voltage to calculate the battery capacity used/remaining */
+			BMS_Read_Pack_Voltage();
+
+			/* Create the LOG file on SD card by reading the count from log summary file */
+			if(BMS_Log_Init() == RESULT_OK)
+			{
+				Wakeup_From_Sleep = false;
+		#if  DEBUG_MANDATORY == ENABLE
+				BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
+		#endif
+			}
+			else
+			{
+		#if DEBUG_MANDATORY == ENABLE
+				BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
+		#endif
+				Wakeup_From_Sleep = false;
+			}
+
+			/* Calculate the battery capacity used and remaining so that same value will be used to estimate
+			 * next values */
+			BMS_Estimate_Initial_Capacity();
+
+			/* Initial state of charging/discharging required to calculate the pack cycles used */
+			if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+			{
+				Last_Charge_Disharge_Status = CHARGING;
+			}
+			else
+			{
+				Last_Charge_Disharge_Status = DISCHARGING;
+			}
+
+
+		}
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
 		if(RecData == 'A')
@@ -149,10 +176,10 @@ int main(void)
 		}
 		RecData = 0;
 		/* This flag will be true after every 40mS in timer application file */
-		if (_25Hz_Flag == true)
+		if (_30Hz_Flag == true)
 		{
 			/* If the switch is pressed for shorter period of time(2 Seconds) then show SOC on status LEDs
-			 * else if it is pressed for longer period of time (4 Seconds) then show SOH status on LEDs */
+			 * else if it is pressed for long4er period of time (4 Seconds) then show SOH status on LEDs */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
@@ -172,7 +199,7 @@ int main(void)
 				Switch_Press_Time_Count = 0;
 			}
 
-			/* If switch is pressed for more than 4 Seconds then show SOH status on LEDs*/
+			/* If switch is pressed for more than 2 Seconds then show SOH status on LEDs*/
 			if (Long_Time_Elapsed == true)
 			{
 				BMS_Show_LED_Pattern(SOH);
@@ -181,14 +208,14 @@ int main(void)
 				Switch_Press_Time_Count = 0;
 			}
 
-			/* If switch is pressed for 2 seconds and released then show the SOC status on LEDs */
+			/* If switch is pressed for 1 seconds and released then show the SOC status on LEDs */
 			if (Short_Time_Elapsed == true)
 			{
 				BMS_Show_LED_Pattern(SOC);
 				Short_Time_Elapsed = false;
 			}
 
-			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
+			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
 			BMS_Read_Cell_Voltages();
 			BMS_Read_Pack_Voltage();
@@ -204,7 +231,7 @@ int main(void)
 			{
 				BMS_Sleep_Time_Count++;
 
-				if(BMS_Sleep_Time_Count >= LOW_CONSUMPTION_DELAY && Status_Flag.BMS_In_Sleep == NO)
+				if(BMS_Sleep_Time_Count >= LOW_CONSUMPTION_DELAY)
 				{
 					BMS_Sleep_Time_Count = 0;
 					BMS_Force_Sleep();
@@ -238,11 +265,14 @@ int main(void)
 				MCU_Sleep_Time_Count = 0;
 			}
 
+			/* If external charger is connected to the BMS then keep continuous track of it*/
 			if(Get_BMS_Charge_Discharge_Status() == CHARGING)
 			{
 				Discharge_Time_Count = 0;
+				/* If current coming into the pack is more than 1amperes then start counting the time */
 				if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 				{
+					Start_Charging = 1;
 					Charge_Time_Count++;
 				}
 				else
@@ -250,6 +280,8 @@ int main(void)
 					Charge_Time_Count = 0;
 				}
 
+				/* If current coming into the pack is more than 1amperes for more than 5mins(CHARGE_TIME_DELAY), then increment
+				 * the charge cycles count and make the status to of variable to true so as to keep track of last state of the pack i.e. charging/discharging  */
 				if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status != CHARGING)
 				{
 					BMS_Data.Pack_Charge_Cycles++;
@@ -259,11 +291,15 @@ int main(void)
 					Charge_Time_Count = 0;
 				}
 			}
+			/* If status of the BMS is discharging then keep continuing the track of it  */
 			else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
 			{
+				/* Make the count used for charging to zero to get the exact duration of 5mins in case of charging */
 				Charge_Time_Count = 0;
+				/* If pack going out of the pack is more than 1 amperes then start counting the time */
 				if(Get_BMS_Pack_Current() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 				{
+					Start_Charging = 2;
 					Discharge_Time_Count++;
 				}
 				else
@@ -271,6 +307,8 @@ int main(void)
 					Discharge_Time_Count = 0;
 				}
 
+				/* If discharge current is more than 1 amperes for more than 5 minutes then increment the discharge cycles count and also make sure that
+				 * the previous state of the pack was not discharging */
 				if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status != DISCHARGING)
 				{
 					BMS_Data.Pack_Discharge_Cycles++;
@@ -282,28 +320,30 @@ int main(void)
 			}
 			else
 			{
+				/* If BMS is in low power consumption mode then clear all the timer counts and
+				 * do not update any cycles count */
 				Charge_Time_Count = 0;
 				Discharge_Time_Count = 0;
 				Update_Pack_Cycles = false;
 			}
 
-			_25Hz_Flag = false;
+			_30Hz_Flag = false;
 		}
 
 		/* Log the BMS variables on SD card at 1Hz */
 		if(_1Hz_Flag == true)
 		{
-			if(Status_Flag.BMS_In_Sleep == YES)
+			if(Start_Charging == 1)
 			{
-				Sleep_Mode = true;
 #if DEBUG_MANDATORY == ENABLE
-				BMS_Debug_COM_Write_Data("Went to sleep\r",14);
+				BMS_Debug_COM_Write_Data("Charging\r",9);
 #endif
 			}
-			else
+			else if (Start_Charging == 2)
 			{
 #if DEBUG_MANDATORY == ENABLE
-				BMS_Debug_COM_Write_Data("Awaken\r",7);
+				BMS_Debug_COM_Write_Data("Discharging\r",12);
+				Delay_Millis(5);
 #endif
 			}
 
@@ -320,13 +360,13 @@ int main(void)
 				BMS_Debug_COM_Write_Data(Buffer,Length1);
 				Delay_Millis(5);
 
-				Length1 = sprintf(Buffer,"Pack_Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
-				BMS_Debug_COM_Write_Data(Buffer,Length1);
-				Delay_Millis(3);
-
-				uint16_t Length = 0;
-				Length += sprintf(Buffer, "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
-				Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f\r", Get_BMS_Capacity_Remaining());
+//				Length1 = sprintf(Buffer,"Pack_Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+//				BMS_Debug_COM_Write_Data(Buffer,Length1);
+//				Delay_Millis(3);
+//
+//				uint16_t Length = 0;
+//				Length += sprintf(Buffer, "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
+//				Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f\r", Get_BMS_Capacity_Remaining());
 //				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
 //				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
 //				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
@@ -334,8 +374,8 @@ int main(void)
 //				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
 //				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 
-				BMS_Debug_COM_Write_Data(Buffer, Length);
-				Delay_Millis(10);
+//				BMS_Debug_COM_Write_Data(Buffer, Length);
+//				Delay_Millis(10);
 #endif
 			}
 			if (Log_All_Data() == RESULT_OK)
@@ -353,7 +393,7 @@ int main(void)
 			_1Hz_Flag = false;
 		}
 
-		Check_AP_Request(&AP_Request_Data);
+		Check_AP_Request();
 	}
 }
 

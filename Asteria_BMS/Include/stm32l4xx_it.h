@@ -62,8 +62,6 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 
 extern uint64_t SysTickCounter;
-extern bool Sleep_Mode;
-extern bool Done ;
 
 #ifdef __cplusplus
 }
