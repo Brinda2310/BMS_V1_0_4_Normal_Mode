@@ -6,11 +6,9 @@
  */
 #include <Power_Management.h>
 
-bool Sleep_Mode = false;
-
-/* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or from external
- * switch press */
-bool Wakeup_From_Sleep = false;
+/* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or
+ * from external switch press */
+volatile bool Wakeup_From_Sleep = false;
 
 void MCU_Enter_Sleep_Mode()
 {
@@ -143,17 +141,18 @@ void Set_System_Clock_Frequency(void)
 #endif
 }
 
-/* ISR which handles the wake up of MCU from sleep mode and resumes the operation */
+/* ISR which handles the wake up of MCU from sleep mode and resumes the operation from where it
+ * had left off */
 void EXTI9_5_IRQHandler(void)
 {
   HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
-  /* This flag avoids the entering the sleep mode of MCU; Once it goes to sleep mode then wait for
-   * external trigger to wake it up */
-  if(Sleep_Mode == true)
+  /* Once MCU is awaken wither by external switch press or by Vref of BMS IC, resume the operation of
+   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
+   * is triggered by external event */
+  if(Wakeup_From_Sleep == false)
   {
 	  MCU_Exit_Sleep_Mode();
 	  Wakeup_From_Sleep = true;
-	  Sleep_Mode = false;
   }
 }
 

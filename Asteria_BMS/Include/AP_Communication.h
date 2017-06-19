@@ -17,6 +17,7 @@
 
 #define MAX_AP_DATA_SIZE					20
 
+/* Readable registers */
 #define ALL_CELL_VOLTAGES_REG				0x00	/* Register for all cell voltages */
 #define CELL1_VOLTAGE_REG					0x01
 #define CELL2_VOLTAGE_REG					0x02
@@ -26,8 +27,17 @@
 #define CELL6_VOLTAGE_REG					0x06
 #define PACK_CURRENT_REG					0x07
 #define PACK_VOLTAGE_REG					0x08
-#define GPS_PACKET_REG						0x09
-#define STATUS_FLAGS_REG					0x0A
+#define STATUS_FLAGS_REG					0x09
+#define FLIGHT_STATUS_REG					0x0A
+
+/*
+ *0 0 0 0 0 0 Arm/DisARM Air/Ground
+ * If ARMED/Air then do not go to sleep
+ * If DisARMED and Ground then go to sleep
+ */
+
+/* Writable registers */
+#define GPS_PACKET_REG						0x0A
 
 enum AP_COM_Modes
 {

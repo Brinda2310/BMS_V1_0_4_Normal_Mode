@@ -118,57 +118,57 @@ static void Set_BMS_Status_Flags(uint32_t Flags)
 	if(Flags & IS_ISL_IN_SLEEP)
 	{
 		Status_Flag.BMS_In_Sleep = YES;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
-#endif
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+//#endif
 	}
 	else
 	{
 		Status_Flag.BMS_In_Sleep = NO;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
-#endif
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+//#endif
 	}
 
 	if(Flags & IS_PACK_DISCHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = DISCHARGING;
 		Status_Flag.Pack_Discharging = YES;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Discharging\r",14);
-#endif
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Discharging\r",14);
+//#endif
 	}
 	else
 	{
 		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Low power mode\r\r",16);
-#endif
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Low power mode\r",16);
+//#endif
 	}
 
 	if(Flags & IS_PACK_CHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = CHARGING;
-		Status_Flag.Pack_Discharging = YES;
+		Status_Flag.Pack_Charging = YES;
 #if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Discharging\r",14);
+		BMS_Debug_COM_Write_Data("Charging\r",14);
 #endif
 	}
-	if(Flags & IS_INTERNAL_SCAN)
-	{
-		Status_Flag.Internal_Scan_Progress = NO;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
-#endif
-	}
-	else
-	{
-		Status_Flag.Internal_Scan_Progress = YES;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
-#endif
-	}
+//	if(Flags & IS_INTERNAL_SCAN)
+//	{
+//		Status_Flag.Internal_Scan_Progress = NO;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
+//#endif
+//	}
+//	else
+//	{
+//		Status_Flag.Internal_Scan_Progress = YES;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
+//#endif
+//	}
 }
 
 /* Function to set the gain value to the EEPROM of BMS ASIC */
@@ -219,6 +219,10 @@ uint8_t Get_BMS_Charge_Discharge_Status()
 {
 	return BMS_Data.Charging_Discharging_Status;
 }
+uint8_t Get_BMS_Sleep_Mode_Status()
+{
+	return Status_Flag.BMS_In_Sleep;
+}
 
 void BMS_Update_Pack_Cycles()
 {
@@ -230,7 +234,6 @@ void BMS_Update_Pack_Cycles()
 	{
 		BMS_Data.Pack_Total_Cycles = BMS_Data.Pack_Discharge_Cycles;
 	}
-
 }
 
 /* This function to query the status flags of various RAM registers */

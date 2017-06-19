@@ -86,7 +86,7 @@
 #define CELL_VOLTAGES_DATA_SIZE						(2*NUMBER_OF_CELLS)
 #define SENSE_RESISTOR_VALUE						1e-3	/* Current sense resistor value used in hardware */
 #define CURRENT_GAIN								5		/* Set the current gain as per sense resistor value */
-#define MINIMUM_CURRENT_CONSUMPTION					50		/* If current consumption is less than 50mA
+#define MINIMUM_CURRENT_CONSUMPTION					200		/* If current consumption is less than 50mA
  	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  for specific time then put the BMS to sleep */
 #define MAXIMUM_PACK_VOLTAGE						25		/* Maximum value of pack voltage */
 #define CHARGE_CURRENT_CONSUMPTION					1000
@@ -116,7 +116,10 @@ enum Flag_Results
 {
 	NO = 0, YES
 };
-
+enum BMS_Sleep_Status
+{
+	NON_SLEEP_MODE = 0,SLEEP_MODE
+};
 /* Enums defining the different gain values that can be set in the BMS ASIC */
 enum Current_Gain_Values
 {
@@ -216,6 +219,7 @@ void BMS_Update_Pack_Cycles(void);
 
 float Constrain(float var, float llimit, float ulimit);
 
+uint8_t Get_BMS_Sleep_Mode_Status();
 uint8_t Get_BMS_Charge_Discharge_Status(void);
 float Get_BMS_Capacity_Remaining();
 float Get_BMS_Capacity_Used(void);

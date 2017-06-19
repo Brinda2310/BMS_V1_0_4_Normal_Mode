@@ -51,10 +51,13 @@ uint8_t BMS_Log_Init()
 	uint8_t Result = RESULT_OK;
 	/* Create the log summary file in SD card. If it already exists then get the counts for total number of
 	 * files and power up number and create the new log file by incrementing the total file number */
-	if(Create_Log_Summary_File() != RESULT_ERROR)
+	if(Create_Log_Summary_File() == RESULT_OK)
 	{
 		Result = Create_BMS_Log_File();
 	}
+	else
+		Result = RESULT_ERROR;
+
 	return Result;
 }
 
