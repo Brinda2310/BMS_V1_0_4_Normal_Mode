@@ -35,9 +35,9 @@
 #define ENABLE											!DISABLE
 
 #define DEBUG_COM										ENABLE
-#define DEBUG_MANDATORY									DISABLE
+#define DEBUG_MANDATORY									ENABLE
 #define DEBUG_STATUS_LED								ENABLE
-#define DEBUG_OPTIONAL									DISABLE
+#define DEBUG_OPTIONAL									ENABLE
 
 /********************************************* GPIO Related Macros ****************************************************/
 #define SD_CARD_CS										GPIO_PIN_4

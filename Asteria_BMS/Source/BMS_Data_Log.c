@@ -14,7 +14,7 @@ FIL BMS_Log_File;
 FRESULT Result;
 UINT BytesWritten;
 
-/* Structure object to update and write the BMS variables defined inside the structure to the SD card */
+/* Structure object to uypdate and write the BMS variables defined inside the structure to the SD card */
 //static Log_Vars Log_Variables;
 
 /* Variable to update the time and date received from GPS */
@@ -40,6 +40,8 @@ uint16_t Stop_Time_Cursor = 0;
 /* Variable to hold the respective values as mentioned in the name and the same variables which are updated in log_summary_file */
 static Log_SD_Summary_Vars SD_Summary_Data;
 uint16_t Old_Power_Up_Num = 0;
+
+bool New_File_Created = false;
 
 /* Variable to create only one log file in each power up */
 bool Power_Up_AP = false;
@@ -70,7 +72,8 @@ uint8_t Create_Log_Summary_File()
 	FRESULT Result;
 	/* We want to create only one log file during each power up. This flag does that job. It becomes false
 	 * as soon as file is created */
-	Power_Up_AP = true;
+	if(Power_Up_AP == false)
+		Power_Up_AP = true;
 
 	/* Very first thing that should happen is checking the log summary file and initialize the variables used for indexing */
 	String_Index = &Memory_Address1;
@@ -125,9 +128,8 @@ uint8_t Create_Log_Summary_File()
 	Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
 
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
-	if(Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number)
+	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false)
 	{
-
 		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
 		SD_Summary_Data.Power_Up_Number++;
 
@@ -181,7 +183,7 @@ uint8_t Create_BMS_Log_File()
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
 	/* Make sure that only one is file created on each power up */
-	if (Power_Up_AP == true)
+	if (Power_Up_AP == true && New_File_Created == false)
 	{
 		/* Set this variable to false to avoid creating the new file */
 		Power_Up_AP = false;
@@ -277,6 +279,20 @@ uint8_t Create_BMS_Log_File()
 		}
 
 		f_sync(&BMS_Log_File);
+		New_File_Created = true;
+	}
+	else
+	{
+		/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error in opening the file */
+		/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends on Charging/Power up /
+		 * Wake up from Sleep etc */
+		if (f_open(&BMS_Log_File, File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
+		{
+			Result = RESULT_ERROR;
+		}
+
+		f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
+
 	}
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));

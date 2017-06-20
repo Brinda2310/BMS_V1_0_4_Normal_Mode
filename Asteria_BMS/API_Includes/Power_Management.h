@@ -16,7 +16,8 @@
 
 /* Variable which becomes true as soon as MCU enters the sleep mode. So that after waking up from
  * sleep it can start from the point where it left off */
-extern volatile bool Wakeup_From_Sleep ;
+extern volatile bool Wakeup_From_Sleep,Sleep_Mode;
+
 
 void MCU_Sleep_Mode_Init();
 void MCU_Enter_Sleep_Mode();
