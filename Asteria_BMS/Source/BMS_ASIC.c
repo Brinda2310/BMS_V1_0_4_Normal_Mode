@@ -42,6 +42,83 @@ static void BMS_RAM_Access_Enable()
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
 }
 
+/* Function to set the respective flags defined in the code read from BMS status registers */
+static void BMS_Set_Status_Flags(uint32_t Flags)
+{
+	if(Flags & IS_ISL_IN_SLEEP)
+	{
+		Status_Flag.BMS_In_Sleep = YES;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
+//#endif
+	}
+	else
+	{
+		Status_Flag.BMS_In_Sleep = NO;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
+//#endif
+	}
+
+	if(Flags & IS_PACK_DISCHARGING)
+	{
+		BMS_Data.Charging_Discharging_Status = DISCHARGING;
+		Status_Flag.Pack_Discharging = YES;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Discharging\r",14);
+//#endif
+	}
+	else
+	{
+		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
+		Status_Flag.Pack_Discharging = NO;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Low power mode\r",16);
+//#endif
+	}
+
+	if(Flags & IS_PACK_CHARGING)
+	{
+		BMS_Data.Charging_Discharging_Status = CHARGING;
+		Status_Flag.Pack_Charging = YES;
+#if DEBUG_OPTIONAL == ENABLE
+		BMS_Debug_COM_Write_Data("Charging\r",14);
+#endif
+	}
+//	if(Flags & IS_INTERNAL_SCAN)
+//	{
+//		Status_Flag.Internal_Scan_Progress = NO;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
+//#endif
+//	}
+//	else
+//	{
+//		Status_Flag.Internal_Scan_Progress = YES;
+//#if DEBUG_OPTIONAL == ENABLE
+//		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
+//#endif
+//	}
+}
+
+/* Function to convert the cell voltages read from ISL registers(HEX) into float values */
+static void Convert_To_Cell_Voltages(uint8_t *Data)
+{
+	unsigned short  *Integers;
+	Integers = (unsigned short*)Data;
+
+	/* Hard coded formulae defined by the ASIC manufacturer */
+	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell2_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell3_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell4_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell5_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell6_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+
+}
+
 /**
  * @brief  Function to write the user bytes to the EEPROM section of BMS IC
  * @param  Memory_Address	: EEPROM address to which data is to be written
@@ -112,65 +189,6 @@ void BMS_Force_Sleep()
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 }
 
-/* Function to set the respective flags defined in the code read from BMS status registers */
-static void Set_BMS_Status_Flags(uint32_t Flags)
-{
-	if(Flags & IS_ISL_IN_SLEEP)
-	{
-		Status_Flag.BMS_In_Sleep = YES;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
-//#endif
-	}
-	else
-	{
-		Status_Flag.BMS_In_Sleep = NO;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
-//#endif
-	}
-
-	if(Flags & IS_PACK_DISCHARGING)
-	{
-		BMS_Data.Charging_Discharging_Status = DISCHARGING;
-		Status_Flag.Pack_Discharging = YES;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("Discharging\r",14);
-//#endif
-	}
-	else
-	{
-		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
-		Status_Flag.Pack_Discharging = NO;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("Low power mode\r",16);
-//#endif
-	}
-
-	if(Flags & IS_PACK_CHARGING)
-	{
-		BMS_Data.Charging_Discharging_Status = CHARGING;
-		Status_Flag.Pack_Charging = YES;
-#if DEBUG_OPTIONAL == ENABLE
-		BMS_Debug_COM_Write_Data("Charging\r",14);
-#endif
-	}
-//	if(Flags & IS_INTERNAL_SCAN)
-//	{
-//		Status_Flag.Internal_Scan_Progress = NO;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
-//#endif
-//	}
-//	else
-//	{
-//		Status_Flag.Internal_Scan_Progress = YES;
-//#if DEBUG_OPTIONAL == ENABLE
-//		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
-//#endif
-//	}
-}
-
 /* Function to set the gain value to the EEPROM of BMS ASIC */
 uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
 {
@@ -214,16 +232,8 @@ uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
 	}
 	return Result;
 }
-/* Function to return the charging/discharging status of the BMS */
-uint8_t Get_BMS_Charge_Discharge_Status()
-{
-	return BMS_Data.Charging_Discharging_Status;
-}
-uint8_t Get_BMS_Sleep_Mode_Status()
-{
-	return Status_Flag.BMS_In_Sleep;
-}
 
+/* Function to set the maximum of charge/discharge pack cycles */
 void BMS_Update_Pack_Cycles()
 {
 	if(BMS_Data.Pack_Charge_Cycles > BMS_Data.Pack_Discharge_Cycles)
@@ -250,26 +260,9 @@ void BMS_Read_RAM_Status_Register()
 	uint8_t Register_Address = RAM_STATUS_REG_ADDR;
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
 	I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4);
-	Set_BMS_Status_Flags(RAM_Flags.Stat_Flags);
+	BMS_Set_Status_Flags(RAM_Flags.Stat_Flags);
 }
 
-/* Function to convert the cell voltages read from ISL registers(HEX) into float values */
-static void Convert_To_Cell_Voltages(uint8_t *Data)
-{
-	unsigned short  *Integers;
-	Integers = (unsigned short*)Data;
-
-	/* Hard coded formulae defined by the ASIC manufacturer */
-	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell2_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell3_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell4_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell5_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell6_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
-
-}
 /* Function to read individual cell voltages inside the pack */
 void BMS_Read_Cell_Voltages()
 {
@@ -284,7 +277,7 @@ void BMS_Read_Cell_Voltages()
 	Convert_To_Cell_Voltages(Cell_Voltages);
 }
 
-/* Function to calculate the battery capacity used */
+/* Function to calculate the initial battery capacity */
 void BMS_Estimate_Initial_Capacity(void)
 {
 	float Batt_Volt_Per_Cell = 0, volt_z = 0, pow_volt_z = 0, Battery_Estimate = 0;
@@ -331,20 +324,7 @@ void BMS_Estimate_Initial_Capacity(void)
 	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 }
 
-/* Function to round off the float variable between lower limit and upper limit */
-float Constrain(float Value, float Lower_Limit, float Upper_Limit)
-{
-	if(Value > Upper_Limit)
-	{
-		Value = Upper_Limit;
-	}
-	else if(Value < Lower_Limit)
-	{
-		Value = Lower_Limit;
-	}
-	return Value;
-}
-
+/* Function to calculate the pack capacity used over the time(dt = 30ms) */
 void BMS_Estimate_Capacity_Used()
 {
 	Current_Time = Get_System_Time();
@@ -398,7 +378,31 @@ void BMS_Read_Pack_Temperature()
 	BMS_Data.Pack_Temperature_Degress = (((Lcl_Temperature_Volts*1000)/(1.8527)) - 273.15);
 }
 
+/* Function to round off the float variable between lower limit and upper limit */
+float Constrain(float Value, float Lower_Limit, float Upper_Limit)
+{
+	if(Value > Upper_Limit)
+	{
+		Value = Upper_Limit;
+	}
+	else if(Value < Lower_Limit)
+	{
+		Value = Lower_Limit;
+	}
+	return Value;
+}
+
 /* All these function just return the values that are updated from BMS ASIC registers */
+uint8_t Get_BMS_Charge_Discharge_Status()
+{
+	return BMS_Data.Charging_Discharging_Status;
+}
+
+uint8_t Get_BMS_Sleep_Mode_Status()
+{
+	return Status_Flag.BMS_In_Sleep;
+}
+
 float Get_Cell1_Voltage()
 {
 	return BMS_Data.Cell1_Voltage;

@@ -28,25 +28,38 @@
 #define PACK_CURRENT_REG					0x07
 #define PACK_VOLTAGE_REG					0x08
 #define STATUS_FLAGS_REG					0x09
-#define FLIGHT_STATUS_REG					0x0A
-
-/*
- *0 0 0 0 0 0 Arm/DisARM Air/Ground
- * If ARMED/Air then do not go to sleep
- * If DisARMED and Ground then go to sleep
- */
 
 /* Writable registers */
 #define GPS_PACKET_REG						0x0A
+#define FLIGHT_STATUS_REG					0x0B
 
 enum AP_COM_Modes
 {
 	AP_COM_USART_MODE = 0, AP_COM_SMBUS_MODE,AP_COM_SPI_MODE
 };
+/* ---------------------------------------------------------
+ * DISARMED |	ARMED	|	AIR		|	GROUND	|	VALUE	|
+ * ---------------------------------------------------------|
+ * 	  0		|	 0		|	 0		|	  1		|	0x01	|
+ * ---------------------------------------------------------|
+ *    0     | 	 0		|	 1		|	  0		|	0x02	|
+ * ---------------------------------------------------------|
+ *    0		|	 1		|	 0		|	  0		|	0x04	|
+ * ---------------------------------------------------------|
+ *    1		|	 0		|	 0		|	  0		|	0x08	|
+ * ---------------------------------------------------------|
+ *    1		|	 0		|	 0		|	  1		|	0x09	|
+ * ---------------------------------------------------------
+ */
+/* Flight mode statuses received from AP */
+enum Flight_Status
+{
+	GROUND = 0x01, AIR = 0x02,ARMED = 0x04,DISARMED = 0x08,DISARMED_GROUND = 0x09
+};
 
+extern bool Sleep_Mode_Funtionality;
 
 void AP_COM_Init(uint8_t Communication_Mode);
-//static void BMS_Enable_Listen_Mode();
 void Check_AP_Request();
 
 #endif /* AP_COMMUNICATION_H_ */

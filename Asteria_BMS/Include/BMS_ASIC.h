@@ -204,25 +204,21 @@ extern bool Last_Charge_Disharge_Status;
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
-uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size);
-void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Size);
 void BMS_Force_Sleep();
+uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting);
+void BMS_Update_Pack_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);
+void BMS_Estimate_Initial_Capacity(void);
+void BMS_Estimate_Capacity_Used(void);
 void BMS_Read_Pack_Voltage(void);
 void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
-uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting);
-void BMS_Estimate_Initial_Capacity(void);
-void BMS_Estimate_Capacity_Used(void);
-void BMS_Update_Pack_Cycles(void);
 
-float Constrain(float var, float llimit, float ulimit);
+float Constrain(float Variable, float Lower_Limit, float Upper_Limit);
 
-uint8_t Get_BMS_Sleep_Mode_Status();
 uint8_t Get_BMS_Charge_Discharge_Status(void);
-float Get_BMS_Capacity_Remaining();
-float Get_BMS_Capacity_Used(void);
+uint8_t Get_BMS_Sleep_Mode_Status();
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);
 float Get_Cell3_Voltage(void);
@@ -230,6 +226,8 @@ float Get_Cell6_Voltage(void);
 float Get_Cell7_Voltage(void);
 float Get_Cell8_Voltage(void);
 float Get_BMS_Pack_Voltage(void);
+float Get_BMS_Capacity_Remaining();
+float Get_BMS_Capacity_Used(void);
 float Get_BMS_Pack_Current(void);
 float Get_BMS_Pack_Temperature(void);
 

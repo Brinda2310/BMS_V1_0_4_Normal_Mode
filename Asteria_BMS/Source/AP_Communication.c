@@ -4,9 +4,12 @@
  *  Created on: 02-May-2017
  *      Author: NIKHIL
  */
-#include "AP_Communication.h"
+#include <AP_Communication.h>
+
+bool Sleep_Mode_Funtionality = DISABLE;
 
 uint8_t Send_Data[4] = {0x01,0x02,0x03,0x04};
+uint8_t AP_Status;
 
 uint8_t AP_Request_Data[MAX_AP_DATA_SIZE];
 float Float_Data[6];
@@ -83,7 +86,7 @@ void Check_AP_Request()
 				Float_Data[Send_Byte_Count++] = Get_BMS_Pack_Voltage();
 				break;
 			case GPS_PACKET_REG:
-				/* Data received by BMS is GPS data and its format is like DateMonthYear,HoursMinutesSeconds e.g. 140617,172529 means
+				/* Data received by BMS is GPS data and its format is like DateMonthYear,HoursMinutesSeconds e.g. 14062017,172529 means
 				 * Date is 14/06/2017 and time is 17:25:29 etc */
 				RTC_Info.Day = -1;
 				RTC_Info.Date = ((AP_Request_Data[Index++] - '0') << 4) ;
@@ -92,7 +95,9 @@ void Check_AP_Request()
 				RTC_Info.Month = ((AP_Request_Data[Index++] - '0') << 4);
 				RTC_Info.Month |= (AP_Request_Data[Index++] - '0');
 
-				RTC_Info.Year = ((AP_Request_Data[Index++] - '0') << 4);
+				RTC_Info.Year = ((AP_Request_Data[Index++] - '0') << 12);
+				RTC_Info.Year |= ((AP_Request_Data[Index++] - '0') << 8);
+				RTC_Info.Year |= ((AP_Request_Data[Index++] - '0') << 4);
 				RTC_Info.Year |= (AP_Request_Data[Index++] - '0');
 
 				Index++;
@@ -111,8 +116,19 @@ void Check_AP_Request()
 				RTC_Set_Time(&RTC_Info.Hours,&RTC_Info.Minutes,&RTC_Info.Seconds);
 
 				break;
-			default:
+			case FLIGHT_STATUS_REG:
+				AP_Status = AP_Request_Data[1];
+				/* Sleep mode functionality should be enabled only when plane is in DISARMED state and
+				 * it is on ground otherwise disable the sleep mode function */
+				if(AP_Status == DISARMED_GROUND)
+				{
+					Sleep_Mode_Funtionality = ENABLE;
+				}
+				else
+					Sleep_Mode_Funtionality = DISABLE;
+				break;
 
+			default:
 				break;
 		}
 	}
