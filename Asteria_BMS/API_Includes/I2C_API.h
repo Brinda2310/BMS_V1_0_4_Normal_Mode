@@ -29,5 +29,6 @@ uint8_t I2C_ReadData(uint8_t I2C_Num,uint16_t Dev_Address,uint8_t *RxBuffer,uint
 void SMBUS_Enable_Listen_Mode(uint8_t I2C_Num);
 bool SMBUS_Request_Check(uint8_t *RxBuffer);
 void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size);
+void Set_Bytes_Count(uint8_t *Count);
 
 #endif /* I2C_API_H_ */

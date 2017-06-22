@@ -33,6 +33,10 @@
 #define GPS_PACKET_REG						0x0A
 #define FLIGHT_STATUS_REG					0x0B
 
+#define MINIMUM_PACKET_SIZE					1
+#define GPS_DATE_TIME_DATA_SIZE				17		/* Data packet e.g. 0422062017,191234*/
+#define FLIGHT_STATUS_DATA_SIZE				2		/* Data packet e.g. 0x0009 */
+
 enum AP_COM_Modes
 {
 	AP_COM_USART_MODE = 0, AP_COM_SMBUS_MODE,AP_COM_SPI_MODE
@@ -57,8 +61,11 @@ enum Flight_Status
 	GROUND = 0x01, AIR = 0x02,ARMED = 0x04,DISARMED = 0x08,DISARMED_GROUND = 0x09
 };
 
+/* Variable to decide whether sleep functionality in the code to be used or not;Decision is based
+ * on data received from AP i.e. Flight_Status_Packet */
 extern bool Sleep_Mode_Funtionality;
 
+/* Function prototypes defined in the .c file */
 void AP_COM_Init(uint8_t Communication_Mode);
 void Check_AP_Request();
 

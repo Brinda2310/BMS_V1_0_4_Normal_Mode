@@ -42,6 +42,9 @@ uint8_t Start_Charging = -1;
 char Buffer[200],Length = 0;
 uint8_t RecData = 0;
 
+/* Debug code to be removed after testing the RTC working */
+uint8_t RTC_Time[20];
+
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
  * otherwise check load presence for 1 minute(normal operation) */
@@ -205,6 +208,7 @@ int main(void)
 			 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
 			 * only if last state was charging */
 			Last_Charge_Disharge_Status = CHARGING;
+//			NVIC_SystemReset();
 		}
 		RecData = 0;
 #endif
@@ -466,7 +470,10 @@ int main(void)
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 #endif
 			}
-			BMS_Debug_COM_Write_Data("MCU Awake\r",10);
+			/* Debug code to be removed after testing the RTC working as per the date set by AP */
+			RTC_TimeShow(RTC_Time);
+			BMS_Debug_COM_Write_Data(RTC_Time,18);
+
 			_1Hz_Flag = false;
 		}
 

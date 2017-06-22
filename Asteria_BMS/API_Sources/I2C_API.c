@@ -17,7 +17,8 @@
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
 	static bool SMBUS_Read_Request = false,SMBUS_Write_Request = false;
-    uint8_t SMBUS_RxData;
+    uint8_t SMBUS_RxData[20];
+    static uint8_t Bytes_Count = 1;
 #endif
 #endif
 
@@ -363,6 +364,8 @@ void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+	/* This function will called when all the bytes mentioned in the address callback function
+	 * are received */
 	SMBUS_Read_Request = true;
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
@@ -372,10 +375,12 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
 	{
+		/* Read request (AP requests BMS to send the data as per the packet index */
 		if(TransferDirection == 0)
 		{
-			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData, 1, SMBUS_AUTOEND_MODE);
+			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
 		}
+		/* Write request */
 		else
 		{
 			SMBUS_Write_Request = true;
@@ -405,10 +410,16 @@ void SMBUS_Enable_Listen_Mode(uint8_t I2C_Num)
 
 bool SMBUS_Request_Check(uint8_t *RxBuffer)
 {
+	uint8_t Index = 0;
 #if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
+	/* This flag will be true only when the MCU receives all the bytes mentioned as the count in the
+	 * address complete callback function */
 	if(SMBUS_Read_Request == true)
 	{
-		*RxBuffer = SMBUS_RxData;
+		for(Index = 0;Index < Bytes_Count;Index++)
+		{
+			*RxBuffer++ = SMBUS_RxData[Index];
+		}
 		SMBUS_Read_Request = false;
 		return true;
 	}
@@ -423,12 +434,20 @@ bool SMBUS_Request_Check(uint8_t *RxBuffer)
 void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
 {
 #if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
+	/* This flag will be true only when there is any request for sending any data (from BMS) to other
+	 * device (in our case its AP, write mode) */
 	if(SMBUS_Write_Request == true)
 	{
 		SMBUS_Write_Request = false;
 		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
 	}
 #endif
+}
+
+/* Function to set the number of bytes to be received from AP in the SMBus address call back routine */
+void Set_Bytes_Count(uint8_t *Count)
+{
+	Bytes_Count = *Count;
 }
 #endif /* BMS_VERSION end */
 
