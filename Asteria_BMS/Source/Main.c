@@ -127,7 +127,7 @@ int main(void)
 	Delay_Millis(5);
 
 	/* Debug code just to see the correct value of battery capacity remaining which can be seen on USART */
-#if DEBUG_OPTIONAL == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 	Length = sprintf(Buffer,"%f",Get_BMS_Capacity_Remaining());
 	BMS_Debug_COM_Write_Data(Buffer, Length);
 #endif
