@@ -23,8 +23,9 @@ static void BMS_Enable_Listen_Mode()
 	SMBUS_Enable_Listen_Mode(BMS_SMBUS);
 }
 
-void AP_COM_Init(uint8_t Communication_Mode)
+uint8_t AP_COM_Init(uint8_t Communication_Mode)
 {
+	uint8_t Result = 255;
 	switch (Communication_Mode)
 	{
 		case AP_COM_USART_MODE:
@@ -34,13 +35,15 @@ void AP_COM_Init(uint8_t Communication_Mode)
 			break;
 
 		case AP_COM_SMBUS_MODE:
-			I2C_Init(BMS_SMBUS,BMS_SMBUS_OWN_ADDRESS,I2C_100KHZ,I2C_SLAVE);
+			Result = I2C_Init(BMS_SMBUS,BMS_SMBUS_OWN_ADDRESS,I2C_100KHZ,I2C_SLAVE);
 			BMS_Enable_Listen_Mode();
+
 			break;
 
 		default:
 			break;
 	}
+	return Result;
 }
 /* @brief	: Function to check the request from AP. AP queries the information like all the cell voltages,pack voltage, pack current, individual cell
  * 			  voltages. BMS replies for all the responses in terms of 4 bytes except for GPS data and all cell voltages data
@@ -49,12 +52,13 @@ void AP_COM_Init(uint8_t Communication_Mode)
  * */
 void Check_AP_Request()
 {
-	uint8_t Index = 0;
+	uint8_t Index = 0,Result = 255;
 	static uint8_t State = 126;
 	static bool Data_Received = false;
 	Send_Byte_Count = 0;
 
-	if(SMBUS_Request_Check(AP_Request_Data) == true)
+	Result = SMBUS_Request_Check(AP_Request_Data);
+	if( Result == SMBUS_REQ_SUCCESSFUL)
 	{
 		if(Byte_Count == MINIMUM_PACKET_SIZE)
 		{
@@ -211,6 +215,13 @@ void Check_AP_Request()
 		}
 		/* Clear the buffer in which AP data is being received */
 		memset(AP_Request_Data,0,sizeof(AP_Request_Data));
+	}
+	else if(Result == SMBUS_REQ_TIMEOUT)
+	{
+		//if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
+		{
+			BMS_Debug_COM_Write_Data("SMBUS_Timeout\r",14);
+		}
 	}
 
 }

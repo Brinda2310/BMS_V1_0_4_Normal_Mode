@@ -8,7 +8,7 @@
 #include <BMS_Timing.h>
 
 /* Flags to monitor 25Hz and 1Hz loop */
-bool _30Hz_Flag = false,_1Hz_Flag = false;
+bool _30Hz_Flag = false,_1Hz_Flag = false,_30_Hz_SMBUS_Flag = false;
 static volatile int16_t Counter = 0;
 
 /* Function to initialize the timer to 40mS. Timer value can be changed by changing the macro value
@@ -29,6 +29,8 @@ uint64_t Get_System_Time()
 void TIM2_PeriodElapsedCallback()
 {
 	_30Hz_Flag = true;
+	_30_Hz_SMBUS_Flag = true;
+
 	Counter++;
 
 	if((Counter % _1_SECONDS) == 0)

@@ -470,6 +470,7 @@ int main(void)
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 #endif
 			}
+			Delay_Millis(5);
 			/* Debug code to be removed after testing the RTC working as per the date set by AP */
 			RTC_TimeShow(RTC_Time);
 			BMS_Debug_COM_Write_Data(RTC_Time,18);

@@ -19,6 +19,7 @@
 	static bool SMBUS_Read_Request = false,SMBUS_Write_Request = false;
     uint8_t SMBUS_RxData[20];
     static uint8_t Bytes_Count = 1;
+    uint16_t SMBUS_Req_Time_Count = 0;
 #endif
 #endif
 
@@ -408,12 +409,20 @@ void SMBUS_Enable_Listen_Mode(uint8_t I2C_Num)
 	}
 }
 
-bool SMBUS_Request_Check(uint8_t *RxBuffer)
+uint8_t SMBUS_Request_Check(uint8_t *RxBuffer)
 {
 	uint8_t Index = 0;
+	uint8_t Result = 255;
+
 #if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
 	/* This flag will be true only when the MCU receives all the bytes mentioned as the count in the
 	 * address complete callback function */
+	if(_30_Hz_SMBUS_Flag == true)
+	{
+		SMBUS_Req_Time_Count++;
+		_30_Hz_SMBUS_Flag = false;
+	}
+
 	if(SMBUS_Read_Request == true)
 	{
 		for(Index = 0;Index < Bytes_Count;Index++)
@@ -421,14 +430,16 @@ bool SMBUS_Request_Check(uint8_t *RxBuffer)
 			*RxBuffer++ = SMBUS_RxData[Index];
 		}
 		SMBUS_Read_Request = false;
-		return true;
+		Result = SMBUS_REQ_SUCCESSFUL;
 	}
-	else
+
+	if(SMBUS_Req_Time_Count > 100)
 	{
-		return false;
+		SMBUS_Req_Time_Count = 0;
+		Result = SMBUS_REQ_TIMEOUT;
 	}
 #endif
-	return false;
+	return Result;
 }
 
 void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)

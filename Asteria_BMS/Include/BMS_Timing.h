@@ -27,7 +27,7 @@
 #define SHORT_PERIOD							_500_MILLIS
 #define LONG_PEROID								_2_SECONDS
 
-extern bool _30Hz_Flag,_1Hz_Flag;
+extern bool _30Hz_Flag,_1Hz_Flag,_30_Hz_SMBUS_Flag;
 
 void BMS_Timers_Init();
 uint64_t Get_System_Time();

@@ -66,7 +66,7 @@ enum Flight_Status
 extern bool Sleep_Mode_Funtionality;
 
 /* Function prototypes defined in the .c file */
-void AP_COM_Init(uint8_t Communication_Mode);
+uint8_t AP_COM_Init(uint8_t Communication_Mode);
 void Check_AP_Request();
 
 #endif /* AP_COMMUNICATION_H_ */
