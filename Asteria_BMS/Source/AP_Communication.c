@@ -218,7 +218,7 @@ void Check_AP_Request()
 	}
 	else if(Result == SMBUS_REQ_TIMEOUT)
 	{
-		//if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
+		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
 			BMS_Debug_COM_Write_Data("SMBUS_Timeout\r",14);
 		}
