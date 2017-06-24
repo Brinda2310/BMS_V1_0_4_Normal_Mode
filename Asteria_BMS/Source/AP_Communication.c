@@ -188,14 +188,12 @@ void Check_AP_Request()
 			Delay_Millis(3);
 			SMBUS_Serve_Request((uint8_t*)&Float_Data[0],(Send_Byte_Count*4));
 		}
-		else
+		else if (Data_Received == true)
 		{
 			Delay_Millis(3);
 			Reply_Byte = 0xFF;
 			SMBUS_Serve_Request((uint8_t*)&Reply_Byte,1);
-		}
-		if(Data_Received == true)
-		{
+
 			/* Debug code to be removed after testing */
 			if(AP_Status == DISARMED_GROUND)
 			{
@@ -209,9 +207,7 @@ void Check_AP_Request()
 			{
 				BMS_Debug_COM_Write_Data("ARMED\r",6);
 			}
-
 			Data_Received = false;
-			AP_Status = 0;
 		}
 		/* Clear the buffer in which AP data is being received */
 		memset(AP_Request_Data,0,sizeof(AP_Request_Data));
