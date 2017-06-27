@@ -12,6 +12,7 @@ uint8_t Send_Data[4] = {0x01,0x02,0x03,0x04};
 uint8_t Send_Byte_Count = 0;
 uint8_t Byte_Count = 1;
 uint8_t Reply_Byte = 0xFF;
+uint8_t SMBUS_Reboot_Count = 0;
 
 uint8_t AP_Status;
 
@@ -57,7 +58,9 @@ void Check_AP_Request()
 	static bool Data_Received = false;
 	Send_Byte_Count = 0;
 
+	/* Check if any data is received from AP */
 	Result = SMBUS_Request_Check(AP_Request_Data);
+
 	if( Result == SMBUS_REQ_SUCCESSFUL)
 	{
 		if(Byte_Count == MINIMUM_PACKET_SIZE)
@@ -162,11 +165,7 @@ void Check_AP_Request()
 					{
 						Sleep_Mode_Funtionality = ENABLE;
 					}
-					else if (AP_Status == DISARMED)
-					{
-						Sleep_Mode_Funtionality = DISABLE;
-					}
-					else if (AP_Status == ARMED)
+					else
 					{
 						Sleep_Mode_Funtionality = DISABLE;
 					}
@@ -188,12 +187,14 @@ void Check_AP_Request()
 			Delay_Millis(3);
 			SMBUS_Serve_Request((uint8_t*)&Float_Data[0],(Send_Byte_Count*4));
 		}
-		else if (Data_Received == true)
+		else
 		{
 			Delay_Millis(3);
 			Reply_Byte = 0xFF;
 			SMBUS_Serve_Request((uint8_t*)&Reply_Byte,1);
-
+		}
+		if (Data_Received == true)
+		{
 			/* Debug code to be removed after testing */
 			if(AP_Status == DISARMED_GROUND)
 			{
@@ -209,15 +210,37 @@ void Check_AP_Request()
 			}
 			Data_Received = false;
 		}
+		SMBUS_Reboot_Count = 0;
 		/* Clear the buffer in which AP data is being received */
 		memset(AP_Request_Data,0,sizeof(AP_Request_Data));
+		AP_Status = 0;
 	}
+	/* If no any data is received from AP in every 3 seconds then restart the SMBUS. BMS expects
+	 * data to be received from AP every 3 seconds(heart beat) */
 	else if(Result == SMBUS_REQ_TIMEOUT)
 	{
 		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
-			BMS_Debug_COM_Write_Data("SMBUS_Timeout\r",14);
+			/* This count decides the sleep mode function to be enabled or not. It may be possible that
+			 * AP has sent the DISARM_GROUND status but later SMBUS stopped working,Just for safety purpose
+			 * disable sleep mode function */
+			char buffer[5],length = 0;
+			SMBUS_Reboot_Count++;
+			/* Debug code to be removed */
+//			length = sprintf(buffer,"%d",SMBUS_Reboot_Count);
+//			BMS_Debug_COM_Write_Data(buffer,length);
 		}
+	}
+
+	/* Disable sleep mode function of BMS in case SMBUS has restarted 15 times(45 seconds). 45 seconds
+	 * time is because that if load is not present for continuous 1 minute then MCU will go to sleep
+	 * failing to execute the remaining logic */
+	if(SMBUS_Reboot_Count >= MAX_SMBUS_REBOOT_COUNT && Sleep_Mode_Funtionality == ENABLE)
+	{
+		Sleep_Mode_Funtionality = DISABLE;
+		/* Debug code to be removed */
+		BMS_Debug_COM_Write_Data("Sleep disable\r",14);
+		SMBUS_Reboot_Count = 0;
 	}
 
 }

@@ -327,9 +327,10 @@ void BMS_Estimate_Initial_Capacity(void)
 /* Function to calculate the pack capacity used over the time(dt = 30ms) */
 void BMS_Estimate_Capacity_Used()
 {
-	Current_Time = Get_System_Time();
+	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
-	BMS_Data.Pack_Capacity_Used += ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
+	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
+	BMS_Data.Pack_Capacity_Used += BMS_Data.Pack_Charge_Discharge_Rate;
 	Previous_Amperes = Current_Amperes;
 	Previous_Time = Current_Time;
 
@@ -467,5 +468,14 @@ float Get_BMS_Pack_Current()
 float Get_BMS_Pack_Temperature()
 {
 	return BMS_Data.Pack_Temperature_Degress;
+}
+float Get_BMS_Total_Pack_Cycles()
+{
+	return BMS_Data.Pack_Total_Cycles;
+}
+
+float Get_BMS_Charge_Discharge_Rate()
+{
+	return BMS_Data.Pack_Charge_Discharge_Rate;
 }
 

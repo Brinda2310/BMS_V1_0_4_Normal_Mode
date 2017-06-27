@@ -38,6 +38,7 @@
 #define DEBUG_MANDATORY									ENABLE
 #define DEBUG_STATUS_LED								ENABLE
 #define DEBUG_OPTIONAL									DISABLE
+#define TOTAL_PACK_CAPACITY								9000
 
 /********************************************* GPIO Related Macros ****************************************************/
 #define SD_CARD_CS										GPIO_PIN_4

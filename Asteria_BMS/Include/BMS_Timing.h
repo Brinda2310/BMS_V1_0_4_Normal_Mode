@@ -30,7 +30,8 @@
 extern bool _30Hz_Flag,_1Hz_Flag,_30_Hz_SMBUS_Flag;
 
 void BMS_Timers_Init();
-uint64_t Get_System_Time();
+double Get_System_Time_Seconds();
+uint64_t Get_System_Time_Millis();
 void TIM2_PeriodElapsedCallback(void);
 
 //void TIM6_PeriodElapsedCallback(void);

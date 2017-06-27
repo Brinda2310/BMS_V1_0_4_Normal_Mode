@@ -44,11 +44,6 @@ uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequenc
 	switch(I2C_Num)
 	{
 		case I2C_1:
-//			/* Select the clock source for I2C1 bus */
-//			RCC_PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
-//			RCC_PeriphCLKInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_SYSCLK;
-//			HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInitStruct);
-
 			/* Enable the I2C1 peripheral clock */
 			__HAL_RCC_I2C1_CLK_ENABLE();
 
@@ -128,12 +123,6 @@ uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequenc
 		break;
 
 		case I2C_3:
-
-//			/* Select the clock source for I2C3 bus */
-//			RCC_PeriphCLKInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2C3;
-//			RCC_PeriphCLKInitStruct.I2c1ClockSelection = RCC_I2C3CLKSOURCE_SYSCLK;
-//			HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInitStruct);
-
 			/* Enable the I2C3 peripheral clock */
 			__HAL_RCC_I2C3_CLK_ENABLE();
 

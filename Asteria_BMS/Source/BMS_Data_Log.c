@@ -253,7 +253,7 @@ uint8_t Create_BMS_Log_File()
 		}
 
 		/* Start filling the header data in buffer and once done write it to the BMS_Log_File */
-		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 30 Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
+		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 1 Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
 				BMS_Firmware_Version[2]);
 
 		*String_Index += sprintf(&String_Buffer[*String_Index], "UTC Start: ");
@@ -270,7 +270,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Total_Capacity,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Total_Capacity,Capacity_Remaining,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"C/D Status,Temperature,Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
 
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
@@ -326,10 +326,10 @@ uint8_t Log_All_Data()
 
 	String_Buffer[(*String_Index)++] = ',';
 
-	Long_Values[(*Index_Counter)++] = (Get_System_Time()/1000);								// Start Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Seconds();							// Start Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Long_Values[(*Index_Counter)++] = (Get_System_Time()/1000);								// End Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Seconds();							// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();									// Cell1 Voltage
@@ -343,22 +343,23 @@ uint8_t Log_All_Data()
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = 	(Get_BMS_Pack_Current());							// Pack Current
+	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current
+	Float_Values[(*Index_Counter)++] = (float)TOTAL_PACK_CAPACITY;							// Total pack capacity
 	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Total initial Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 5;														// Pack Cycles
+	Int_Values[(*Index_Counter)++] = Get_BMS_Total_Pack_Cycles();														// Pack Cycles
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Int_Values[(*Index_Counter)++] = 800;													// Charge/Discharge Rate
-	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+	Int_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH										// Charge/Discharge Rate
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();							// Pack Temperature
-	Float_Values[(*Index_Counter)++] = 19.6;												// Final Pack Voltage read after charge/discharge cycle
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Final Pack Voltage read after charge/discharge cycle
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Long_Values[(*Index_Counter)++] = 360;													// Flight Time

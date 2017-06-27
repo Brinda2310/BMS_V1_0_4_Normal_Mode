@@ -16,6 +16,7 @@
 #define BMS_SMBUS							I2C_3
 
 #define MAX_AP_DATA_SIZE					20
+#define MAX_SMBUS_REBOOT_COUNT				15		/* Load presence check time is 60 seconds */
 
 /* Readable registers */
 #define ALL_CELL_VOLTAGES_REG				0x00	/* Register for all cell voltages */

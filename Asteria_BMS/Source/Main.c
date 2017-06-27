@@ -208,7 +208,7 @@ int main(void)
 			 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
 			 * only if last state was charging */
 			Last_Charge_Disharge_Status = CHARGING;
-//			NVIC_SystemReset();
+			NVIC_SystemReset();
 		}
 		RecData = 0;
 #endif
@@ -310,6 +310,11 @@ int main(void)
 				/* Debug flag to be removed after testing */
 				ISL_Sleep = false;
 			}
+		}
+		else
+		{
+			BMS_Sleep_Time_Count = 0;
+			MCU_Sleep_Time_Count = 0;
 		}
 
 			/* Once MCU wakes up, it starts the execution from where it had left off thats why it is necessary
@@ -445,14 +450,15 @@ int main(void)
 //				Length += sprintf(Buffer, "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
 //				Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f\r", Get_BMS_Capacity_Remaining());
 //				Length += sprintf(Buffer, "Cell1_V = %0.3fV\r", Get_Cell1_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
+				Length = sprintf(Buffer, "Cell1_V = %0.3fV\r",Get_Cell1_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
+				Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 
-//				BMS_Debug_COM_Write_Data(Buffer, Length);
-//				Delay_Millis(10);
+				BMS_Debug_COM_Write_Data(Buffer, Length);
+				Delay_Millis(10);
 			}
 #endif
 			if (Log_All_Data() == RESULT_OK)
@@ -472,8 +478,8 @@ int main(void)
 			}
 			Delay_Millis(5);
 			/* Debug code to be removed after testing the RTC working as per the date set by AP */
-			RTC_TimeShow(RTC_Time);
-			BMS_Debug_COM_Write_Data(RTC_Time,18);
+//			RTC_TimeShow(RTC_Time);
+//			BMS_Debug_COM_Write_Data(RTC_Time,18);
 
 			_1Hz_Flag = false;
 		}

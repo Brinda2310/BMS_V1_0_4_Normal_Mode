@@ -20,11 +20,15 @@ void BMS_Timers_Init()
 }
 
 /* Function to return the time from boot in milliseconds */
-uint64_t Get_System_Time()
+double Get_System_Time_Seconds()
+{
+	return (SysTickCounter/1000);
+}
+
+uint64_t Get_System_Time_Millis()
 {
 	return SysTickCounter;
 }
-
 /* Function callback for 30Hz timer interrupt */
 void TIM2_PeriodElapsedCallback()
 {

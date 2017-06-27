@@ -190,6 +190,7 @@ typedef struct
 
 	float Pack_Capacity_Remaining;
 	float Pack_Capacity_Used;
+	float Pack_Charge_Discharge_Rate;
 
 	uint32_t Pack_Charge_Cycles;
 	uint32_t Pack_Discharge_Cycles;
@@ -230,5 +231,7 @@ float Get_BMS_Capacity_Remaining();
 float Get_BMS_Capacity_Used(void);
 float Get_BMS_Pack_Current(void);
 float Get_BMS_Pack_Temperature(void);
+float Get_BMS_Charge_Discharge_Rate();
+float Get_BMS_Total_Pack_Cycles();
 
 #endif /* BMS_BMS_H_ */
