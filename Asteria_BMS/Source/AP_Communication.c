@@ -224,7 +224,7 @@ void Check_AP_Request()
 			/* This count decides the sleep mode function to be enabled or not. It may be possible that
 			 * AP has sent the DISARM_GROUND status but later SMBUS stopped working,Just for safety purpose
 			 * disable sleep mode function */
-			char buffer[5],length = 0;
+//			char buffer[5],length = 0;
 			SMBUS_Reboot_Count++;
 			/* Debug code to be removed */
 //			length = sprintf(buffer,"%d",SMBUS_Reboot_Count);

@@ -210,6 +210,14 @@ int main(void)
 			Last_Charge_Disharge_Status = CHARGING;
 			NVIC_SystemReset();
 		}
+		else if (RecData == 'B')
+		{
+			BMS_ASIC_Init();
+		}
+		else if(RecData == 'C')
+		{
+			Stop_Log();
+		}
 		RecData = 0;
 #endif
 

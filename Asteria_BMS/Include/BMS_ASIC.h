@@ -35,7 +35,7 @@
 #define TATTU_BATTERY
 
 #ifdef TATTU_BATTERY										/* TATTU Battery has capacity of 9000mAH */
-#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
+#define BATTERY_CAPACITY							10000	/* Battery capacity in mAH */
 #else
 #define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
 #endif
@@ -168,10 +168,23 @@ typedef struct
 
 }BMS_Status_Flags;
 
+typedef struct
+{
+	uint8_t I2C_Init_Flag:1;
+	uint8_t I2C_Read_Cells_Flag:1;
+	uint8_t I2C_Force_Sleep:1;
+	uint8_t I2C_Read_Status_Flag:1;
+	uint8_t I2C_Read_Pack_Volt_Flag:1;
+	uint8_t I2C_Read_Pack_Current_Flag:1;
+	uint8_t I2C_Read_Pack_Temp_Flag:1;
+	uint8_t I2C_Set_Current_Gain_Flag:1;
+
+}I2C_Errors;
+
 /* Variable which holds the value of all the status flags updated from ISL at 25Hz */
 extern BMS_Status_Flags Status_Flag;
-extern float Pack_Capacity;
-
+extern uint32_t Error_Check_Data;
+extern I2C_Errors I2C_Error_Flag;
 /* Structure holding all the variables to be logged on SD card and to be used in the code */
 typedef struct
 {

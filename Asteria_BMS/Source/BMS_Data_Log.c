@@ -365,20 +365,34 @@ uint8_t Log_All_Data()
 	Long_Values[(*Index_Counter)++] = 360;													// Flight Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	uint16_t Error_Code = 0x55AA;
+	uint32_t Error_Code = Error_Check_Data;
 //	Int_Values[(*Index_Counter)++] = 0xF0F0;										// To be updated based on status from BMS IC
 //	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
 	/* Logic to convert the decimal value to binary and storing the same in buffer */
-	for(int i =0 ; i < 16; i++)
+	for(int i =0 ; i < 32; i++)
 	{
-		if((Error_Code & 0x8000))
+		if((Error_Code & 0x80000000))
 		{
 			String_Buffer[(*String_Index)++] = '1';
 		}
 		else
 			String_Buffer[(*String_Index)++] = '0';
 		Error_Code <<= 1;
+	}
+
+	String_Buffer[(*String_Index)++] = ',';
+
+	uint8_t *Ptr = (uint8_t*)&I2C_Error_Flag;
+	for(int i =0 ; i < 8; i++)
+	{
+		if((*Ptr & 0x80))
+		{
+			String_Buffer[(*String_Index)++] = '1';
+		}
+		else
+			String_Buffer[(*String_Index)++] = '0';
+		*Ptr <<= 1;
 	}
 
 	String_Buffer[(*String_Index)++] = ',';

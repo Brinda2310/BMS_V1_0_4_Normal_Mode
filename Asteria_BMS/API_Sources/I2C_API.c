@@ -39,7 +39,6 @@ uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequenc
 
 #ifdef BMS_VERSION
 	GPIO_InitTypeDef  GPIO_InitStruct;
-	RCC_PeriphCLKInitTypeDef  RCC_PeriphCLKInitStruct;
 
 	switch(I2C_Num)
 	{
