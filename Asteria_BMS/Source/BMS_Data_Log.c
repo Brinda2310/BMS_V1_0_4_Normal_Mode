@@ -14,9 +14,6 @@ FIL BMS_Log_File;
 FRESULT Result;
 UINT BytesWritten;
 
-/* Structure object to uypdate and write the BMS variables defined inside the structure to the SD card */
-//static Log_Vars Log_Variables;
-
 /* Variable to update the time and date received from GPS */
 char GPS_Date_Time[25];
 
@@ -41,13 +38,14 @@ uint16_t Stop_Time_Cursor = 0;
 static Log_SD_Summary_Vars SD_Summary_Data;
 uint16_t Old_Power_Up_Num = 0;
 
+/* New file created only upon power up otherwise logging is done in the old file after wake up */
 bool New_File_Created = false;
 
 /* Variable to create only one log file in each power up */
 bool Power_Up_AP = false;
 
-/* Function to create/check the log summary file. Create the BMS log files by reading the counts stored in the
- * summary file */
+/* Function to create/check the log summary file. Create the BMS log files by reading the counts stored
+ * in the summary file */
 uint8_t BMS_Log_Init()
 {
 	uint8_t Result = RESULT_OK;
@@ -75,7 +73,8 @@ uint8_t Create_Log_Summary_File()
 	if(Power_Up_AP == false)
 		Power_Up_AP = true;
 
-	/* Very first thing that should happen is checking the log summary file and initialize the variables used for indexing */
+	/* Very first thing that should happen is checking the log summary file and initialize the variables
+	 * used for indexing */
 	String_Index = &Memory_Address1;
 	Index_Counter = &Memory_Address2;
 
@@ -178,7 +177,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 27, 4, 2017,15,35,30);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 27, 6, 2017,15,35,30);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -221,7 +220,7 @@ uint8_t Create_BMS_Log_File()
 		SD_Summary_Data.Total_Num_of_Files++;
 
 		/* Store the update file count number in the Log_Summary_File so that next time
-		 * new filw will be created by reading the file count value */
+		 * new file will be created by reading the file count value */
 		Write_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX,SD_Summary_Data.Total_Num_of_Files);
 
 		/* Convert the number into string */
@@ -283,16 +282,16 @@ uint8_t Create_BMS_Log_File()
 	}
 	else
 	{
-		/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error in opening the file */
-		/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends on Charging/Power up /
-		 * Wake up from Sleep etc */
+		/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error
+		 * in opening the file */
+		/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends
+		 * on Charging/Power up/Wake up from Sleep etc */
 		if (f_open(&BMS_Log_File, File_Name,FA_OPEN_EXISTING | FA_WRITE | FA_READ) != FR_OK)
 		{
 			Result = RESULT_ERROR;
 		}
 
 		f_lseek(&BMS_Log_File,BMS_Log_File.fsize);
-
 	}
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
@@ -366,8 +365,6 @@ uint8_t Log_All_Data()
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	uint32_t Error_Code = Error_Check_Data;
-//	Int_Values[(*Index_Counter)++] = 0xF0F0;										// To be updated based on status from BMS IC
-//	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
 	/* Logic to convert the decimal value to binary and storing the same in buffer */
 	for(int i =0 ; i < 32; i++)

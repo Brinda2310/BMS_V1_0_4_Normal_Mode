@@ -35,7 +35,7 @@
 #define TATTU_BATTERY
 
 #ifdef TATTU_BATTERY										/* TATTU Battery has capacity of 9000mAH */
-#define BATTERY_CAPACITY							10000	/* Battery capacity in mAH */
+#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
 #else
 #define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
 #endif
@@ -97,7 +97,7 @@
  * @WRITE_ERROR	: Write operation is unsuccessful */
 enum Write_Result
 {
-	WRITE_OK = 0,WRITE_ERROR
+	WRITE_ERROR = 0,WRITE_OK
 };
 
 /* Enums to define the current battery status

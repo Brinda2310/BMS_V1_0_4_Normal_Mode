@@ -237,7 +237,7 @@ void Check_AP_Request()
 	 * failing to execute the remaining logic */
 	if(SMBUS_Reboot_Count >= MAX_SMBUS_REBOOT_COUNT && Sleep_Mode_Funtionality == ENABLE)
 	{
-		Sleep_Mode_Funtionality = DISABLE;
+//		Sleep_Mode_Funtionality = DISABLE;
 		/* Debug code to be removed */
 		BMS_Debug_COM_Write_Data("Sleep disable\r",14);
 		SMBUS_Reboot_Count = 0;

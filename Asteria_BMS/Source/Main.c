@@ -321,6 +321,8 @@ int main(void)
 		}
 		else
 		{
+			/* Need to clear the counts as soon as sleep mode is disabled so that from next time onwards
+			 * it will start from zero count and we will get the exact timing counts */
 			BMS_Sleep_Time_Count = 0;
 			MCU_Sleep_Time_Count = 0;
 		}
@@ -480,6 +482,7 @@ int main(void)
 			}
 			else
 			{
+				BMS_Log_Init();
 #if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 #endif

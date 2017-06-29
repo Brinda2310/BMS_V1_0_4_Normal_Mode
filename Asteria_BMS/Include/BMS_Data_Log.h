@@ -52,18 +52,6 @@ enum data_sizes
 	CHAR_SIZE_ = 2,SHORT_INT_SIZE_ = 4,INT_SIZE_ = 6,FLOAT_SIZE_ = 10,SHORT_FLOAT_SIZE_ = 6,LONG_SIZE_ = 10
 };
 
-typedef struct
-{
-	uint32_t Start_Time;
-	uint32_t End_Time;
-	float Final_Pack_Voltage;
-
-	uint32_t Flight_Time;
-	uint32_t Health_Status_Register;
-	char GPS_Date[10];
-	char Battery_Charge_Discharge_Date[10];
-}Log_Vars;
-
 /* Structure holding all the variables related to log summary file */
 typedef struct
 {
