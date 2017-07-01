@@ -13,10 +13,10 @@
 #define USART3_TX				GPIO_Pin_8
 #define USART3_RX				GPIO_Pin_9
 #define SMBUS_PORT				I2C2
-#define MAX_TIMEOUT				40000
+#define MAX_TIMEOUT				10000
 #define STM32L4_ADDRESS			0x52
 #define BMS_PACK_VOLTAGE_REG	0x01
-#define TIMER_VALUE				500
+#define TIMER_VALUE				5000
 #define AIRSPEED_ADDRESS		0x50
 
 uint8_t TxData[16];
