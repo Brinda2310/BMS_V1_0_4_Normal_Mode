@@ -442,7 +442,7 @@ void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
 	{
 		SMBUS_Write_Request = false;
 		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-		Delay_Millis(5);
+		//Delay_Millis(1);
 	}
 #endif
 }

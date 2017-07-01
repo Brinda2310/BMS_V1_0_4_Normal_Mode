@@ -477,9 +477,9 @@ int main(void)
 				/* Debug code to be removed after testing; If there is any problem with SD card while
 				 * logging then code should reinitialize the logging in the same file as it is not
 				 * re-powered (yet to implement)*/
-#if DEBUG_MANDATORY == ENABLE
+//#if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Written\r",8);
-#endif
+//#endif
 			}
 			else
 			{
