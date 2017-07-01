@@ -177,7 +177,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 27, 6, 2017,15,35,30);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 1,7,2017,10,45,34);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -343,7 +343,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current
-	Float_Values[(*Index_Counter)++] = (float)TOTAL_PACK_CAPACITY;							// Total pack capacity
+	Float_Values[(*Index_Counter)++] = (float)BATTERY_CAPACITY;								// Total pack capacity
 	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Total initial Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
@@ -351,8 +351,8 @@ uint8_t Log_All_Data()
 	Int_Values[(*Index_Counter)++] = Get_BMS_Total_Pack_Cycles();														// Pack Cycles
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Int_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH										// Charge/Discharge Rate
-	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
+	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH										// Charge/Discharge Rate
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
@@ -445,7 +445,7 @@ void Stop_Log()
 	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
 	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 6, 4, 2017,16,31,50);
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 1,7,2017,10,50,50);
 	else
 		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
 

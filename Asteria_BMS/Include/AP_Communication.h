@@ -69,5 +69,6 @@ extern bool Sleep_Mode_Funtionality;
 /* Function prototypes defined in the .c file */
 uint8_t AP_COM_Init(uint8_t Communication_Mode);
 void Check_AP_Request();
+void BMS_Enable_Listen_Mode();
 
 #endif /* AP_COMMUNICATION_H_ */

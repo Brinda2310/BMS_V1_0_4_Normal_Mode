@@ -32,13 +32,18 @@
 #define BATT_EST_Mu									3.94	/* constant used 3.94 (mean value)in above equation */
 #define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
 
-#define TATTU_BATTERY
+//#define TATTU_BATTERY_9000
+//#define TATTU_BATTERY_10000
+#define MAX_AMP_11000
 
-#ifdef TATTU_BATTERY										/* TATTU Battery has capacity of 9000mAH */
-#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
-#else
-#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
+#ifdef TATTU_BATTERY_9000									/* TATTU Battery has capacity of 9000mAH */
+	#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
+#elif defined TATTU_BATTERY_10000
+	#define BATTERY_CAPACITY							10000	/* Battery capacity in mAH */
+#elif defined MAX_AMP_11000
+	#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
 #endif
+
 #define BATTERY_CELLS_COUNT							6
 
 /* BMS ISL94203 Internal register's addresses */

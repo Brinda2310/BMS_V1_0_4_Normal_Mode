@@ -19,7 +19,7 @@ uint8_t AP_Status;
 uint8_t AP_Request_Data[MAX_AP_DATA_SIZE];
 float Float_Data[6];
 
-static void BMS_Enable_Listen_Mode()
+void BMS_Enable_Listen_Mode()
 {
 	SMBUS_Enable_Listen_Mode(BMS_SMBUS);
 }
