@@ -8,6 +8,8 @@
  ******************************************************************************/
 
 #include <I2C_API.h>
+#include "BMS_Serial_Communication.h"
+#include "BMS_Timing.h"
 
 #if defined (USE_I2C1) || defined(USE_I2C3)
 #if (I2C1_MODE == NORMAL_I2C_MODE) || (I2C3_MODE == NORMAL_I2C_MODE)
@@ -18,7 +20,7 @@
 	static uint8_t SMBUS_Own_Address;
 	static bool SMBUS_Read_Request = false,SMBUS_Write_Request = false;
     uint8_t SMBUS_RxData[20];
-    static uint8_t Bytes_Count = 1;
+    static uint8_t Bytes_Count = 15;
     uint16_t SMBUS_Req_Time_Count = 0;
 #endif
 #endif
@@ -440,6 +442,7 @@ void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
 	{
 		SMBUS_Write_Request = false;
 		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+		Delay_Millis(5);
 	}
 #endif
 }

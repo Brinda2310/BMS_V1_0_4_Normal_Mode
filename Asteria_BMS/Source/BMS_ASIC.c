@@ -29,7 +29,7 @@ I2C_Errors I2C_Error_Flag;
 /* Function initializes the I2C communication between MCU and BMS IC */
 void BMS_ASIC_Init()
 {
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Init_Flag = I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
 	while((I2C_Error_Flag.I2C_Init_Flag != RESULT_OK) && Max_Tries-- > 1)
 	{
@@ -197,7 +197,7 @@ void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Si
  */
 void BMS_Force_Sleep()
 {
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 	while(I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
 	{
@@ -210,7 +210,7 @@ uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
 {
 	uint8_t Gain_Value, Result;
 	uint8_t Register_Address = 0, Send_Data_Values[2];
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 	/* Before writing any value,make sure that other settings in the 0x85 register are not disturbed
 	 * So read the value first and then just change the 4th and 5th bit value in the register */
 	Register_Address = CURRENT_GAIN_SETTING_ADDR;
@@ -273,7 +273,7 @@ void BMS_Update_Pack_Cycles()
 /* This function to query the status flags of various RAM registers */
 void BMS_Read_RAM_Status_Register()
 {
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 	typedef union
 	{
 		uint8_t Data[4];
@@ -297,7 +297,7 @@ void BMS_Read_RAM_Status_Register()
 /* Function to read individual cell voltages inside the pack */
 void BMS_Read_Cell_Voltages()
 {
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 	uint8_t Cell_Voltages[CELL_VOLTAGES_DATA_SIZE];
 
 	uint8_t Register_Address = CELL_VOLTAGE_ADDR;
@@ -379,7 +379,7 @@ void BMS_Read_Pack_Voltage()
 {
 	uint16_t Pack_Data;
 	uint8_t Address = PACK_VOLTAGE_ADDR;
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 
 	I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
 	I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
@@ -398,7 +398,7 @@ void BMS_Read_Pack_Current()
 {
 	uint16_t Pack_Data;
 	uint8_t Address = PACK_CURRENT_ADDR;
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 
 	I2C_Error_Flag.I2C_Read_Pack_Current_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Read_Pack_Current_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
@@ -417,7 +417,7 @@ void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
 	float Lcl_Temperature_Volts = 0.0;
-	int8_t Max_Tries = 100;
+	int8_t Max_Tries = 5;
 
 	uint8_t Address = PACK_TEMPERATURE_ADDR;
 
