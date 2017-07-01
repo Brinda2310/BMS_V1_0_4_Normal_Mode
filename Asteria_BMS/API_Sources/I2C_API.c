@@ -20,7 +20,7 @@
 	static uint8_t SMBUS_Own_Address;
 	static bool SMBUS_Read_Request = false,SMBUS_Write_Request = false;
     uint8_t SMBUS_RxData[20];
-    static uint8_t Bytes_Count = 15;
+    static uint8_t Bytes_Count = 1;
     uint16_t SMBUS_Req_Time_Count = 0;
 #endif
 #endif

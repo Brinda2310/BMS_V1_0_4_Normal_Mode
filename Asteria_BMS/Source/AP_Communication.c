@@ -17,7 +17,7 @@ bool Data_Received = false;
 uint8_t AP_Status;
 
 uint8_t AP_Request_Data[MAX_AP_DATA_SIZE];
-float Float_Data[6];
+float Float_Data[6]={0};
 
 void BMS_Enable_Listen_Mode()
 {
@@ -62,13 +62,35 @@ void Check_AP_Request()
 
 	if( Result == SMBUS_REQ_SUCCESSFUL)
 	{
-		BMS_Debug_COM_Write_Data(&AP_Request_Data,15);
-//		Byte_Count = 15;
-//		Set_Bytes_Count(&Byte_Count);
+		BMS_Debug_COM_Write_Data(&AP_Request_Data[0],1);
 
+		switch (AP_Request_Data[0])
+		{
+			case CELL1_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell1_Voltage();
+				break;
+			case CELL2_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell2_Voltage();
+				break;
+			case CELL3_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell3_Voltage();
+				break;
+			case CELL4_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell6_Voltage();
+				break;
+			case CELL5_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell7_Voltage();
+				break;
+			case CELL6_VOLTAGE_REG:
+				Float_Data[0] = Get_Cell8_Voltage();
+				break;
+			default:
+				break;
+		}
 		/* Delay is required to set up the receiving side(AP) */
-		Delay_Millis(2);
-		SMBUS_Serve_Request((uint8_t*) &Data[0], 4);
+		Delay_Millis(4);
+		SMBUS_Serve_Request((uint8_t*)Float_Data, 4);
+		BMS_Debug_COM_Write_Data("Cell Voltage %f",Float_Data[0]);
 	}
 //		if(Byte_Count == MINIMUM_PACKET_SIZE)
 //		{
@@ -226,7 +248,7 @@ void Check_AP_Request()
 //	 * data to be received from AP every 3 seconds(heart beat) */
 	else if(Result == SMBUS_REQ_TIMEOUT)
 	{
-		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
+//		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
 			/* This count decides the sleep mode function to be enabled or not. It may be possible that
 			 * AP has sent the DISARM_GROUND status but later SMBUS stopped working,Just for safety purpose
@@ -234,8 +256,8 @@ void Check_AP_Request()
 			char buffer[5],length = 0;
 			SMBUS_Reboot_Count++;
 			/* Debug code to be removed */
-			length = sprintf(buffer,"%d",SMBUS_Reboot_Count);
-			BMS_Debug_COM_Write_Data(buffer,length);
+//			length = sprintf(buffer,"%d",SMBUS_Reboot_Count);
+//			BMS_Debug_COM_Write_Data(buffer,length);
 		}
 	}
 

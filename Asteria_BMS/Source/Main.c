@@ -250,12 +250,12 @@ int main(void)
 
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-//			BMS_Read_Cell_Voltages();
-//			BMS_Read_Pack_Voltage();
-//			BMS_Read_Pack_Current();
-//			BMS_Read_Pack_Temperature();
-//			BMS_Read_RAM_Status_Register();
-//			BMS_Estimate_Capacity_Used();
+			BMS_Read_Cell_Voltages();
+			BMS_Read_Pack_Voltage();
+			BMS_Read_Pack_Current();
+			BMS_Read_Pack_Temperature();
+			BMS_Read_RAM_Status_Register();
+			BMS_Estimate_Capacity_Used();
 
 			/* Debug LED status to check MCU is working correctly; To be removed after testing is done */
 			BMS_Status_LED_Toggle();
