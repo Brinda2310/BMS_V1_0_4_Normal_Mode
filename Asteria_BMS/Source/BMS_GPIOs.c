@@ -11,14 +11,14 @@
 /* Function to initialize the switch functionality connected to respective GPIO of MCU */
 void BMS_Switch_Init()
 {
-	GPIO_Init(GPIO_A,BMS_SWITCH,GPIO_INPUT,PULLUP);
+	GPIO_Init(BMS_SWITCH_PORT,BMS_SWITCH,GPIO_INPUT,PULLUP);
 }
 
 /* Function to read the switch status. Switch is pulled up with internal resistor,
  * If pressed pin status will be LOW and if not pressed it will remain to high state */
 uint8_t BMS_Read_Switch_Status()
 {
-	if(GPIO_Read(GPIO_A,BMS_SWITCH) == PIN_LOW)
+	if(GPIO_Read(BMS_SWITCH_PORT,BMS_SWITCH) == PIN_LOW)
 	{
 		return PRESSED;
 	}
@@ -31,18 +31,24 @@ uint8_t BMS_Read_Switch_Status()
 /* Function to initialize the LEDs connected to respective GPIOs of MCU */
 void BMS_Status_LEDs_Init()
 {
-	GPIO_Init(GPIO_B,LED_1,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_2,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_3,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_4,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_A,LED_5,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
 }
 
 /* Function to toggle the status LED connected on STM32L4 dev board; Used only for debugging */
 #if DEBUG_STATUS_LED == ENABLE
 void BMS_Status_LED_Toggle()
 {
-	GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
+	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
+	GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
+	GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
+	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
+	GPIO_Write(LED5_PORT,LED_5,PIN_TOGGLE);
+	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
 #endif
 

@@ -83,7 +83,7 @@ int main(void)
 	BMS_ASIC_Init();
 
 	/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
-	AP_COM_Init(AP_COM_SMBUS_MODE);
+//	AP_COM_Init(AP_COM_SMBUS_MODE);
 
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
@@ -146,7 +146,7 @@ int main(void)
 			Timer_Value = LOW_CONSUMPTION_DELAY_AFTER_WAKEUP;
 
 			/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
-			AP_COM_Init(AP_COM_SMBUS_MODE);
+//			AP_COM_Init(AP_COM_SMBUS_MODE);
 
 			/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 			RTC_Init();
@@ -198,7 +198,7 @@ int main(void)
 #endif
 		}
 
-//#if DEBUG_MANDATORY == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
@@ -220,7 +220,7 @@ int main(void)
 			Stop_Log();
 		}
 		RecData = 0;
-//#endif
+#endif
 
 		/* This flag will be true after every 33mS(30Hz) in timer application file */
 		if (_30Hz_Flag == true)
@@ -250,12 +250,12 @@ int main(void)
 
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-			BMS_Read_Cell_Voltages();
-			BMS_Read_Pack_Voltage();
-			BMS_Read_Pack_Current();
-			BMS_Read_Pack_Temperature();
-			BMS_Read_RAM_Status_Register();
-			BMS_Estimate_Capacity_Used();
+//			BMS_Read_Cell_Voltages();
+//			BMS_Read_Pack_Voltage();
+//			BMS_Read_Pack_Current();
+//			BMS_Read_Pack_Temperature();
+//			BMS_Read_RAM_Status_Register();
+//			BMS_Estimate_Capacity_Used();
 
 			/* Debug LED status to check MCU is working correctly; To be removed after testing is done */
 			BMS_Status_LED_Toggle();
@@ -477,9 +477,9 @@ int main(void)
 				/* Debug code to be removed after testing; If there is any problem with SD card while
 				 * logging then code should reinitialize the logging in the same file as it is not
 				 * re-powered (yet to implement)*/
-//#if DEBUG_MANDATORY == ENABLE
+#if DEBUG_MANDATORY == ENABLE
 				BMS_Debug_COM_Write_Data("Written\r",8);
-//#endif
+#endif
 			}
 			else
 			{
@@ -488,7 +488,7 @@ int main(void)
 				BMS_Debug_COM_Write_Data("Write Error\r",12);
 #endif
 			}
-			Delay_Millis(5);
+//			Delay_Millis(5);
 			/* Debug code to be removed after testing the RTC working as per the date set by AP */
 //			RTC_TimeShow(RTC_Time);
 //			BMS_Debug_COM_Write_Data(RTC_Time,18);
@@ -498,10 +498,10 @@ int main(void)
 
 		/* Check for any request is received from AP; Also check for any data is received from AP which
 		 * may be used to update the BMS RTC and GPS timings */
-		if(Wakeup_From_Sleep == false)
-		{
-			Check_AP_Request();
-		}
+//		if(Wakeup_From_Sleep == false)
+//		{
+//			Check_AP_Request();
+//		}
 	}
 }
 

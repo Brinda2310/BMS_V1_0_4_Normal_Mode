@@ -34,7 +34,7 @@
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define DEBUG_COM										ENABLE
+#define DEBUG_COM										DISABLE
 #define DEBUG_MANDATORY									DISABLE
 #define DEBUG_STATUS_LED								ENABLE
 #define DEBUG_OPTIONAL									DISABLE
@@ -42,7 +42,7 @@
 
 /********************************************* GPIO Related Macros ****************************************************/
 #define SD_CARD_CS										GPIO_PIN_4
-#define SD_CARD_DETECT									GPIO_PIN_2
+#define SD_CARD_DETECT									GPIO_PIN_1
 
 /********************************************* Timer Related Macros ****************************************************/
 #define _100uS_PRESCALAR								7999

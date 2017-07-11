@@ -16,19 +16,17 @@
 #define LED3_PORT										GPIO_B
 #define LED4_PORT										GPIO_B
 #define LED5_PORT										GPIO_A
+#define LED6_PORT										GPIO_B
+#define BMS_SWITCH_PORT									GPIO_A
 
 /* GPIO pins settings(STM32L4) for switch and LEDs */
-#if DEBUG_STATUS_LED == ENABLE
-	#define LED_1										(1 << 3)
-#else
-	#define LED_1										(1 << 5)
-#endif
-
-#define BMS_SWITCH										(1 << 11)
+#define LED_1											(1 << 0)
 #define LED_2											(1 << 7)
 #define LED_3											(1 << 6)
-#define LED_4											LED_1
-#define LED_5											(1 << 11)
+#define LED_4											(1 << 5)
+#define LED_5											(1 << 2)
+#define LED_6											(1 << 0)
+#define BMS_SWITCH										(1 << 11)
 
 /* Enums for patterns to be displayed on LEDs
  * @ SOC	: State of charge

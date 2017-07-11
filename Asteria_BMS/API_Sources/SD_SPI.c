@@ -794,7 +794,7 @@ void SD_IO_Init(void)
   uint8_t counter = 0;
 
   GPIO_Init(GPIO_A,SD_CARD_CS,GPIO_OUTPUT,PULLUP);
-  GPIO_Init(GPIO_A,SD_CARD_DETECT,GPIO_INPUT,PULLUP);
+  GPIO_Init(GPIO_B,SD_CARD_DETECT,GPIO_INPUT,PULLUP);
 
 
   /*------------Put SD in SPI mode--------------*/

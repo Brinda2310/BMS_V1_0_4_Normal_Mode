@@ -52,7 +52,7 @@ uint8_t AP_COM_Init(uint8_t Communication_Mode)
  * */
 void Check_AP_Request()
 {
-	uint8_t Index = 0,Result = 255;
+	uint8_t Result = 255;
 	Send_Byte_Count = 0;
 	static bool Read_Request = true;
 	static uint8_t State = 255;
