@@ -37,7 +37,7 @@ void BMS_ASIC_Init()
 	}
 	if(Max_Tries < 1)
 	{
-		BMS_Debug_COM_Write_Data("Power restart is needed\r",24);
+//		BMS_Debug_COM_Write_Data("Power restart is needed\r",24);
 	}
 }
 

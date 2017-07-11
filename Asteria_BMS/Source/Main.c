@@ -257,9 +257,6 @@ int main(void)
 //			BMS_Read_RAM_Status_Register();
 //			BMS_Estimate_Capacity_Used();
 
-			/* Debug LED status to check MCU is working correctly; To be removed after testing is done */
-			BMS_Status_LED_Toggle();
-
 			/* If current consumption is less than 200mA and BMS IC is not in sleep mode then start
 			 * counting the timer value */
 		if(Sleep_Mode_Funtionality == ENABLE)
@@ -408,6 +405,8 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
+			/* Debug LED status to check MCU is working correctly; To be removed after testing is done */
+
 #if DEBUG_MANDATORY == ENABLE
 			/* Debug code to check whether discharge cycles are getting updated properly or not along
 			 * with last charge discharge status */
@@ -474,6 +473,8 @@ int main(void)
 #endif
 			if (Log_All_Data() == RESULT_OK)
 			{
+				BMS_Status_LED_Toggle();
+
 				/* Debug code to be removed after testing; If there is any problem with SD card while
 				 * logging then code should reinitialize the logging in the same file as it is not
 				 * re-powered (yet to implement)*/
