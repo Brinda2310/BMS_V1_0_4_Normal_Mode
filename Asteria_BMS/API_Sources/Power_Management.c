@@ -60,9 +60,7 @@ void MCU_Exit_Sleep_Mode()
 	BMS_Timers_Init();
 
 	/* Initialize the USART to 115200 baud rate to debug the code */
-#if DEBUG_COM == ENABLE
 	BMS_Debug_COM_Init();
-#endif
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
 	BMS_Status_LEDs_Init();

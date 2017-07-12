@@ -24,21 +24,25 @@
 	#include "stm32l4xx_it.h"
 
 /* Define the macros to enable the hardware peripherals */
-
-#define USE_TIMER2
-#define USE_USART1
-#define USE_I2C1
-#define USE_I2C3
-#define USE_SPI1
-
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define DEBUG_COM										DISABLE
-#define DEBUG_MANDATORY									DISABLE
-#define DEBUG_STATUS_LED								ENABLE
-#define DEBUG_OPTIONAL									DISABLE
-#define TOTAL_PACK_CAPACITY								9000
+#define DEBUG_COM										ENABLE
+
+#define NUM_OF_USARTS									1
+#define NUM_OF_SPI_BUSES								2
+
+#define PWM_FUNCTION									DISABLE
+#define USE_TIMER2
+//#define USE_TIMER6
+//#define USE_TIMER7
+#define USE_USART1
+//#define USE_USART2
+#define USE_I2C1
+#define USE_I2C3
+#define USE_SPI1
+//#define USE_SPI3
+
 
 /********************************************* GPIO Related Macros ****************************************************/
 #define SD_CARD_CS										GPIO_PIN_4
@@ -46,8 +50,6 @@
 
 /********************************************* Timer Related Macros ****************************************************/
 #define _100uS_PRESCALAR								7999
-
-#define PWM_FUNCTION									DISABLE
 
 #if PWM_FUNCTION == ENABLE
 #define TIM1_PWM_PRESCALAR								1000000
@@ -99,7 +101,6 @@
 #endif
 
 /********************************************* USART Related Macros ****************************************************/
-#define NUM_OF_USARTS									1
 
 #ifdef USE_USART1
 #define USART1_REMAP									ENABLE
@@ -154,7 +155,6 @@
 #endif
 #endif
 /********************************************* SPI Related Macros ****************************************************/
-#define NUM_OF_SPI_BUSES								2
 
 #ifdef USE_SPI1
 #define SPI1_REMAP										DISABLE

@@ -36,6 +36,7 @@ void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 {
 #if DEBUG_COM == ENABLE
 	USART_Write(USART_1,TxBuffer,Size);
+	Delay_Millis(8);
 #endif
 }
 

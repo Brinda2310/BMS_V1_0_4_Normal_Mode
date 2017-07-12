@@ -32,25 +32,27 @@ uint8_t BMS_Read_Switch_Status()
 void BMS_Status_LEDs_Init()
 {
 	GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
+#if DEBUG_COM == DISABLE
 	GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
 	GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
+#endif
 	GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
 	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
 	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
 }
 
 /* Function to toggle the status LED connected on STM32L4 dev board; Used only for debugging */
-#if DEBUG_STATUS_LED == ENABLE
 void BMS_Status_LED_Toggle()
 {
 	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
+#if DEBUG_COM == DISABLE
 	GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
 	GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
+#endif
 	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
 	GPIO_Write(LED5_PORT,LED_5,PIN_TOGGLE);
 	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
-#endif
 
 /* Function to show the LED pattern upon switch press; It shows SOC and SOH based
  * on time for which switch is pressed */
@@ -58,15 +60,10 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity)
 {
 	if(Battery_Capacity == SOC)
 	{
-#if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Short Press\r",12);
-		Delay_Millis(2);
-#endif
 	}
 	else if (Battery_Capacity == SOH)
 	{
-#if DEBUG_MANDATORY == ENABLE
 		BMS_Debug_COM_Write_Data("Long Press\r",11);
-#endif
 	}
 }

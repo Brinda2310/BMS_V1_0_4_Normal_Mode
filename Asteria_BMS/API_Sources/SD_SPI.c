@@ -837,10 +837,8 @@ void SD_Deselect()
 
 void SD_Status()
 {
-	SdStatus = SD_PRESENT;
+	SdStatus = SD_NOT_PRESENT;
 
-//	if(GPIO_Read(GPIO_A,SD_CARD_DETECT) == PIN_HIGH)
-//		SdStatus = SD_NOT_PRESENT;
-//	else
-//		SdStatus = SD_PRESENT;
+	if(GPIO_Read(GPIO_A,SD_CARD_DETECT) == PIN_LOW)
+		SdStatus = SD_PRESENT;
 }
