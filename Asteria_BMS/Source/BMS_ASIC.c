@@ -59,42 +59,35 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	if(Flags & IS_ISL_IN_SLEEP)
 	{
 		Status_Flag.BMS_In_Sleep = YES;
-		BMS_Debug_COM_Write_Data("In sleep mode\r",14);
 	}
 	else
 	{
 		Status_Flag.BMS_In_Sleep = NO;
-		BMS_Debug_COM_Write_Data("Non-sleep\r",10);
 	}
 
 	if(Flags & IS_PACK_DISCHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = DISCHARGING;
 		Status_Flag.Pack_Discharging = YES;
-		BMS_Debug_COM_Write_Data("Discharging\r",14);
 	}
 	else
 	{
 		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
-		BMS_Debug_COM_Write_Data("Low power mode\r",16);
 	}
 
 	if(Flags & IS_PACK_CHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = CHARGING;
 		Status_Flag.Pack_Charging = YES;
-		BMS_Debug_COM_Write_Data("Charging\r",14);
 	}
 	if(Flags & IS_INTERNAL_SCAN)
 	{
 		Status_Flag.Internal_Scan_Progress = NO;
-		BMS_Debug_COM_Write_Data("No Internal scan\r\r",18);
 	}
 	else
 	{
 		Status_Flag.Internal_Scan_Progress = YES;
-		BMS_Debug_COM_Write_Data("Internal scan in progress\r\r",27);
 	}
 }
 

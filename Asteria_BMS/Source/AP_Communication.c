@@ -176,10 +176,8 @@ void Check_AP_Request()
 	{
 		Sleep_Mode_Funtionality = DISABLE;
 		/* Debug code to be removed */
-#if DEBUG_OPTIONAL == ENABLE
 		BMS_Debug_COM_Write_Data("Sleep disable\r",14);
 		SMBUS_Reboot_Count = 0;
-#endif
 	}
 	/* There is possibility that sleep mode functionality is enabled due to previous request from AP
 	 * for DISARM and GROUND, So it is necessary to reset the status to zero */
