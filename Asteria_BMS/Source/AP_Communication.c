@@ -138,14 +138,14 @@ void Check_AP_Request()
 		if(Read_Request == true)
 		{
 			/* Delay is required to set up the receiving side(AP) */
-			Delay_Millis(4);
+			Delay_Millis(5);
 			SMBUS_Serve_Request((uint8_t*)Float_Data, 4);
 		}
 		/* If AP wants to write some data to BMS, then BMS reply with 0xFF byte to AP to indicate that
 		 * it can send the required data(It is write request from AP) */
 		else if (Read_Request == false && Byte_Count != 1)
 		{
-			Delay_Millis(4);
+			Delay_Millis(5);
 			SMBUS_Serve_Request((uint8_t*)&Reply_Byte, 1);
 		}
 		SMBUS_Reboot_Count = 0;

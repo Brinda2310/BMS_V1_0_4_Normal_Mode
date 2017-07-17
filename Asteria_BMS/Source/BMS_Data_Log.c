@@ -177,7 +177,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 14,7,2017,21,14,05);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 15,7,2017,13,18,05);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -445,7 +445,7 @@ void Stop_Log()
 	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
 	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 14,7,2017,21,20,24);
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 15,7,2017,14,20,24);
 	else
 		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
 
