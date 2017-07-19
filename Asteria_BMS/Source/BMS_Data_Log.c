@@ -140,6 +140,9 @@ uint8_t Create_Log_Summary_File()
 	*String_Index = 0;
 	*Index_Counter= 0;
 
+	uint8_t Buffer[10],Len;
+	Len = sprintf(Buffer,"%d\n",SD_Summary_Data.Power_Up_Number);
+	BMS_Debug_COM_Write_Data(Buffer,Len);
 	return RESULT_OK;
 }
 
@@ -177,7 +180,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 15,7,2017,13,18,05);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 17,7,2017,16,20,05);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -325,10 +328,10 @@ uint8_t Log_All_Data()
 
 	String_Buffer[(*String_Index)++] = ',';
 
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Seconds();							// Start Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();							// Start Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Seconds();							// End Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();							// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();									// Cell1 Voltage
@@ -445,7 +448,7 @@ void Stop_Log()
 	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
 	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 15,7,2017,14,20,24);
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 17,7,2017,17,20,24);
 	else
 		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
 

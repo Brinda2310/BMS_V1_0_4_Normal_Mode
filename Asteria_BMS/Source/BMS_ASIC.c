@@ -19,7 +19,7 @@ uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
 uint32_t Current_Time = 0,Previous_Time = 0;
 
-bool Last_Charge_Disharge_Status;
+bool Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
 uint32_t Error_Check_Data = 0;
 
 ISL_943203_Data BMS_Data;
@@ -346,7 +346,30 @@ void BMS_Estimate_Capacity_Used()
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
-	BMS_Data.Pack_Capacity_Used += BMS_Data.Pack_Charge_Discharge_Rate;
+	if(Status_Flag.Pack_Charging == YES)
+	{
+		BMS_Data.Pack_Capacity_Used -= BMS_Data.Pack_Charge_Discharge_Rate;
+		if(BMS_Data.Pack_Capacity_Used < 0)
+		{
+			BMS_Data.Pack_Capacity_Used = 0.0;
+		}
+		else if(BMS_Data.Pack_Capacity_Used > 100)
+		{
+			BMS_Data.Pack_Capacity_Used = 100.0;
+		}
+	}
+	else
+	{
+		BMS_Data.Pack_Capacity_Used += BMS_Data.Pack_Charge_Discharge_Rate;
+		if(BMS_Data.Pack_Capacity_Used > 100)
+		{
+			BMS_Data.Pack_Capacity_Used = 100.0;
+		}
+		else if(BMS_Data.Pack_Capacity_Used < 0)
+		{
+			BMS_Data.Pack_Capacity_Used = 0.0;
+		}
+	}
 	Previous_Amperes = Current_Amperes;
 	Previous_Time = Current_Time;
 

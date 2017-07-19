@@ -90,7 +90,7 @@ int main(void)
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
-	BMS_Set_Current_Gain(CURRENT_GAIN_500X);
+	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
 	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
@@ -98,11 +98,11 @@ int main(void)
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	if(BMS_Log_Init() == RESULT_OK)
 	{
-		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
+//		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
 	}
 	else
 	{
-		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
+//		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
 	}
 
 	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
@@ -120,8 +120,8 @@ int main(void)
 	}
 
 	/* Debug code just to see the correct value of battery capacity remaining which can be seen on USART */
-	Length = sprintf(Buffer,"Batt Remaining %f",Get_BMS_Capacity_Remaining());
-	BMS_Debug_COM_Write_Data(Buffer, Length);
+//	Length = sprintf(Buffer,"Batt Remaining %f",Get_BMS_Capacity_Remaining());
+//	BMS_Debug_COM_Write_Data(Buffer, Length);
 
 	/* Every time when MCU restarts, set the load check timer value to 1 minute; If MCU is awaken from sleep
 	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
@@ -189,7 +189,7 @@ int main(void)
 			/* Debug code to set the last charge/discharge status to charging to see whether discharge
 			 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
 			 * only if last state was charging */
-			NVIC_SystemReset();
+//			NVIC_SystemReset();
 		}
 		else if (RecData == 'B')
 		{
@@ -197,11 +197,19 @@ int main(void)
 		}
 		else if(RecData == 'C')
 		{
-//			Last_Charge_Disharge_Status = CHARGING;
+			Last_Charge_Disharge_Status = CHARGING;
 		}
 		else if (RecData == 'D')
 		{
-//			Last_Charge_Disharge_Status = DISCHARGING;
+			Last_Charge_Disharge_Status = DISCHARGING;
+		}
+		else if (RecData == 'E')
+		{
+			Stop_Log();
+		}
+		else if (RecData == 'F')
+		{
+			BMS_Log_Init();
 		}
 		RecData = 0;
 
@@ -318,7 +326,6 @@ int main(void)
 					/* If current coming into the pack is more than 1amperes then start counting the time */
 					if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
-						Start_Charging = 1;
 						Charge_Time_Count++;
 					}
 					else
@@ -333,14 +340,15 @@ int main(void)
 					 * keep track of last state of the pack i.e. charging/discharging  */
 					if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status != CHARGING)
 					{
+						Start_Charging = 1;
 						BMS_Data.Pack_Charge_Cycles++;
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = CHARGING;
 						BMS_Update_Pack_Cycles();
 						char Charge[10];
-						uint8_t Len = sprintf(Charge,"C cycles = %d",(int)BMS_Data.Pack_Total_Cycles);
-						BMS_Debug_COM_Write_Data(Charge,Len);
-						Delay_Millis(2);
+//						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
+//						BMS_Debug_COM_Write_Data(Charge,Len);
+						Delay_Millis(5);
 					}
 				}
 				/* If status of the BMS is discharging then keep continuous track of it */
@@ -352,7 +360,6 @@ int main(void)
 					/* If current going out of the pack is more than 1 amperes then start counting the time */
 					if(Get_BMS_Pack_Current() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
-						Start_Charging = 2;
 						Discharge_Time_Count++;
 					}
 					else
@@ -365,14 +372,16 @@ int main(void)
 					 * not discharging */
 					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status != DISCHARGING)
 					{
+						Start_Charging = 2;
 						BMS_Data.Pack_Discharge_Cycles++;
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = DISCHARGING;
 						BMS_Update_Pack_Cycles();
 						char Charge[10];
-						uint8_t Len = sprintf(Charge,"C cycles = %d",(int)BMS_Data.Pack_Total_Cycles);
-						BMS_Debug_COM_Write_Data(Charge,Len);
-						Delay_Millis(2);
+//						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
+//						BMS_Debug_COM_Write_Data(Charge,Len);
+						Delay_Millis(5);
+
 					}
 				}
 				else
@@ -382,12 +391,14 @@ int main(void)
 					Charge_Time_Count = 0;
 					Discharge_Time_Count = 0;
 					Update_Pack_Cycles = false;
+					Start_Charging = 0;
+					Display_Volt_Current = false;
 				}
 			}
 
 			if (Log_All_Data() != RESULT_OK)
 			{
-				BMS_Log_Init();
+				//BMS_Log_Init();
 			}
 			else
 				BMS_Status_LED_Toggle();
@@ -410,24 +421,31 @@ int main(void)
 //				BMS_Debug_COM_Write_Data("Non Sleep Mode\r",15);
 //			}
 
-			Length = sprintf(Buffer,"State = %d\r",Last_Charge_Disharge_Status);
-			BMS_Debug_COM_Write_Data(Buffer,Length);
-			Delay_Millis(2);
+//			Length = sprintf(Buffer,"State = %d\r",Last_Charge_Disharge_Status);
+//			BMS_Debug_COM_Write_Data(Buffer,Length);
+//			Delay_Millis(2);
 
 			if(Start_Charging == 1)
 			{
-				Length = sprintf(Buffer,"C T = %d\r",Charge_Time_Count);
-				BMS_Debug_COM_Write_Data(Buffer,Length);
+//				Length = sprintf(Buffer,"C T = %d\r",Charge_Time_Count);
+//				BMS_Debug_COM_Write_Data(Buffer,Length);
+//				Delay_Millis(2);
+//				BMS_Debug_COM_Write_Data("Charging\r",9);
+				Display_Volt_Current = true;
 				Delay_Millis(2);
-				Start_Charging = 0;
+//				Start_Charging = 0;
 			}
 			else if(Start_Charging == 2)
 			{
-				Length = sprintf(Buffer,"DC T = %d\r",Discharge_Time_Count);
-				BMS_Debug_COM_Write_Data(Buffer,Length);
+//				Length = sprintf(Buffer,"DC T = %d\r",Discharge_Time_Count);
+//				BMS_Debug_COM_Write_Data(Buffer,Length);
+//				Delay_Millis(2);
+//				Start_Charging = 0;
+//				BMS_Debug_COM_Write_Data("Discharging\r",12);
 				Delay_Millis(2);
-				Start_Charging = 0;
+				Display_Volt_Current = true;
 			}
+
 			/* Debug code to be removed after testing is done;
 			 * If BMS IC is not in sleep mode then only show all the data on USART */
 			if(ISL_Sleep == true)
@@ -435,14 +453,14 @@ int main(void)
 				uint8_t Length = 0;
 				if(Display_Volt_Current == true)
 				{
-					Length = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
-					Length += sprintf(&Buffer[Length],"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
+					Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+					Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
 				}
 				else
 				{
-					Length = sprintf(Buffer,"Pack_Voltage = %0.3fV\r",Get_BMS_Pack_Voltage());
-					Length += sprintf(&Buffer[Length],"Pack_Current = %0.3fmA\r",Get_BMS_Pack_Current());
-					Length += sprintf(&Buffer[Length],"Pack_Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+					Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+					Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
+					Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 					Length += sprintf(&Buffer[Length], "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
 					Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f%c\r", Get_BMS_Capacity_Remaining(),'%');
 					Length += sprintf(&Buffer[Length], "Cell1_V = %0.3fV\r",Get_Cell1_Voltage());
@@ -452,7 +470,7 @@ int main(void)
 					Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
 					Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
 				}
-				BMS_Debug_COM_Write_Data(Buffer, Length);
+//				BMS_Debug_COM_Write_Data(Buffer, Length);
 			}
 			/* Debug code to be removed after testing the RTC working as per the date set by AP */
 //			Delay_Millis(5);
