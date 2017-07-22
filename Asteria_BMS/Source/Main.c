@@ -38,7 +38,8 @@ uint32_t Discharge_Time_Count = 0;
 bool Update_Pack_Cycles = false;
 
 /* Debug code variables definition; to be removed after testing */
-char Buffer[400],Length = 0;
+char Buffer[400];
+uint8_t Length = 0;
 uint8_t RecData = 0;
 uint8_t Start_Charging = -1;
 
@@ -53,6 +54,7 @@ uint16_t Timer_Value = 0;
 /* Debug variable to be removed after testing */
 bool ISL_Sleep = false;
 bool Display_Volt_Current = false;
+bool Data_Written = false;
 
 int main(void)
 {
@@ -189,7 +191,7 @@ int main(void)
 			/* Debug code to set the last charge/discharge status to charging to see whether discharge
 			 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
 			 * only if last state was charging */
-//			NVIC_SystemReset();
+			NVIC_SystemReset();
 		}
 		else if (RecData == 'B')
 		{
@@ -293,7 +295,7 @@ int main(void)
 					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
 					/* Configures the external trigger events which will wake up the MCU and then goes to
 					 * sleep mode */
-					MCU_Enter_Sleep_Mode();
+//					MCU_Enter_Sleep_Mode();
 				}
 			}
 			/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get
@@ -345,10 +347,10 @@ int main(void)
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = CHARGING;
 						BMS_Update_Pack_Cycles();
-						char Charge[10];
+//						char Charge[10];
 //						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
 //						BMS_Debug_COM_Write_Data(Charge,Len);
-						Delay_Millis(5);
+//						Delay_Millis(5);
 					}
 				}
 				/* If status of the BMS is discharging then keep continuous track of it */
@@ -377,10 +379,10 @@ int main(void)
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = DISCHARGING;
 						BMS_Update_Pack_Cycles();
-						char Charge[10];
+//						char Charge[10];
 //						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
 //						BMS_Debug_COM_Write_Data(Charge,Len);
-						Delay_Millis(5);
+//						Delay_Millis(5);
 
 					}
 				}
@@ -398,10 +400,21 @@ int main(void)
 
 			if (Log_All_Data() != RESULT_OK)
 			{
-				//BMS_Log_Init();
+				BMS_Debug_COM_Write_Data("Write error\r",12);
 			}
 			else
-				BMS_Status_LED_Toggle();
+			{
+				Data_Written = true;
+			}
+
+			if(BMS_Check_COM_Health() != HEALTH_OK)
+			{
+				BMS_ASIC_Init();
+				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
+				Delay_Millis(3);
+			}
+//			BMS_Status_LED_Toggle();
+
 			_30Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
@@ -409,6 +422,14 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
+			if(Data_Written == true)
+			{
+				Data_Written = false;
+//				BMS_Debug_COM_Write_Data("Written\r",8);
+//				Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+//				Length += sprintf(&Buffer[Length], "Cell1_V = %0.3fV\r",Get_Cell1_Voltage());
+//				BMS_Debug_COM_Write_Data(Buffer, Length);
+			}
 			/* Debug code to be removed after testing is done;
 			 * If BMS IC is in sleep mode then throw "Sleep Mode" string on USART otherwise throw
 			 * "Non Sleep Mode" string on USART */
@@ -432,7 +453,7 @@ int main(void)
 //				Delay_Millis(2);
 //				BMS_Debug_COM_Write_Data("Charging\r",9);
 				Display_Volt_Current = true;
-				Delay_Millis(2);
+//				Delay_Millis(2);
 //				Start_Charging = 0;
 			}
 			else if(Start_Charging == 2)
@@ -442,7 +463,7 @@ int main(void)
 //				Delay_Millis(2);
 //				Start_Charging = 0;
 //				BMS_Debug_COM_Write_Data("Discharging\r",12);
-				Delay_Millis(2);
+//				Delay_Millis(2);
 				Display_Volt_Current = true;
 			}
 

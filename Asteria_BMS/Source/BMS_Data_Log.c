@@ -140,15 +140,15 @@ uint8_t Create_Log_Summary_File()
 	*String_Index = 0;
 	*Index_Counter= 0;
 
-	uint8_t Buffer[10],Len;
-	Len = sprintf(Buffer,"%d\n",SD_Summary_Data.Power_Up_Number);
+	char Buffer[10],Len;
+	Len = sprintf(Buffer,"%d\r",SD_Summary_Data.Power_Up_Number);
 	BMS_Debug_COM_Write_Data(Buffer,Len);
 	return RESULT_OK;
 }
 
 /*
  * Function to retrieve the different counts from log_summary_file
- * */
+ */
 uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable)
 {
 	char Rx_Data[MAX_DIGITS_IN_COUNT];

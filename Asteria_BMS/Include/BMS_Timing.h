@@ -10,7 +10,7 @@
 
 #include "TIMER_API.h"
 
-#define _33ms_PERIOD 							33
+#define _33ms_PERIOD 							40
 #define _1_SECONDS								(1000/_33ms_PERIOD)
 #define _2_SECONDS								(2*_1_SECONDS)
 #define _3_SECONDS								(3*_1_SECONDS)

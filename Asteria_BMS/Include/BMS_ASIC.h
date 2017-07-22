@@ -131,6 +131,12 @@ enum Current_Gain_Values
 	CURRENT_GAIN_5X = 0, CURRENT_GAIN_50X,CURRENT_GAIN_500X
 };
 
+/* BMS Health status enumerations */
+enum Health_Status
+{
+	HEALTH_NOT_OK = 0, HEALTH_OK
+};
+
 /* Structure holding all the flags which are queried from BMS IC and same will be updated to use in code
  * after reading them from registers */
 typedef struct
@@ -235,6 +241,8 @@ void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
 
 float Constrain(float Variable, float Lower_Limit, float Upper_Limit);
+
+uint8_t BMS_Check_COM_Health();
 
 uint8_t Get_BMS_Charge_Discharge_Status(void);
 uint8_t Get_BMS_Sleep_Mode_Status();

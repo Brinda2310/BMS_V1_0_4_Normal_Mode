@@ -25,6 +25,7 @@ uint32_t Error_Check_Data = 0;
 ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
+static bool BMS_Com_Restart = false;
 
 /* Function initializes the I2C communication between MCU and BMS IC */
 void BMS_ASIC_Init()
@@ -33,11 +34,23 @@ void BMS_ASIC_Init()
 	I2C_Error_Flag.I2C_Init_Flag = I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
 	while((I2C_Error_Flag.I2C_Init_Flag != RESULT_OK) && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;
 	}
 	if(Max_Tries < 1)
 	{
 		BMS_Debug_COM_Write_Data("Power restart is needed\r",24);
+	}
+}
+
+uint8_t BMS_Check_COM_Health()
+{
+	if(BMS_Com_Restart == true)
+	{
+		return HEALTH_NOT_OK;
+	}
+	else
+	{
+		return HEALTH_OK;
 	}
 }
 
@@ -180,7 +193,7 @@ void BMS_Force_Sleep()
 	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 	while(I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 
@@ -231,7 +244,7 @@ uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
 	}
 	while(I2C_Error_Flag.I2C_Set_Current_Gain_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 	return Result;
 }
@@ -269,7 +282,7 @@ void BMS_Read_RAM_Status_Register()
 
 	while(I2C_Error_Flag.I2C_Read_Status_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 
@@ -289,7 +302,7 @@ void BMS_Read_Cell_Voltages()
 
 	while(I2C_Error_Flag.I2C_Read_Cells_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 
@@ -391,7 +404,7 @@ void BMS_Read_Pack_Voltage()
 
 	while(I2C_Error_Flag.I2C_Read_Pack_Volt_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 
@@ -410,7 +423,7 @@ void BMS_Read_Pack_Current()
 
 	while(I2C_Error_Flag.I2C_Read_Pack_Current_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 
@@ -432,7 +445,7 @@ void BMS_Read_Pack_Temperature()
 
 	while(I2C_Error_Flag.I2C_Read_Pack_Temp_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_ASIC_Init();
+		BMS_Com_Restart = true;;
 	}
 }
 

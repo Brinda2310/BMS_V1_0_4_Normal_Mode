@@ -22,6 +22,8 @@
     uint8_t SMBUS_RxData[20];
     static uint8_t Bytes_Count = 1;
     uint16_t SMBUS_Req_Time_Count = 0;
+    uint8_t Request_Count = 0;
+    bool BMS_Send_Data = false;
 #endif
 #endif
 
@@ -170,6 +172,7 @@ uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequenc
 			if(HAL_I2CEx_ConfigAnalogFilter(&I2CHandle[I2C3_HANDLE_INDEX],I2C_ANALOGFILTER_ENABLE) != HAL_OK)
 				Result = RESULT_ERROR;
 		#elif I2C3_MODE == SMBUS_MODE && defined(USE_I2C3)
+			HAL_SMBUS_DeInit(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 			SMBUS_Own_Address = I2C_Own_Address;
 
 			SMBus_Handle[I2C3_HANDLE_INDEX].Instance		 	  = I2C3;
@@ -370,11 +373,13 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
+			Request_Count++;
 		}
 		/* Write request */
 		else
 		{
 			SMBUS_Write_Request = true;
+			BMS_Send_Data = true;
 		}
 	}
 }
@@ -392,6 +397,25 @@ void SMBUS_Enable_Listen_Mode(uint8_t I2C_Num)
 		case I2C_3:
 		#if I2C3_MODE == SMBUS_MODE && defined(USE_I2C3)
 			HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
+		#endif
+			break;
+		default:
+			break;
+	}
+}
+
+void SMBUS_Disable_Listen_Mode(uint8_t I2C_Num)
+{
+	switch (I2C_Num)
+	{
+		case I2C_1:
+		#if I2C1_MODE == SMBUS_MODE && defined(USE_I2C1)
+			HAL_SMBUS_DisableListen_IT(&SMBus_Handle[I2C1_HANDLE_INDEX]);
+		#endif
+			break;
+		case I2C_3:
+		#if I2C3_MODE == SMBUS_MODE && defined(USE_I2C3)
+			HAL_SMBUS_DisableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 		#endif
 			break;
 		default:
@@ -424,7 +448,7 @@ uint8_t SMBUS_Request_Check(uint8_t *RxBuffer)
 		Result = SMBUS_REQ_SUCCESSFUL;
 	}
 
-	if(SMBUS_Req_Time_Count > 100)
+	if(SMBUS_Req_Time_Count > 40)
 	{
 		SMBUS_Req_Time_Count = 0;
 		Result = SMBUS_REQ_TIMEOUT;
@@ -440,8 +464,8 @@ void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
 	 * device (in our case its AP, write mode) */
 	if(SMBUS_Write_Request == true)
 	{
-		SMBUS_Write_Request = false;
 		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+		SMBUS_Write_Request = false;
 		//Delay_Millis(1);
 	}
 #endif

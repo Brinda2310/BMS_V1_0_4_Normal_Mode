@@ -16,12 +16,14 @@
 #define MAX_TIMEOUT				10000
 #define STM32L4_ADDRESS			0x52
 #define BMS_PACK_VOLTAGE_REG	0x01
-#define TIMER_VALUE				5000
+#define TIMER_VALUE				60000
 #define AIRSPEED_ADDRESS		0x50
 
 uint8_t TxData[16];
-uint8_t Date_Info[17] = "0601072017,171105";
+uint8_t Date_Info[17] = "0514072017,224505";
 char Addrs = 0x0A;
+bool I2C_problem = false;
+
 void SMBus_Init();
 void Board_LED_Init();
 void Board_LED_Toggle();
@@ -36,7 +38,7 @@ USART_InitTypeDef USART_InitStructure;
 USART_TypeDef DATA;
 uint8_t RecData = 0,RecData1;
 uint64_t Count = 0;
-bool _50HZ_Flag = false;
+bool _50HZ_Flag = false,_10Hz_Flag = false;
 uint8_t Addr = 255;
 uint8_t Length = 0;
 uint8_t ReadData[24];
@@ -44,15 +46,75 @@ uint8_t Array[14] = {'A','B','C','D','E','F','G','H','I','J','K','L'};
 uint8_t Address[13] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x0A,0x0B};
 bool Read_Request = false;
 bool Start = false;
+bool Send_Date = false;
+uint32_t Current_Value = 0, Prev_Value = 0;
+
+volatile uint32_t time_from_boot_msb = 0;
+uint32_t time_from_boot_buff = 0;
+uint32_t millis_now = 0,millis_old = 0;
+bool Stop_Time_Send = false;
+int Counter = 0;
 
 void TIM3_IRQHandler(void)
 {
     if ( TIM_GetITStatus(TIM3,TIM_IT_Update) != RESET )
 	{
 		TIM_ClearITPendingBit(TIM3,TIM_FLAG_Update);
+		time_from_boot_msb++;
+	}
+}
+
+uint32_t get_time_from_boot()
+{
+	int time_count = (TIM_GetCounter(TIM3)/10);
+	time_from_boot_buff = (uint32_t)((time_from_boot_msb*6000) + time_count);
+	return time_from_boot_buff;
+}
+
+void Check_Timer()
+{
+	millis_now = get_time_from_boot();
+
+	if ((millis_now - millis_old) >= 20) //time granularity at 10ms
+	{
+		millis_old = millis_now; //store reference time
 		_50HZ_Flag = true;
 	}
 }
+
+void USART3_IRQHandler(void)
+{
+	if ((USART3->SR & USART_FLAG_RXNE) != (u16) RESET)
+	{
+		RecData = (u8) USART_ReceiveData(USART3);
+
+		if(RecData == 'M')
+		{
+			NVIC_SystemReset();
+			RecData = 0;
+		}
+
+		if(RecData == 'S')
+		{
+			Start = true;
+			Stop_Time_Send = false;
+		}
+		else if (RecData == 'V')
+		{
+			Start = false;
+			Stop_Time_Send = true;
+		}
+//		else if (RecData1 == 'S')
+//		{
+//			Start = true;
+//		}
+//		else if (RecData1 == 'C')
+//		{
+//			SMBus_Init();
+//		}
+	}
+}
+
 int main(void)
 {
 	uint8_t i = 0;
@@ -67,15 +129,47 @@ int main(void)
 	USART_Transmit_Data("Booted",6);
 	while (1)
 	{
+		Check_Timer();
+
 		if(_50HZ_Flag == true)
 		{
+			_50HZ_Flag = false;
+			Counter++;
+
+			if((Counter % 5) == 0)
+			{
+				_10Hz_Flag = true;
+			}
+
+		}
+		if(_10Hz_Flag == true)
+		{
+//			Current_Value = get_time_from_boot();
+//			if(Prev_Value != Current_Value && Stop_Time_Send == false)
+//			{
+				Prev_Value = Current_Value;
+//				uint8_t Len = sprintf(Buffer, "%d\r", (int) Current_Value);
+//				USART_Transmit_Data(Buffer, Len);
+//			}
+
 			if(Start == true)
 			{
-				if(i > 11)
+				Count++;
+				if(Count >= 5 && I2C_problem == true)
 				{
-					i = 0;
+					I2C_problem = false;
 				}
+//				Start = false;
+				i = 0;
+				while(i <= 7 && I2C_problem == false)
+				{
+//				if(i > 7)
+//				{
+//
+//				}
+
 				RecData = Array[i++];
+//				RecData = 'A';
 				USART_Transmit_Data(&RecData,1);
 				switch (RecData)
 				{
@@ -146,14 +240,31 @@ int main(void)
 				if(Read_Request == true && Data_Send == true)
 				{
 					SMBus_Write_Data(Slave_Address,&Sent_data[0],1);
-					SMBus_Read_Data((uint8_t) STM32L4_ADDRESS, ReadData, 4);
-					uint8_t temp = Sent_data[0];
-					uint8_t Length = sprintf(Buffer, "Cell[%d] = %fV\r",temp, *(float*) &ReadData);
+					int temp1 = get_time_from_boot();
+
+					while((get_time_from_boot() - temp1) > 4)
+					{
+
+					}
+					SMBus_Read_Data((uint8_t) (STM32L4_ADDRESS | 0x01), ReadData, 4);
+					uint8_t temp = Sent_data[0],Length = 0;
+					if(temp == 7)
+					{
+						Length = sprintf(Buffer, "Curr = %fmAH\r", *(float*) &ReadData);
+
+					}
+					else if(temp == 8)
+					{
+						Length = sprintf(Buffer, "Volt = %fV\r", *(float*) &ReadData);
+					}
+					else
+						Length = sprintf(Buffer, "%fV\r", *(float*) &ReadData);
 					USART_Transmit_Data(Buffer, Length);
 				}
 				else if (Read_Request == false && Data_Send == true)
 				{
 					SMBus_Write_Data(Slave_Address,&Sent_data[0],1);
+					for(int i = 0 ; i < 12000 ; i++);
 					SMBus_Read_Data((uint8_t)STM32L4_ADDRESS, &ReadData[0],1);
 					if(ReadData[0] == 0xFF)
 					{
@@ -170,11 +281,12 @@ int main(void)
 					}
 				}
 			}
+			}
 			RecData = 0;
 			Board_LED_Toggle();
-			_50HZ_Flag = false;
-		//	memset(ReadData,0,sizeof(ReadData));
-		//	memset(Buffer,0,sizeof(Buffer));
+			_10Hz_Flag = false;
+			memset(ReadData,0,sizeof(ReadData));
+			memset(Buffer,0,sizeof(Buffer));
 		}
 //		Count++;
 //		if((Count%2) == 0)
@@ -253,6 +365,7 @@ uint8_t SMBus_Write_Data(uint8_t Device_Address,uint8_t *TxBuffer,uint8_t Size)
 	{
 		USART_Transmit_Data("Restart1\r",9);
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
+		I2C_problem = true;
 		SMBus_Init();
 		return 0;
 	}
@@ -266,6 +379,7 @@ uint8_t SMBus_Write_Data(uint8_t Device_Address,uint8_t *TxBuffer,uint8_t Size)
 	{
 		USART_Transmit_Data("Restart2\r",9);
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
+		I2C_problem = true;
 //		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 		SMBus_Init();
 		return 0;
@@ -278,16 +392,18 @@ uint8_t SMBus_Write_Data(uint8_t Device_Address,uint8_t *TxBuffer,uint8_t Size)
 		while ((!I2C_CheckEvent(SMBUS_PORT, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) && --Timeout > 0);
 		if(Timeout < 1)
 		{
-			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
-			USART_Transmit_Data("Restart3\r",9);
 //			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
+//			USART_Transmit_Data("R3\r",3);
+////			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 			SMBus_Init();
+			I2C_problem = true;
 			return 0;
 		}
 	}
 
 	I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 
+	I2C_problem = false;
 	return 1;
 }
 
@@ -304,6 +420,7 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 	{
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 		SMBus_Init();
+		I2C_problem = true;
 	}
 //
 	I2C_GenerateSTART(SMBUS_PORT, ENABLE);
@@ -326,6 +443,7 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 		USART_Transmit_Data("Restart5\r",9);
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 		SMBus_Init();
+		I2C_problem = true;
 		return 0;
 	}
 
@@ -351,6 +469,7 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 			USART_Transmit_Data("Restart7\r",9);
 			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 			SMBus_Init();
+			I2C_problem = true;
 			return 0;
 		}
 
@@ -361,6 +480,7 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 
 	I2C_AcknowledgeConfig(SMBUS_PORT,ENABLE);
 
+	I2C_problem = false;
 //    PEC_Byte = I2C_ReceiveData(SMBUS_PORT);
 
 //    expected_pec = SMBus_CRC8(((uint32_t)ReadAddr << 16) | ((uint32_t)buff[0] << 8) | buff[1]);
@@ -413,28 +533,6 @@ void USART_COM_Init()
 	USART_Init(USART3, &USART_InitStructure);
 	USART_Cmd(USART3, ENABLE);
 	USART_ITConfig(USART3,USART_IT_RXNE,ENABLE);
-}
-
-void USART3_IRQHandler(void)
-{
-	if ((USART3->SR & USART_FLAG_RXNE) != (u16) RESET)
-	{
-		RecData = (u8) USART_ReceiveData(USART3);
-		Start = true;
-		if(RecData == 'M')
-		{
-			NVIC_SystemReset();
-			RecData = 0;
-		}
-//		else if (RecData1 == 'S')
-//		{
-//			Start = true;
-//		}
-//		else if (RecData1 == 'C')
-//		{
-//			SMBus_Init();
-//		}
-	}
 }
 
 void Timer_Init()
