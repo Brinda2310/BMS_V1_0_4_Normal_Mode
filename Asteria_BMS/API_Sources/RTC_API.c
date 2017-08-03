@@ -191,9 +191,9 @@ void RTC_Alarm_IRQHandler(void)
 {
   HAL_RTC_AlarmIRQHandler(&RtcHandle);
   /* User can write his own functionality when alarm is fired*/
-
 }
-void RTC_TimeShow(uint8_t* showtime)
+
+uint8_t RTC_TimeShow(uint8_t* showtime)
 {
   uint8_t Length = 0;
   RTC_DateTypeDef sdatestructureget;
@@ -205,5 +205,7 @@ void RTC_TimeShow(uint8_t* showtime)
   HAL_RTC_GetDate(&RtcHandle, &sdatestructureget, RTC_FORMAT_BIN);
   /* Display time Format : hh:mm:ss */
   Length += sprintf((char*)showtime,"%02d/%02d/%02d\r",sdatestructureget.Date, sdatestructureget.Month, sdatestructureget.Year);
-  sprintf((char*)&showtime[Length],"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+  Length += sprintf((char*)&showtime[Length],"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+
+  return Length;
 }

@@ -41,20 +41,11 @@ bool Update_Pack_Cycles = false;
 char Buffer[400];
 uint8_t Length = 0;
 uint8_t RecData = 0;
-uint8_t Start_Charging = -1;
-
-/* Debug code to be removed after testing the RTC working */
-uint8_t RTC_Time[20];
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
  * otherwise check load presence for 1 minute(normal operation) */
 uint16_t Timer_Value = 0;
-
-/* Debug variable to be removed after testing */
-bool ISL_Sleep = false;
-bool Display_Volt_Current = false;
-bool Data_Written = false;
 
 int main(void)
 {
@@ -100,30 +91,16 @@ int main(void)
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	if(BMS_Log_Init() == RESULT_OK)
 	{
-//		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
+		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
 	}
 	else
 	{
-//		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
+		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
 	}
 
 	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
 	 * next values */
 	BMS_Estimate_Initial_Capacity();
-
-	/* Initial state of charging/discharging required to calculate the pack cycles(C/D) used */
-	if(Get_BMS_Charge_Discharge_Status() == CHARGING)
-	{
-		Last_Charge_Disharge_Status = CHARGING;
-	}
-	else
-	{
-		Last_Charge_Disharge_Status = DISCHARGING;
-	}
-
-	/* Debug code just to see the correct value of battery capacity remaining which can be seen on USART */
-//	Length = sprintf(Buffer,"Batt Remaining %f",Get_BMS_Capacity_Remaining());
-//	BMS_Debug_COM_Write_Data(Buffer, Length);
 
 	/* Every time when MCU restarts, set the load check timer value to 1 minute; If MCU is awaken from sleep
 	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
@@ -166,21 +143,8 @@ int main(void)
 			 * next values */
 			BMS_Estimate_Initial_Capacity();
 
-			/* Initial state of charging/discharging required to calculate the pack cycles used */
-			if(Get_BMS_Charge_Discharge_Status() == CHARGING)
-			{
-				Last_Charge_Disharge_Status = CHARGING;
-			}
-			else
-			{
-				Last_Charge_Disharge_Status = DISCHARGING;
-			}
 			/* This flag must be cleared to avoid reinitializing all the peripherals again and again */
 			Wakeup_From_Sleep = false;
-			ISL_Sleep = false;
-
-			/* Debug code; To be removed after testing */
-			BMS_Debug_COM_Write_Data("Wake up from sleep\r",19);
 		}
 
 		/* Debug code to be removed after testing */
@@ -195,16 +159,7 @@ int main(void)
 		}
 		else if (RecData == 'B')
 		{
-			AP_COM_DeInit();
 			AP_COM_Init(AP_COM_SMBUS_MODE);
-		}
-		else if(RecData == 'C')
-		{
-			Last_Charge_Disharge_Status = CHARGING;
-		}
-		else if (RecData == 'D')
-		{
-			Last_Charge_Disharge_Status = DISCHARGING;
 		}
 		else if (RecData == 'E')
 		{
@@ -253,68 +208,63 @@ int main(void)
 
 			/* If current consumption is less than 200mA and BMS IC is not in sleep mode then start
 			 * counting the timer value */
-		if(Sleep_Mode_Funtionality == ENABLE)
-		{
-			if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+			if(Sleep_Mode_Funtionality == ENABLE)
 			{
-				BMS_Sleep_Time_Count++;
-
-				/* If MCU is awaken by external switch or load then check the load only for 10 seconds.
-				 * If load is not present for continuous 10 seconds then force BMS IC again to sleep mode
-				 * and if load is present then check the presence of load for continuous 1 minute */
-				if(BMS_Sleep_Time_Count >= Timer_Value)
+				if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
 				{
-					BMS_Sleep_Time_Count = 0;
-					/* Set the corresponding flag in BMS IC to force it to sleep mode */
-					BMS_Force_Sleep();
-				}
-			}
-			/* If some load is present then always clear the timer counts to zero */
-			else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
-			{
-			   /* If BMS consumes more than 200mA in between then reset the time count to zero */
-				BMS_Sleep_Time_Count = 0;
-				/* Debug flag to be removed after testing is completed */
-				ISL_Sleep = false;
-				/* If load is present then change the timer check value for sleep to 1 minute */
-				Timer_Value = LOW_CONSUMPTION_DELAY;
-			}
+					BMS_Sleep_Time_Count++;
 
-			/* If BMS IC is forced to sleep mode then start counting the timer value; If BMS IC goes to
-			 * sleep mode immediately after wake up then MCU will go to sleep after 5 seconds */
-			if(Status_Flag.BMS_In_Sleep == YES)
-			{
-				ISL_Sleep = true;
-				MCU_Sleep_Time_Count++;
-				/* When BMS IC goes to sleep then MCU also goes to sleep mode after 5 Seconds */
-				if(MCU_Sleep_Time_Count >= MCU_GO_TO_SLEEP_DELAY)
+					/* If MCU is awaken by external switch or load then check the load only for 10 seconds.
+					 * If load is not present for continuous 10 seconds then force BMS IC again to sleep mode
+					 * and if load is present then check the presence of load for continuous 1 minute */
+					if(BMS_Sleep_Time_Count >= Timer_Value)
+					{
+						BMS_Sleep_Time_Count = 0;
+						/* Set the corresponding flag in BMS IC to force it to sleep mode */
+						BMS_Force_Sleep();
+					}
+				}
+				/* If some load is present then always clear the timer counts to zero */
+				else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
+				{
+				   /* If BMS consumes more than 200mA in between then reset the time count to zero */
+					BMS_Sleep_Time_Count = 0;
+					/* If load is present then change the timer check value for sleep to 1 minute */
+					Timer_Value = LOW_CONSUMPTION_DELAY;
+				}
+
+				/* If BMS IC is forced to sleep mode then start counting the timer value; If BMS IC goes to
+				 * sleep mode immediately after wake up then MCU will go to sleep after 5 seconds */
+				if(Status_Flag.BMS_In_Sleep == YES)
+				{
+					MCU_Sleep_Time_Count++;
+					/* When BMS IC goes to sleep then MCU also goes to sleep mode after 5 Seconds */
+					if(MCU_Sleep_Time_Count >= MCU_GO_TO_SLEEP_DELAY)
+					{
+						MCU_Sleep_Time_Count = 0;
+						/* This flag makes sure that controller is wake up from sleep mode only */
+						Sleep_Mode = true;
+						/* Debug code to be removed after testing is completed */
+						BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
+						/* Configures the external trigger events which will wake up the MCU and then goes to
+						 * sleep mode */
+	//					MCU_Enter_Sleep_Mode();
+					}
+				}
+				/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get
+				 * exact timer value for next iterations */
+				else
 				{
 					MCU_Sleep_Time_Count = 0;
-					/* This flag makes sure that controller is wake up from sleep mode only */
-					Sleep_Mode = true;
-					/* Debug code to be removed after testing is completed */
-					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
-					/* Configures the external trigger events which will wake up the MCU and then goes to
-					 * sleep mode */
-//					MCU_Enter_Sleep_Mode();
 				}
 			}
-			/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get
-			 * exact timer value for next iterations */
 			else
 			{
+				/* Need to clear the counts as soon as sleep mode is disabled so that from next time onwards
+				 * it will start from zero count and we will get the exact timing counts */
+				BMS_Sleep_Time_Count = 0;
 				MCU_Sleep_Time_Count = 0;
-				/* Debug flag to be removed after testing */
-				ISL_Sleep = false;
 			}
-		}
-		else
-		{
-			/* Need to clear the counts as soon as sleep mode is disabled so that from next time onwards
-			 * it will start from zero count and we will get the exact timing counts */
-			BMS_Sleep_Time_Count = 0;
-			MCU_Sleep_Time_Count = 0;
-		}
 
 			/* Once MCU wakes up, it starts the execution from where it had left off thats why it is necessary
 			 * to check whether MCU started from sleep mode or executing it normal way */
@@ -343,15 +293,10 @@ int main(void)
 					 * keep track of last state of the pack i.e. charging/discharging  */
 					if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status != CHARGING)
 					{
-						Start_Charging = 1;
 						BMS_Data.Pack_Charge_Cycles++;
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = CHARGING;
 						BMS_Update_Pack_Cycles();
-//						char Charge[10];
-//						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
-//						BMS_Debug_COM_Write_Data(Charge,Len);
-//						Delay_Millis(5);
 					}
 				}
 				/* If status of the BMS is discharging then keep continuous track of it */
@@ -375,16 +320,10 @@ int main(void)
 					 * not discharging */
 					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status != DISCHARGING)
 					{
-						Start_Charging = 2;
 						BMS_Data.Pack_Discharge_Cycles++;
 						Update_Pack_Cycles = true;
 						Last_Charge_Disharge_Status = DISCHARGING;
 						BMS_Update_Pack_Cycles();
-//						char Charge[10];
-//						uint8_t Len = sprintf(Charge,"C cycles = %d\r",(int)BMS_Data.Pack_Total_Cycles);
-//						BMS_Debug_COM_Write_Data(Charge,Len);
-//						Delay_Millis(5);
-
 					}
 				}
 				else
@@ -394,18 +333,12 @@ int main(void)
 					Charge_Time_Count = 0;
 					Discharge_Time_Count = 0;
 					Update_Pack_Cycles = false;
-					Start_Charging = 0;
-					Display_Volt_Current = false;
 				}
 			}
 
 			if (Log_All_Data() != RESULT_OK)
 			{
 				BMS_Debug_COM_Write_Data("Write error\r",12);
-			}
-			else
-			{
-				Data_Written = true;
 			}
 
 			if(BMS_Check_COM_Health() != HEALTH_OK)
@@ -423,84 +356,16 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
-			if(Data_Written == true)
-			{
-				Data_Written = false;
-//				BMS_Debug_COM_Write_Data("Written\r",8);
-//				Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-//				Length += sprintf(&Buffer[Length], "Cell1_V = %0.3fV\r",Get_Cell1_Voltage());
-//				BMS_Debug_COM_Write_Data(Buffer, Length);
-			}
-			/* Debug code to be removed after testing is done;
-			 * If BMS IC is in sleep mode then throw "Sleep Mode" string on USART otherwise throw
-			 * "Non Sleep Mode" string on USART */
-//			if(Get_BMS_Sleep_Mode_Status() == SLEEP_MODE)
-//			{
-//				BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
-//			}
-//			else if (Get_BMS_Sleep_Mode_Status() == NON_SLEEP_MODE)
-//			{
-//				BMS_Debug_COM_Write_Data("Non Sleep Mode\r",15);
-//			}
+			uint8_t Length = 0;
+			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r\r",Get_BMS_Pack_Current());
+//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+//			Buffer[Length++] = '\r';
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 
-//			Length = sprintf(Buffer,"State = %d\r",Last_Charge_Disharge_Status);
-//			BMS_Debug_COM_Write_Data(Buffer,Length);
-//			Delay_Millis(2);
-
-			if(Start_Charging == 1)
-			{
-//				Length = sprintf(Buffer,"C T = %d\r",Charge_Time_Count);
-//				BMS_Debug_COM_Write_Data(Buffer,Length);
-//				Delay_Millis(2);
-//				BMS_Debug_COM_Write_Data("Charging\r",9);
-				Display_Volt_Current = true;
-//				Delay_Millis(2);
-//				Start_Charging = 0;
-			}
-			else if(Start_Charging == 2)
-			{
-//				Length = sprintf(Buffer,"DC T = %d\r",Discharge_Time_Count);
-//				BMS_Debug_COM_Write_Data(Buffer,Length);
-//				Delay_Millis(2);
-//				Start_Charging = 0;
-//				BMS_Debug_COM_Write_Data("Discharging\r",12);
-//				Delay_Millis(2);
-				Display_Volt_Current = true;
-			}
-
-			/* Debug code to be removed after testing is done;
-			 * If BMS IC is not in sleep mode then only show all the data on USART */
-			if(ISL_Sleep == true)
-			{
-				uint8_t Length = 0;
-				if(Display_Volt_Current == true)
-				{
-					Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-					Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
-				}
-				else
-				{
-					Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-					Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
-					Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
-					Length += sprintf(&Buffer[Length], "Batt used = %0.3fmAH\r", Get_BMS_Capacity_Used());
-					Length += sprintf(&Buffer[Length], "Batt remaining = %0.3f%c\r", Get_BMS_Capacity_Remaining(),'%');
-					Length += sprintf(&Buffer[Length], "Cell1_V = %0.3fV\r",Get_Cell1_Voltage());
-					Length += sprintf(&Buffer[Length], "Cell2_V = %0.3fV\r",Get_Cell2_Voltage());
-					Length += sprintf(&Buffer[Length], "Cell3_V = %0.3fV\r",Get_Cell3_Voltage());
-					Length += sprintf(&Buffer[Length], "Cell6_V = %0.3fV\r",Get_Cell6_Voltage());
-					Length += sprintf(&Buffer[Length], "Cell7_V = %0.3fV\r",Get_Cell7_Voltage());
-					Length += sprintf(&Buffer[Length], "Cell8_V = %0.3fV\r",Get_Cell8_Voltage());
-				}
-//				BMS_Debug_COM_Write_Data(Buffer, Length);
-			}
-			/* Debug code to be removed after testing the RTC working as per the date set by AP */
-//			Delay_Millis(5);
-//			RTC_TimeShow(RTC_Time);
-//			BMS_Debug_COM_Write_Data(RTC_Time,18);
 			_1Hz_Flag = false;
 		}
-
 		/* Check for any request is received from AP; Also check for any data is received from AP which
 		 * may be used to update the BMS RTC and GPS timings */
 		if(Wakeup_From_Sleep == false)

@@ -175,7 +175,7 @@ int main(void)
 			while(i <= 7 && I2C_problem == false && Start == true && once == false)
 			{
 				RecData = Array[i++];
-				USART_Transmit_Data(&RecData,1);
+//				USART_Transmit_Data(&RecData,1);
 				switch (RecData)
 				{
 						case 'A':
@@ -247,28 +247,29 @@ int main(void)
 					{
 						break;
 					}
-					int temp1 = get_time_from_boot();
+//					int temp1 = get_time_from_boot();
 
-					while((get_time_from_boot() - temp1) > 3)
-					{
-					}
+//					while((get_time_from_boot() - temp1) > 3)
+//					{
+//					}
 					if(SMBus_Read_Data((uint8_t) (STM32L4_ADDRESS | 0x01), ReadData, 4) == 0 )
 					{
 						break;
 					}
-//					uint8_t temp = Sent_data[0],Length = 0;
-//					if(temp == 7)
-//					{
-//						Length = sprintf(Buffer, "Curr = %fmAH\r", *(float*) &ReadData);
-//
-//					}
-//					else if(temp == 8)
-//					{
-//						Length = sprintf(Buffer, "Volt = %fV\r", *(float*) &ReadData);
-//					}
+					uint8_t temp = Sent_data[0],Length = 0;
+					if(temp == 8)
+					{
+						Length = sprintf(Buffer, "Volt = %0.2fV\r", *(float*) &ReadData);
+					}
+					else if(temp == 7)
+					{
+						Length = sprintf(Buffer, "Curr = %0.2fmAH\r\r", *(float*) &ReadData);
+					}
 //					else
 //						Length = sprintf(Buffer, "%fV\r", *(float*) &ReadData);
-//					USART_Transmit_Data(Buffer, Length);
+					USART_Transmit_Data(Buffer, Length);
+					memset(Buffer,0,Length);
+					Length = 0;
 				}
 			}
 			i = 0;

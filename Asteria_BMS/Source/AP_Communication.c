@@ -32,6 +32,7 @@ void BMS_Disable_Listen_Mode()
 uint8_t AP_COM_Init(uint8_t Communication_Mode)
 {
 	uint8_t Result = 255;
+	AP_COM_DeInit();
 	Result = I2C_Init(BMS_SMBUS, BMS_SMBUS_OWN_ADDRESS, I2C_100KHZ, I2C_SLAVE);
 	BMS_Enable_Listen_Mode();
 
@@ -140,17 +141,13 @@ void Check_AP_Request()
 			default:
 				break;
 		}
-//		Float_Data[0] = 4.1145;
-		Restart_SMBus = false;
 		SMBUS_Reboot_Count = 0;
 	}
-	else if(Result == SMBUS_REQ_TIMEOUT && SMBUS_Reboot_Count <= 5)
+	else if(Result == SMBUS_REQ_TIMEOUT && SMBUS_Reboot_Count <= 3)
 	{
 		SMBUS_Reboot_Count++;
-		AP_COM_DeInit();
 		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
-			Restart_SMBus = true;
 			/* Keep the track of how many times communication is reseted. It will be used to disable the
 			 * sleep mode function as AP is not able to communicate with BMS */
 			BMS_Debug_COM_Write_Data("I2C reboot\r",11);
