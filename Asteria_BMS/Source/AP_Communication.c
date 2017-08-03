@@ -140,11 +140,11 @@ void Check_AP_Request()
 			default:
 				break;
 		}
-		Float_Data[0] = 4.1145;
+//		Float_Data[0] = 4.1145;
 		Restart_SMBus = false;
 		SMBUS_Reboot_Count = 0;
 	}
-	else if(Result == SMBUS_REQ_TIMEOUT && SMBUS_Reboot_Count >= 5)
+	else if(Result == SMBUS_REQ_TIMEOUT && SMBUS_Reboot_Count <= 5)
 	{
 		SMBUS_Reboot_Count++;
 		AP_COM_DeInit();

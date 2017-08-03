@@ -461,7 +461,7 @@ uint8_t SMBUS_Request_Check(uint8_t *RxBuffer)
 		Result = SMBUS_REQ_SUCCESSFUL;
 	}
 
-	if(SMBUS_Req_Time_Count > 40)
+	if(SMBUS_Req_Time_Count >= 8)
 	{
 		SMBUS_Req_Time_Count = 0;
 		Result = SMBUS_REQ_TIMEOUT;
