@@ -14,6 +14,7 @@ uint8_t Byte_Count = 1;
 uint8_t Reply_Byte = 0xFF;
 uint8_t SMBUS_Reboot_Count = 0;
 uint8_t AP_Status;
+bool Restart_SMBus = false;
 
 uint8_t AP_Request_Data[MAX_AP_DATA_SIZE];
 float Float_Data[6]={0};
@@ -132,13 +133,15 @@ void Check_AP_Request()
 			default:
 				break;
 		}
+		Float_Data[0] = 4.1145;
+		Restart_SMBus = false;
 		SMBUS_Reboot_Count = 0;
 	}
-//	8291791290 = Ashwini Kadam
 	else if(Result == SMBUS_REQ_TIMEOUT)
 	{
 		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
+			Restart_SMBus = true;
 			/* Keep the track of how many times communication is reseted. It will be used to disable the
 			 * sleep mode function as AP is not able to communicate with BMS */
 			BMS_Debug_COM_Write_Data("I2C reboot\r",11);

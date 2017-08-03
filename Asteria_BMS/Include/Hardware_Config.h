@@ -84,7 +84,7 @@
 
 #ifdef USE_TIMER2
 #define TIMER2_INT_MODE									ENABLE
-#define TIMER2_PRIORITY									0
+#define TIMER2_PRIORITY									3
 #define TIMER2_SUBPRIORITY								0
 #endif
 
@@ -105,7 +105,7 @@
 #ifdef USE_USART1
 #define USART1_REMAP									ENABLE
 #define USART1_INT_MODE									ENABLE
-#define USART1_PRIORITY									3
+#define USART1_PRIORITY									2
 #define USART1_SUBPRIORITY								0
 #endif
 
@@ -126,7 +126,7 @@
 #define I2C1_MODE										NORMAL_I2C_MODE
 #define I2C1_REMAP										DISABLE
 #define I2C1_INT_MODE									DISABLE
-#define I2C1_PRIOIRTY									5
+#define I2C1_PRIOIRTY									6
 #define I2C1_SUBPRIOIRTY								0
 #endif
 
@@ -134,7 +134,7 @@
 #define I2C3_MODE										SMBUS_MODE
 #define I2C3_REMAP										DISABLE
 #define I2C3_INT_MODE									ENABLE
-#define I2C3_PRIOIRTY									5
+#define I2C3_PRIOIRTY									0
 #define I2C3_SUBPRIOIRTY								0
 #endif
 

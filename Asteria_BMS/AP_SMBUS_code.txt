@@ -13,7 +13,7 @@
 #define USART3_TX				GPIO_Pin_8
 #define USART3_RX				GPIO_Pin_9
 #define SMBUS_PORT				I2C2
-#define MAX_TIMEOUT				10000
+#define MAX_TIMEOUT				15000
 #define STM32L4_ADDRESS			0x52
 #define BMS_PACK_VOLTAGE_REG	0x01
 #define TIMER_VALUE				60000
@@ -103,6 +103,10 @@ void USART3_IRQHandler(void)
 		{
 			Start = false;
 			Stop_Time_Send = true;
+		}
+		else if(RecData == 'W')
+		{
+			SMBus_Init();
 		}
 //		else if (RecData1 == 'S')
 //		{
@@ -242,9 +246,9 @@ int main(void)
 					SMBus_Write_Data(Slave_Address,&Sent_data[0],1);
 					int temp1 = get_time_from_boot();
 
-					while((get_time_from_boot() - temp1) > 4)
+					while((get_time_from_boot() - temp1) > 5)
 					{
-
+						USART_Transmit_Data("A\r",2);
 					}
 					SMBus_Read_Data((uint8_t) (STM32L4_ADDRESS | 0x01), ReadData, 4);
 					uint8_t temp = Sent_data[0],Length = 0;
@@ -260,25 +264,6 @@ int main(void)
 					else
 						Length = sprintf(Buffer, "%fV\r", *(float*) &ReadData);
 					USART_Transmit_Data(Buffer, Length);
-				}
-				else if (Read_Request == false && Data_Send == true)
-				{
-					SMBus_Write_Data(Slave_Address,&Sent_data[0],1);
-					for(int i = 0 ; i < 12000 ; i++);
-					SMBus_Read_Data((uint8_t)STM32L4_ADDRESS, &ReadData[0],1);
-					if(ReadData[0] == 0xFF)
-					{
-						if(Count == 17)
-						{
-							SMBus_Write_Data(Slave_Address,Date_Info,17);
-//							USART_Transmit_Data(Date_Info, 17);
-						}
-						else if (Count == 2)
-						{
-							SMBus_Write_Data(Slave_Address,TxData,2);
-//							USART_Transmit_Data(TxData, 2);
-						}
-					}
 				}
 			}
 			}
@@ -394,7 +379,7 @@ uint8_t SMBus_Write_Data(uint8_t Device_Address,uint8_t *TxBuffer,uint8_t Size)
 		{
 //			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 //			USART_Transmit_Data("R3\r",3);
-////			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
+			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 			SMBus_Init();
 			I2C_problem = true;
 			return 0;
@@ -420,7 +405,6 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 	{
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 		SMBus_Init();
-		I2C_problem = true;
 	}
 //
 	I2C_GenerateSTART(SMBUS_PORT, ENABLE);
@@ -430,17 +414,18 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 	if(Timeout < 1)
 	{
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
-		USART_Transmit_Data("Restart4\r",9);
+		SMBus_Init();
+		I2C_problem = true;
+		return 0;
 	}
 
-	I2C_AcknowledgeConfig(SMBUS_PORT, ENABLE);
+//	I2C_AcknowledgeConfig(SMBUS_PORT, ENABLE);
 	Timeout = MAX_TIMEOUT;
 	I2C_Send7bitAddress(SMBUS_PORT, Device_Address, I2C_Direction_Receiver);
 	while ((!I2C_CheckEvent(SMBUS_PORT, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)) && --Timeout > 1);
 
 	if(Timeout < 1)
 	{
-		USART_Transmit_Data("Restart5\r",9);
 		I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 		SMBus_Init();
 		I2C_problem = true;
@@ -466,7 +451,6 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 		while ((!I2C_CheckEvent(SMBUS_PORT, I2C_EVENT_MASTER_BYTE_RECEIVED)) && --Timeout > 1);
 		if(Timeout < 1)
 		{
-			USART_Transmit_Data("Restart7\r",9);
 			I2C_GenerateSTOP(SMBUS_PORT, ENABLE);
 			SMBus_Init();
 			I2C_problem = true;
@@ -474,11 +458,9 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 		}
 
 		RxBuffer[Index] = I2C_ReceiveData(SMBUS_PORT);
-		Timeout = MAX_TIMEOUT;
-
 	}
 
-	I2C_AcknowledgeConfig(SMBUS_PORT,ENABLE);
+//	I2C_AcknowledgeConfig(SMBUS_PORT,ENABLE);
 
 	I2C_problem = false;
 //    PEC_Byte = I2C_ReceiveData(SMBUS_PORT);

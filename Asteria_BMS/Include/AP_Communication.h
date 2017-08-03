@@ -65,6 +65,7 @@ enum Flight_Status
 /* Variable to decide whether sleep functionality in the code to be used or not;Decision is based
  * on data received from AP i.e. Flight_Status_Packet */
 extern bool Sleep_Mode_Funtionality;
+extern bool Restart_SMBus;
 
 /* Function prototypes defined in the .c file */
 uint8_t AP_COM_Init(uint8_t Communication_Mode);

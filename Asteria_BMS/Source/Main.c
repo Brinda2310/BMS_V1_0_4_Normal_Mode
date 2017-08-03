@@ -497,16 +497,23 @@ int main(void)
 //			Delay_Millis(5);
 //			RTC_TimeShow(RTC_Time);
 //			BMS_Debug_COM_Write_Data(RTC_Time,18);
+			if(Restart_SMBus == true)
+			{
+				Restart_SMBus = false;
+			}
 
+			BMS_Status_LED_Toggle();
 			_1Hz_Flag = false;
 		}
 
 		/* Check for any request is received from AP; Also check for any data is received from AP which
 		 * may be used to update the BMS RTC and GPS timings */
-		if(Wakeup_From_Sleep == false)
+		if(Wakeup_From_Sleep == false && Restart_SMBus == false)
 		{
 			Check_AP_Request();
 		}
 	}
 }
 
+
+// Try SMBus deinit functionality before calling Init() function

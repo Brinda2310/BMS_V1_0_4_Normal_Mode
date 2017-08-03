@@ -37,10 +37,6 @@ void TIM2_PeriodElapsedCallback()
 
 	Counter++;
 
-	if((Counter % _1_SECONDS) == 0)
-	{
-		_1Hz_Flag = true;
-	}
 	if (Counter >= _1_SECONDS)
 	{
 		_1Hz_Flag = true;
