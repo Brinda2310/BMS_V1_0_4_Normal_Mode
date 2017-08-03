@@ -195,6 +195,7 @@ int main(void)
 		}
 		else if (RecData == 'B')
 		{
+			AP_COM_DeInit();
 			AP_COM_Init(AP_COM_SMBUS_MODE);
 		}
 		else if(RecData == 'C')
@@ -413,7 +414,7 @@ int main(void)
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
-//			BMS_Status_LED_Toggle();
+			BMS_Status_LED_Toggle();
 
 			_30Hz_Flag = false;
 		}
@@ -497,18 +498,12 @@ int main(void)
 //			Delay_Millis(5);
 //			RTC_TimeShow(RTC_Time);
 //			BMS_Debug_COM_Write_Data(RTC_Time,18);
-			if(Restart_SMBus == true)
-			{
-				Restart_SMBus = false;
-			}
-
-			BMS_Status_LED_Toggle();
 			_1Hz_Flag = false;
 		}
 
 		/* Check for any request is received from AP; Also check for any data is received from AP which
 		 * may be used to update the BMS RTC and GPS timings */
-		if(Wakeup_From_Sleep == false && Restart_SMBus == false)
+		if(Wakeup_From_Sleep == false)
 		{
 			Check_AP_Request();
 		}

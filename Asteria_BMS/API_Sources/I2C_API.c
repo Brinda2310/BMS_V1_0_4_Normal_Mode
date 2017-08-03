@@ -18,11 +18,10 @@
 #if I2C1_MODE == SMBUS_MODE || I2C3_MODE == SMBUS_MODE
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
-	static bool SMBUS_Read_Request = false,SMBUS_Write_Request = false;
+	static bool SMBUS_Read_Request = false;
     uint8_t SMBUS_RxData[20];
     static uint8_t Bytes_Count = 1;
     uint16_t SMBUS_Req_Time_Count = 0;
-    uint8_t Request_Count = 0;
     bool BMS_Send_Data = false;
 #endif
 #endif
@@ -219,24 +218,40 @@ uint8_t I2C_DeInit(uint8_t I2C_Num)
 	{
 		case I2C_1:
 		#if I2C1_MODE == NORMAL_I2C_MODE && defined(USE_I2C1)
-			if(HAL_I2C_DeInit(&I2CHandle[I2C1_HANDLE_INDEX]) != HAL_OK)
-				Result = RESULT_ERROR;
+			HAL_I2C_DeInit(&I2CHandle[I2C1_HANDLE_INDEX]);
+			__HAL_RCC_I2C1_FORCE_RESET();
+			__HAL_RCC_I2C1_RELEASE_RESET();
+			#if I2C1_REMAP == ENABLE
+				HAL_GPIO_DeInit(GPIOB,GPIO_PIN_6);
+				HAL_GPIO_DeInit(GPIOB,GPIO_PIN_7);
+			#else
+				HAL_GPIO_DeInit(GPIOA,GPIO_PIN_9);
+				HAL_GPIO_DeInit(GPIOA,GPIO_PIN_10);
+			#endif
+			#if	I2C1_INT_MODE == ENABLE
+				HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
+			#endif
 		#elif I2C1_MODE == SMBUS_MODE && defined(USE_I2C1)
 			if(HAL_SMBUS_DeInit(&SMBus_Handle[I2C1_HANDLE_INDEX]) != HAL_OK)
 				Result = RESULT_ERROR;
 		#endif
 			break;
 		case I2C_3:
-		#if I2C3_MODE == NORMAL_I2C_MODE && defined(USE_I2C3)
-			if(HAL_I2C_DeInit(&I2CHandle[I2C3_HANDLE_INDEX]) != HAL_OK)
-				Result = RESULT_ERROR;
-		#elif I2C3_MODE == SMBUS_MODE && defined(USE_I2C3)
-			if(HAL_SMBUS_DeInit(&SMBus_Handle[I2C3_HANDLE_INDEX]) != HAL_OK)
-				Result = RESULT_ERROR;
-		#endif
+			#if I2C3_MODE == NORMAL_I2C_MODE && defined(USE_I2C3)
+				HAL_I2C_DeInit(&I2CHandle[I2C3_HANDLE_INDEX]);
+			#elif I2C3_MODE == SMBUS_MODE && defined(USE_I2C3)
+				HAL_SMBUS_DeInit(&SMBus_Handle[I2C3_HANDLE_INDEX]);
+			#endif
+			__HAL_RCC_I2C3_FORCE_RESET();
+			__HAL_RCC_I2C3_RELEASE_RESET();
+
+			HAL_GPIO_DeInit(GPIOB, GPIO_PIN_4);
+			HAL_GPIO_DeInit(GPIOA, GPIO_PIN_7);
+			#if	I2C3_INT_MODE == ENABLE
+				HAL_NVIC_DisableIRQ(I2C3_EV_IRQn);
+			#endif
 			break;
 		default:
-			Result = RESULT_ERROR;
 			break;
 	}
 #endif
@@ -373,12 +388,10 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
-			Request_Count++;
 		}
 		/* Write request */
 		else
 		{
-			SMBUS_Write_Request = true;
 			BMS_Send_Data = true;
 		}
 	}
@@ -460,14 +473,7 @@ uint8_t SMBUS_Request_Check(uint8_t *RxBuffer)
 void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
 {
 #if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
-	/* This flag will be true only when there is any request for sending any data (from BMS) to other
-	 * device (in our case its AP, write mode) */
-	if(SMBUS_Write_Request == true)
-	{
 		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-		SMBUS_Write_Request = false;
-		//Delay_Millis(1);
-	}
 #endif
 }
 

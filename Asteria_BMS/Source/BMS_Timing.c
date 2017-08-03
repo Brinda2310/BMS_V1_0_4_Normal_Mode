@@ -32,7 +32,7 @@ uint64_t Get_System_Time_Millis()
 /* Function callback for 30Hz timer interrupt */
 void TIM2_PeriodElapsedCallback()
 {
-	_30Hz_Flag = true;
+//	_30Hz_Flag = true;
 	_30_Hz_SMBUS_Flag = true;
 
 	Counter++;

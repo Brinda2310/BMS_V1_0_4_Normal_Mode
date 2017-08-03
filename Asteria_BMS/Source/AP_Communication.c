@@ -37,6 +37,13 @@ uint8_t AP_COM_Init(uint8_t Communication_Mode)
 
 	return Result;
 }
+uint8_t AP_COM_DeInit()
+{
+	uint8_t Result = 255;
+	Result = I2C_DeInit(BMS_SMBUS);
+	BMS_Disable_Listen_Mode();
+	return Result;
+}
 /* @brief	: Function to check the request from AP. AP queries the information like all the cell voltages,pack voltage, pack current, individual cell
  * 			  voltages. BMS replies for all the responses in terms of 4 bytes except for GPS data and all cell voltages data
  * @params 	: None
@@ -137,8 +144,10 @@ void Check_AP_Request()
 		Restart_SMBus = false;
 		SMBUS_Reboot_Count = 0;
 	}
-	else if(Result == SMBUS_REQ_TIMEOUT)
+	else if(Result == SMBUS_REQ_TIMEOUT && SMBUS_Reboot_Count >= 5)
 	{
+		SMBUS_Reboot_Count++;
+		AP_COM_DeInit();
 		if(AP_COM_Init(AP_COM_SMBUS_MODE) == RESULT_OK)
 		{
 			Restart_SMBus = true;
@@ -158,8 +167,6 @@ void Check_AP_Request()
 		{
 			SMBUS_Serve_Request((uint8_t*)&Reply_Byte, 1);
 		}
-//		Delay_Millis(2);
-//		AP_COM_Init(AP_COM_SMBUS_MODE);
 		BMS_Send_Data = false;
 	}
 	/* If AP wants to write some data to BMS, then BMS reply with 0xFF byte to AP to indicate that
