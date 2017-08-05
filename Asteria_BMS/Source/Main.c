@@ -356,21 +356,15 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
-			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r\r",Get_BMS_Pack_Current());
+//			uint8_t Length = 0;
+//			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+//			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r\r",Get_BMS_Pack_Current());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;
-		}
-		/* Check for any request is received from AP; Also check for any data is received from AP which
-		 * may be used to update the BMS RTC and GPS timings */
-		if(Wakeup_From_Sleep == false)
-		{
-			Check_AP_Request();
 		}
 	}
 }

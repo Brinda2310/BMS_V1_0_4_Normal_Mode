@@ -9,6 +9,7 @@
 
 #include <I2C_API.h>
 #include "BMS_Serial_Communication.h"
+#include "AP_Communication.h"
 #include "BMS_Timing.h"
 
 #if defined (USE_I2C1) || defined(USE_I2C3)
@@ -18,11 +19,8 @@
 #if I2C1_MODE == SMBUS_MODE || I2C3_MODE == SMBUS_MODE
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
-	static bool SMBUS_Read_Request = false;
     uint8_t SMBUS_RxData[20];
-    static uint8_t Bytes_Count = 1;
-    uint16_t SMBUS_Req_Time_Count = 0;
-    bool BMS_Send_Data = false;
+    uint8_t Index = 0;
 #endif
 #endif
 
@@ -375,24 +373,67 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 	/* This function will called when all the bytes mentioned in the address callback function
 	 * are received */
-	SMBUS_Read_Request = true;
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
+	uint8_t State = 255;
+	Index = 0;
+
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
 	{
 		/* Read request (AP requests BMS to send the data as per the packet index */
 		if(TransferDirection == 0)
 		{
-			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
+			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], 1, SMBUS_AUTOEND_MODE);
 		}
 		/* Write request */
 		else
 		{
-			BMS_Send_Data = true;
+			State = SMBUS_RxData[0];
+			switch(State)
+			{
+			case CELL1_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				break;
+			case CELL2_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				break;
+			case CELL3_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell3_Voltage();
+				break;
+			case CELL4_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell6_Voltage();
+				break;
+			case CELL5_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell7_Voltage();
+				break;
+			case CELL6_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_Cell8_Voltage();
+				break;
+			case PACK_CURRENT_REG:
+				Pack_Data.values[Index++] = Get_BMS_Pack_Current();
+				break;
+			case PACK_VOLTAGE_REG:
+				Pack_Data.values[Index++] = Get_BMS_Pack_Voltage();
+				break;
+			case ALL_CELL_VOLTAGES_REG:
+				Pack_Data.values[Index++]= Get_Cell1_Voltage();
+				Pack_Data.values[Index++]= Get_Cell2_Voltage();
+				Pack_Data.values[Index++]= Get_Cell3_Voltage();
+				Pack_Data.values[Index++]= Get_Cell6_Voltage();
+				Pack_Data.values[Index++]= Get_Cell7_Voltage();
+				Pack_Data.values[Index++]= Get_Cell8_Voltage();
+				Pack_Data.values[Index++]= Get_BMS_Pack_Voltage();
+				Pack_Data.values[Index++]= Get_BMS_Pack_Current();
+				break;
+			default:
+				break;
+			}
+			HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
+					(Index * 4),SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
 		}
 	}
 }
@@ -436,51 +477,5 @@ void SMBUS_Disable_Listen_Mode(uint8_t I2C_Num)
 	}
 }
 
-uint8_t SMBUS_Request_Check(uint8_t *RxBuffer)
-{
-	uint8_t Index = 0;
-	uint8_t Result = 255;
-
-#if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
-	/* This flag will be true only when the MCU receives all the bytes mentioned as the count in the
-	 * address complete callback function */
-	if(_30_Hz_SMBUS_Flag == true)
-	{
-		SMBUS_Req_Time_Count++;
-		_30_Hz_SMBUS_Flag = false;
-	}
-
-	if(SMBUS_Read_Request == true)
-	{
-		for(Index = 0;Index < Bytes_Count;Index++)
-		{
-			*RxBuffer++ = SMBUS_RxData[Index];
-		}
-		SMBUS_Read_Request = false;
-		SMBUS_Req_Time_Count = 0;
-		Result = SMBUS_REQ_SUCCESSFUL;
-	}
-
-	if(SMBUS_Req_Time_Count >= 8)
-	{
-		SMBUS_Req_Time_Count = 0;
-		Result = SMBUS_REQ_TIMEOUT;
-	}
-#endif
-	return Result;
-}
-
-void SMBUS_Serve_Request(uint8_t *TxBuffer,uint8_t Size)
-{
-#if I2C3_MODE == SMBUS_MODE || I2C1_MODE == SMBUS_MODE
-		HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],TxBuffer,Size,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-#endif
-}
-
-/* Function to set the number of bytes to be received from AP in the SMBus address call back routine */
-void Set_Bytes_Count(uint8_t *Count)
-{
-	Bytes_Count = *Count;
-}
 #endif /* BMS_VERSION end */
 

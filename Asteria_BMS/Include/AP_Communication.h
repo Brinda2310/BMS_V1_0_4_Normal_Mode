@@ -19,7 +19,6 @@
 #define MAX_SMBUS_REBOOT_COUNT				15		/* Load presence check time is 60 seconds */
 
 /* Readable registers */
-#define ALL_CELL_VOLTAGES_REG				0x00	/* Register for all cell voltages */
 #define CELL1_VOLTAGE_REG					0x01
 #define CELL2_VOLTAGE_REG					0x02
 #define CELL3_VOLTAGE_REG					0x03
@@ -33,8 +32,8 @@
 /* Writable registers */
 #define GPS_PACKET_REG						0x0A
 #define FLIGHT_STATUS_REG					0x0B
+#define ALL_CELL_VOLTAGES_REG				0x0C	/* Register for all cell voltages */
 
-#define MINIMUM_PACKET_SIZE					1
 #define GPS_DATE_TIME_DATA_SIZE				17		/* Data packet e.g. 0422062017,191234*/
 #define FLIGHT_STATUS_DATA_SIZE				2		/* Data packet e.g. 0x0009 */
 
@@ -62,15 +61,22 @@ enum Flight_Status
 	GROUND = 0x01, AIR = 0x02,ARMED = 0x04,DISARMED = 0x08,DISARMED_GROUND = 0x09
 };
 
+typedef union
+{
+	uint8_t bytes[32];
+	float values[8];
+}Pack_Info;
+
+extern Pack_Info Pack_Data;
+extern uint8_t GPS_Data[20];
+
 /* Variable to decide whether sleep functionality in the code to be used or not;Decision is based
  * on data received from AP i.e. Flight_Status_Packet */
 extern bool Sleep_Mode_Funtionality;
-extern bool Restart_SMBus;
 
 /* Function prototypes defined in the .c file */
 uint8_t AP_COM_Init(uint8_t Communication_Mode);
 uint8_t AP_COM_DeInit();
-void Check_AP_Request();
 void BMS_Enable_Listen_Mode();
 void BMS_Disable_Listen_Mode();
 

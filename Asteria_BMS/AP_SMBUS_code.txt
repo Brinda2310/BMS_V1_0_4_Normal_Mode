@@ -41,7 +41,6 @@ uint64_t Count = 0;
 bool _50HZ_Flag = false,_10Hz_Flag = false;
 uint8_t Addr = 255;
 uint8_t Length = 0;
-uint8_t ReadData[24];
 uint8_t Array[14] = {'A','B','C','D','E','F','G','H','I','J','K','L'};
 uint8_t Address[13] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x0A,0x0B};
 bool Read_Request = false;
@@ -55,6 +54,18 @@ uint32_t time_from_boot_buff = 0;
 uint32_t millis_now = 0,millis_old = 0;
 bool Stop_Time_Send = false;
 int Counter = 0;
+
+uint8_t Sent_data[15] = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N',0x0D};
+uint8_t Slave_Address = 0x52;
+char Buffer[200];
+
+typedef union
+{
+	uint8_t ReadData[32];
+	float Values[8];
+}Pack_Info;
+
+Pack_Info Pack_Data;
 
 void TIM3_IRQHandler(void)
 {
@@ -99,14 +110,12 @@ void USART3_IRQHandler(void)
 		if(RecData == 'S')
 		{
 			Start = true;
-			Timer_Init();
 			USART_Transmit_Data("ff\r",3);
 			Stop_Time_Send = false;
 		}
 		else if (RecData == 'V')
 		{
-			Start = false;
-			Stop_Time_Send = true;
+			Send_Date = true;
 		}
 		else if(RecData == 'W')
 		{
@@ -126,14 +135,13 @@ void USART3_IRQHandler(void)
 int main(void)
 {
 	uint8_t i = 0;
-	uint8_t Sent_data[15] = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N',0x0D};
-	uint8_t Slave_Address = 0x52;
-	char Buffer[50];
 	Board_LED_Init();
 	USART_COM_Init();
 	Timer_Init();
 	SMBus_Init();
 	USART_Transmit_Data("Booted",6);
+	Sent_data[0] = 0x0C;
+
 	while (1)
 	{
 //		Check_Timer();
@@ -150,8 +158,9 @@ int main(void)
 			}
 
 		}
-		if(_10Hz_Flag == true)
+		if(_10Hz_Flag == true && Start == true)
 		{
+//			Start = false;
 			if (I2C_problem == true)
 			{
 				Count++;
@@ -160,7 +169,7 @@ int main(void)
 					once = true;
 					SMBus_Init();
 				}
-				if (Count >= 2)
+				if (Count >= 10)
 				{
 					Count = 0;
 					i = 0;
@@ -172,112 +181,35 @@ int main(void)
 			else
 				Count = 0;
 
-			while(i <= 7 && I2C_problem == false && Start == true && once == false)
+			memset(Buffer,0,sizeof(Buffer));
+			Length = 0;
+			Length = sprintf(Buffer, "C1 = %0.2fV\r", Pack_Data.Values[0]);
+			Length += sprintf(&Buffer[Length], "C2 = %0.2fV\r", Pack_Data.Values[1]);
+			Length += sprintf(&Buffer[Length], "C3 = %0.2fV\r", Pack_Data.Values[2]);
+			Length += sprintf(&Buffer[Length], "C4 = %0.2fV\r", Pack_Data.Values[3]);
+			Length += sprintf(&Buffer[Length], "C5 = %0.2fV\r", Pack_Data.Values[4]);
+			Length += sprintf(&Buffer[Length], "C6 = %0.2fV\r", Pack_Data.Values[5]);
+			Length += sprintf(&Buffer[Length], "C7 = %0.2fV\r", Pack_Data.Values[6]);
+			Length += sprintf(&Buffer[Length], "C8 = %0.2fV\r", Pack_Data.Values[7]);
+
+			USART_Transmit_Data(Buffer, Length);
+			Send_Date = false;
+			memset(&Pack_Data.ReadData[0],0,sizeof(Pack_Data));
+
+			if(SMBus_Write_Data(Slave_Address,&Sent_data[0],1) == 1)
 			{
-				RecData = Array[i++];
-//				USART_Transmit_Data(&RecData,1);
-				switch (RecData)
+				if(SMBus_Read_Data((uint8_t) (STM32L4_ADDRESS | 0x01), &Pack_Data.ReadData[0], 32) == 0)
 				{
-						case 'A':
-							Sent_data[0] = Address[0];
-							Read_Request = true;
-							break;
-						case 'B':
-							Sent_data[0] = Address[1];
-							Read_Request = true;
-							break;
-						case 'C':
-							Sent_data[0] = Address[2];
-							Read_Request = true;
-							break;
-						case 'D':
-							Sent_data[0] = Address[3];
-							Read_Request = true;
-							break;
-						case 'E':
-							Sent_data[0] = Address[4];
-							Read_Request = true;
-							break;
-						case 'F':
-							Sent_data[0] = Address[5];
-							Read_Request = true;
-							break;
-						case 'G':
-							Sent_data[0] = Address[6];
-							Read_Request = true;
-							break;
-						case 'H':
-							Sent_data[0] = Address[7];
-							Read_Request = true;
-							break;
-						case 'I':
-							Sent_data[0] = Address[8];
-							Read_Request = false;
-							Count = 17;
-							break;
-						case 'J':
-							Sent_data[0] = Address[9];
-							TxData[0] = 0x09;
-							TxData[1] = 0x00;
-							Read_Request = false;
-							Count = 2;
-							break;
-						case 'K':
-							Sent_data[0] = Address[9];
-							TxData[0] = 0x08;
-							TxData[1] = 0x00;
-							Read_Request = false;
-							Count = 2;
-							break;
-						case 'L':
-							Sent_data[0] = Address[9];
-							TxData[0] = 0x04;
-							TxData[1] = 0x00;
-							Read_Request = false;
-							Count = 2;
-							break;
-
-						default:
-							break;
-					}
-
-				if(Read_Request == true)
-				{
-					if(SMBus_Write_Data(Slave_Address,&Sent_data[0],1) == 0)
-					{
-						break;
-					}
-//					int temp1 = get_time_from_boot();
-
-//					while((get_time_from_boot() - temp1) > 3)
-//					{
-//					}
-					if(SMBus_Read_Data((uint8_t) (STM32L4_ADDRESS | 0x01), ReadData, 4) == 0 )
-					{
-						break;
-					}
-					uint8_t temp = Sent_data[0],Length = 0;
-					if(temp == 8)
-					{
-						Length = sprintf(Buffer, "Volt = %0.2fV\r", *(float*) &ReadData);
-					}
-					else if(temp == 7)
-					{
-						Length = sprintf(Buffer, "Curr = %0.2fmAH\r\r", *(float*) &ReadData);
-					}
-//					else
-//						Length = sprintf(Buffer, "%fV\r", *(float*) &ReadData);
-					USART_Transmit_Data(Buffer, Length);
-					memset(Buffer,0,Length);
-					Length = 0;
+					i = 0;
+					RecData = 0;
+					_10Hz_Flag = false;
+					break;
 				}
 			}
+
 			i = 0;
 			RecData = 0;
 			_10Hz_Flag = false;
-			memset(ReadData,0,sizeof(ReadData));
-			memset(Buffer,0,sizeof(Buffer));
-
 		}
 	}
 }
@@ -294,7 +226,6 @@ void Board_LED_Init()
 void Board_LED_Toggle()
 {
 	GPIOB->ODR ^= BOARD_LED;
-//	GPIOB->ODR ^= GPIO_Pin_10;
 }
 
 void SMBus_Init()
@@ -428,6 +359,7 @@ uint8_t SMBus_Read_Data(uint8_t Device_Address,uint8_t *RxBuffer,uint8_t Size)
 			return 0;
 		}
 
+		I2C_AcknowledgeConfig(SMBUS_PORT,ENABLE);
 		RxBuffer[Index] = I2C_ReceiveData(SMBUS_PORT);
 	}
 
