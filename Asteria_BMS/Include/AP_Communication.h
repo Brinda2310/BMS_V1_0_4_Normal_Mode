@@ -67,6 +67,14 @@ typedef union
 	float values[8];
 }Pack_Info;
 
+typedef union
+{
+	uint8_t bytes[2];
+	uint16_t value;
+
+}AP_Status;
+
+extern AP_Status AP_Stat_Data;
 extern Pack_Info Pack_Data;
 extern uint8_t GPS_Data[20];
 

@@ -15,7 +15,7 @@ FRESULT Result;
 UINT BytesWritten;
 
 /* Variable to update the time and date received from GPS */
-char GPS_Date_Time[25];
+static char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
 static char String_Buffer[512];
@@ -29,20 +29,20 @@ static uint8_t *Index_Counter,Memory_Address2 = 0;
 
 /* Buffer to store the file name which is created on SD card as soon as logging is started. Right now
  * this name is hard coded, later it will be changed as per the log summary file */
-char File_Name[50] = "";
+static char File_Name[50] = "";
 
 /* This variable holds the cursor position for stop time to be written to SD card */
 uint16_t Stop_Time_Cursor = 0;
 
 /* Variable to hold the respective values as mentioned in the name and the same variables which are updated in log_summary_file */
 static Log_SD_Summary_Vars SD_Summary_Data;
-uint16_t Old_Power_Up_Num = 0;
+static uint16_t Old_Power_Up_Num = 0;
 
 /* New file created only upon power up otherwise logging is done in the old file after wake up */
-bool New_File_Created = false;
+static bool New_File_Created = false;
 
 /* Variable to create only one log file in each power up */
-bool Power_Up_AP = false;
+static bool Power_Up_AP = false;
 
 /* Function to create/check the log summary file. Create the BMS log files by reading the counts stored
  * in the summary file */

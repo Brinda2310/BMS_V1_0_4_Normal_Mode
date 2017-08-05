@@ -8,9 +8,7 @@
  ******************************************************************************/
 
 #include <I2C_API.h>
-#include "BMS_Serial_Communication.h"
 #include "AP_Communication.h"
-#include "BMS_Timing.h"
 
 #if defined (USE_I2C1) || defined(USE_I2C3)
 #if (I2C1_MODE == NORMAL_I2C_MODE) || (I2C3_MODE == NORMAL_I2C_MODE)
@@ -20,7 +18,10 @@
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
     uint8_t SMBUS_RxData[20];
-    uint8_t Index = 0;
+    uint16_t Bytes_Count = 1;
+    uint8_t GPS_Data_Request = false,Flight_Status_Request = false;
+    uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
+    uint8_t Index = 0, Reply_Byte = 0xAA;
 #endif
 #endif
 
@@ -373,6 +374,21 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 	/* This function will called when all the bytes mentioned in the address callback function
 	 * are received */
+	if(GPS_Data_Request == true)
+	{
+		Bytes_Count = 1;
+		memcpy(GPS_Data,SMBUS_RxData,GPS_DATE_TIME_DATA_SIZE);
+		GPS_Data_Request = false;
+		GPS_Data_Received = true;
+	}
+	if (Flight_Status_Request == true)
+	{
+		Bytes_Count = 1;
+		memcpy(&AP_Stat_Data.bytes[0],SMBUS_RxData,FLIGHT_STATUS_DATA_SIZE);
+		Flight_Status_Request = false;
+		Flight_Stat_Received = true;
+	}
+
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
@@ -387,7 +403,21 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		/* Read request (AP requests BMS to send the data as per the packet index */
 		if(TransferDirection == 0)
 		{
-			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], 1, SMBUS_AUTOEND_MODE);
+			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
+//			if(GPS_Data_Request == false)
+//			{
+//				uint8_t Reply_Byte = 0xAA;
+//				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
+//				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+//				GPS_Data_Request = true;
+//			}
+//			if (SMBUS_RxData[0] == FLIGHT_STATUS_REG && Flight_Status_Request == false)
+//			{
+//				uint8_t Reply_Byte = 0xAA;
+//				Bytes_Count = FLIGHT_STATUS_DATA_SIZE;
+//				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+//				Flight_Status_Request = true;
+//			}
 		}
 		/* Write request */
 		else
@@ -397,27 +427,40 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 			{
 			case CELL1_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				Bytes_Count = 1;
 				break;
 			case CELL2_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				Bytes_Count = 1;
 				break;
 			case CELL3_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell3_Voltage();
+				Bytes_Count = 1;
 				break;
 			case CELL4_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell6_Voltage();
+				Bytes_Count = 1;
 				break;
 			case CELL5_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell7_Voltage();
+				Bytes_Count = 1;
 				break;
 			case CELL6_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell8_Voltage();
+				Bytes_Count = 1;
 				break;
 			case PACK_CURRENT_REG:
 				Pack_Data.values[Index++] = Get_BMS_Pack_Current();
+				Bytes_Count = 1;
 				break;
 			case PACK_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_BMS_Pack_Voltage();
+				Bytes_Count = 1;
+				break;
+			case GPS_PACKET_REG:
+				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+				GPS_Data_Request = true;
 				break;
 			case ALL_CELL_VOLTAGES_REG:
 				Pack_Data.values[Index++]= Get_Cell1_Voltage();
@@ -428,6 +471,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				Pack_Data.values[Index++]= Get_Cell8_Voltage();
 				Pack_Data.values[Index++]= Get_BMS_Pack_Voltage();
 				Pack_Data.values[Index++]= Get_BMS_Pack_Current();
+				Bytes_Count = 1;
 				break;
 			default:
 				break;

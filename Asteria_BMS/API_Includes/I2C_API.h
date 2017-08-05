@@ -26,6 +26,8 @@ enum SMBUS_Operation_Result
 	SMBUS_REQ_UNSUCCESSFUL = 0, SMBUS_REQ_SUCCESSFUL,SMBUS_REQ_TIMEOUT
 };
 
+extern uint8_t GPS_Data_Request,Flight_Status_Request,GPS_Data_Received,Flight_Stat_Received;
+
 /* Function prototypes */
 uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequency,uint8_t I2C_Mode);
 uint8_t I2C_DeInit(uint8_t I2C_Num);

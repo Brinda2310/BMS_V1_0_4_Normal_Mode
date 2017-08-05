@@ -8,11 +8,9 @@
 
 bool Sleep_Mode_Funtionality = DISABLE;
 
-uint8_t AP_Status;
+AP_Status AP_Stat_Data;
 uint8_t GPS_Data[20];
-
 Pack_Info Pack_Data;
-uint8_t GPS_Data[20];
 
 void BMS_Enable_Listen_Mode()
 {
