@@ -25,8 +25,8 @@
 #define CELL4_VOLTAGE_REG					0x04
 #define CELL5_VOLTAGE_REG					0x05
 #define CELL6_VOLTAGE_REG					0x06
-#define PACK_CURRENT_REG					0x07
-#define PACK_VOLTAGE_REG					0x08
+#define PACK_VOLTAGE_REG					0x07
+#define PACK_CURRENT_REG					0x08
 #define STATUS_FLAGS_REG					0x09
 
 /* Writable registers */
