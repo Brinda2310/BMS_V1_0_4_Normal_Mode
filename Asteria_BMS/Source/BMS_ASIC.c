@@ -27,6 +27,8 @@ BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
 static bool BMS_Com_Restart = false;
 
+uint16_t Current_Gain = CURRENT_GAIN_5X;
+
 /* Function initializes the I2C communication between MCU and BMS IC */
 void BMS_ASIC_Init()
 {
@@ -198,7 +200,7 @@ void BMS_Force_Sleep()
 }
 
 /* Function to set the gain value to the EEPROM of BMS ASIC */
-uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting)
+uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 {
 	uint8_t Gain_Value, Result;
 	uint8_t Register_Address = 0, Send_Data_Values[2];
@@ -419,7 +421,7 @@ void BMS_Read_Pack_Current()
 	I2C_Error_Flag.I2C_Read_Pack_Current_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
 
 	/* Hard coded formula defined by ASIC manufacturer */
-	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * CURRENT_GAIN * SENSE_RESISTOR_VALUE));
+	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
 
 	while(I2C_Error_Flag.I2C_Read_Pack_Current_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
@@ -529,10 +531,34 @@ float Get_BMS_Capacity_Used()
 	return BMS_Data.Pack_Capacity_Used;
 }
 
+float Get_BMS_Pack_Current_Adj()
+{
+	return BMS_Data.Pack_Current_Adjusted;
+}
+
 float Get_BMS_Pack_Current()
 {
+	float Temp_Current = 0.0;
 	/* Convert the ampere current to milli amperes by multiplying it by 1000 */
-	return (BMS_Data.Pack_Current * 1000);
+
+	Temp_Current = (BMS_Data.Pack_Current * 1000);
+	if(Current_Gain == CURRENT_GAIN_500X)
+	{
+		BMS_Data.Pack_Current_Adjusted = Temp_Current +
+				(Temp_Current * SLOPE_500X) + CONSTANT_500X;
+	}
+	else if (Current_Gain == CURRENT_GAIN_50X)
+	{
+		BMS_Data.Pack_Current_Adjusted = Temp_Current +
+				(Temp_Current * SLOPE_50X) + CONSTANT_50X;
+	}
+	else
+	{
+		BMS_Data.Pack_Current_Adjusted = Temp_Current +
+				(Temp_Current * SLOPE_5X) + CONSTANT_5X;
+	}
+
+	return Temp_Current;
 }
 
 float Get_BMS_Pack_Temperature()

@@ -123,7 +123,7 @@ int main(void)
 
 			/* Set the current gain in the BMS ASIC register. After having number of iterations and
 			 * analyzing the curves we will decide which gain is suitable for which current range(Amperes) */
-			BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
 
 			/* Read the pack voltage to calculate the battery capacity used/remaining */
 			BMS_Read_Pack_Voltage();
@@ -356,13 +356,13 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
-//			uint8_t Length = 0;
-//			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-//			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r\r",Get_BMS_Pack_Current());
-//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+			uint8_t Length = 0;
+			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r\r",Get_BMS_Pack_Temperature());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-//			BMS_Debug_COM_Write_Data(Buffer, Length);
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			if(GPS_Data_Received == true)
 			{
@@ -405,12 +405,7 @@ int main(void)
 				BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
 				Flight_Stat_Received = false;
 			}
-			RTC_TimeShow((uint8_t*)Buffer);
-			BMS_Debug_COM_Write_Data(Buffer,18);
 			_1Hz_Flag = false;
 		}
 	}
 }
-
-
-// Try SMBus deinit functionality before calling Init() function

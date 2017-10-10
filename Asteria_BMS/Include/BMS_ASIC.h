@@ -16,6 +16,15 @@
 #define EEPROM_PAGE_SIZE							4		/* Max size of EEPROM page in ISL */
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
+
+#define SLOPE_5X									0.0746
+#define SLOPE_50X									0.0831
+#define SLOPE_500X									0.0774
+
+#define CONSTANT_5X									95.4001
+#define CONSTANT_50X								127.6836
+#define CONSTANT_500X								96.6649
+
 /*
  * Coefficients required for calculating used mAh from the no-load battery voltage
  * y = 0.051156*z^5 -0.69723*z^4 + 1.9663*z^3 -3.0335^z2 + 14.781*z +79.795
@@ -128,7 +137,7 @@ enum BMS_Sleep_Status
 /* Enums defining the different gain values that can be set in the BMS ASIC */
 enum Current_Gain_Values
 {
-	CURRENT_GAIN_5X = 0, CURRENT_GAIN_50X,CURRENT_GAIN_500X
+	CURRENT_GAIN_5X = 5, CURRENT_GAIN_50X = 50,CURRENT_GAIN_500X = 500
 };
 
 /* BMS Health status enumerations */
@@ -210,6 +219,7 @@ typedef struct
 
 	float Pack_Voltage;
 	float Pack_Current;
+	float Pack_Current_Adjusted;
 	float Pack_Temperature_Degress;
 
 	float Pack_Capacity_Remaining;
@@ -230,7 +240,7 @@ extern bool Last_Charge_Disharge_Status;
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
 void BMS_Force_Sleep();
-uint8_t BMS_Set_Current_Gain(uint8_t Gain_Setting);
+uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);
@@ -239,6 +249,7 @@ void BMS_Estimate_Capacity_Used(void);
 void BMS_Read_Pack_Voltage(void);
 void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
+float Get_BMS_Pack_Current_Adj();
 
 float Constrain(float Variable, float Lower_Limit, float Upper_Limit);
 
