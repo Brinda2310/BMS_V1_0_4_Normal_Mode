@@ -205,6 +205,8 @@ uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 	uint8_t Gain_Value, Result;
 	uint8_t Register_Address = 0, Send_Data_Values[2];
 	int8_t Max_Tries = 5;
+	Current_Gain = Gain_Setting;
+
 	/* Before writing any value,make sure that other settings in the 0x85 register are not disturbed
 	 * So read the value first and then just change the 4th and 5th bit value in the register */
 	Register_Address = CURRENT_GAIN_SETTING_ADDR;
@@ -542,6 +544,7 @@ float Get_BMS_Pack_Current()
 	/* Convert the ampere current to milli amperes by multiplying it by 1000 */
 
 	Temp_Current = (BMS_Data.Pack_Current * 1000);
+
 	if(Current_Gain == CURRENT_GAIN_500X)
 	{
 		BMS_Data.Pack_Current_Adjusted = Temp_Current +

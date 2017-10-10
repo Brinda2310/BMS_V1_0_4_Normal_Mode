@@ -10,8 +10,8 @@
 
 #include "TIMER_API.h"
 
-#define _33ms_PERIOD 							40
-#define _1_SECONDS								(1000/_33ms_PERIOD)
+#define _40ms_PERIOD 							40
+#define _1_SECONDS								(1000/_40ms_PERIOD)
 #define _2_SECONDS								(2*_1_SECONDS)
 #define _3_SECONDS								(3*_1_SECONDS)
 #define _4_SECONDS								(4*_1_SECONDS)
@@ -27,7 +27,7 @@
 #define SHORT_PERIOD							_500_MILLIS
 #define LONG_PEROID								_2_SECONDS
 
-extern bool _30Hz_Flag,_1Hz_Flag,_30_Hz_SMBUS_Flag;
+extern bool _25Hz_Flag,_1Hz_Flag,_25_Hz_SMBUS_Flag;
 
 void BMS_Timers_Init();
 double Get_System_Time_Seconds();

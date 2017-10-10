@@ -118,8 +118,8 @@ uint8_t Create_Log_Summary_File()
 			/* Update the Power Up index in Log_Summary_File */
 			Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
 
-			return RESULT_OK;
 		}
+		return RESULT_OK;
 	}
 
 	/* Retrieve all the counts from Log_Summary_File */
@@ -140,9 +140,9 @@ uint8_t Create_Log_Summary_File()
 	*String_Index = 0;
 	*Index_Counter= 0;
 
-	char Buffer[10],Len;
-	Len = sprintf(Buffer,"%d\r",SD_Summary_Data.Power_Up_Number);
-	BMS_Debug_COM_Write_Data(Buffer,Len);
+//	char Buffer[10],Len;
+//	Len = sprintf(Buffer,"%d\r",SD_Summary_Data.Power_Up_Number);
+//	BMS_Debug_COM_Write_Data(Buffer,Len);
 	return RESULT_OK;
 }
 
@@ -180,7 +180,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 11,8,2017,13,50,05);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 10,10,2017,15,02,05);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -255,7 +255,7 @@ uint8_t Create_BMS_Log_File()
 		}
 
 		/* Start filling the header data in buffer and once done write it to the BMS_Log_File */
-		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 1 Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
+		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 25 Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
 				BMS_Firmware_Version[2]);
 
 		*String_Index += sprintf(&String_Buffer[*String_Index], "UTC Start: ");
@@ -272,7 +272,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Adjusted Pack Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"C/D Status,Temperature,Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
 
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
@@ -316,12 +316,6 @@ uint8_t Log_All_Data()
 
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
-//	int length = 0;
-
-//	if(1)
-//		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,",6,4,2017);
-//	else
-//		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d,", 0,0,0);
 
 	strncpy(&String_Buffer[*String_Index],GPS_Date_Time,10);
 	*String_Index += 10;
@@ -346,7 +340,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current
-	Float_Values[(*Index_Counter)++] = 	BMS_Data.Pack_Current_Adjusted;
+	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();
 	Float_Values[(*Index_Counter)++] = (float)BATTERY_CAPACITY;								// Total pack capacity
 	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Total initial Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
@@ -449,7 +443,7 @@ void Stop_Log()
 	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
 	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d",11,8,2017,13,50,05);
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d",10,10,2017,15,02,05);
 	else
 		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
 

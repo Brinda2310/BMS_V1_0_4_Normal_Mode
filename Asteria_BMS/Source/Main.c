@@ -19,7 +19,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		1			// Beta code release--modified when code is being merged to test_develop branch.
+		2			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
@@ -39,8 +39,8 @@ bool Update_Pack_Cycles = false;
 
 /* Debug code variables definition; to be removed after testing */
 char Buffer[400];
-uint8_t Length = 0;
 uint8_t RecData = 0;
+bool Stop_Log_Var = false;
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
@@ -123,7 +123,7 @@ int main(void)
 
 			/* Set the current gain in the BMS ASIC register. After having number of iterations and
 			 * analyzing the curves we will decide which gain is suitable for which current range(Amperes) */
-			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
+			BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
 			/* Read the pack voltage to calculate the battery capacity used/remaining */
 			BMS_Read_Pack_Voltage();
@@ -164,15 +164,17 @@ int main(void)
 		else if (RecData == 'E')
 		{
 			Stop_Log();
+			Stop_Log_Var = true;
 		}
 		else if (RecData == 'F')
 		{
 			BMS_Log_Init();
+			Stop_Log_Var = false;
 		}
 		RecData = 0;
 
-		/* This flag will be true after every 33mS(30Hz) in timer application file */
-		if (_30Hz_Flag == true)
+		/* This flag will be true after every 40ms(25Hz) in timer application file */
+		if (_25Hz_Flag == true)
 		{
 			/* If switch is pressed then start counting the time */
 			if (BMS_Read_Switch_Status() == PRESSED)
@@ -336,9 +338,16 @@ int main(void)
 				}
 			}
 
-			if (Log_All_Data() != RESULT_OK)
+			if(Stop_Log_Var == false)
 			{
-				BMS_Debug_COM_Write_Data("Write error\r",12);
+				if (Log_All_Data() != RESULT_OK)
+				{
+					BMS_Debug_COM_Write_Data("Write error\r",12);
+				}
+				else
+				{
+					BMS_Status_LED_Toggle();
+				}
 			}
 
 			if(BMS_Check_COM_Health() != HEALTH_OK)
@@ -347,9 +356,8 @@ int main(void)
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
-			BMS_Status_LED_Toggle();
 
-			_30Hz_Flag = false;
+			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
 		 * before using it.After wake up this flag will be true and will become false once all peripherals
@@ -359,6 +367,7 @@ int main(void)
 			uint8_t Length = 0;
 			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
 			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Current Adj = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r\r",Get_BMS_Pack_Temperature());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
