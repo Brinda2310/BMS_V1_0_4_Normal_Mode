@@ -255,8 +255,8 @@ uint8_t Create_BMS_Log_File()
 		}
 
 		/* Start filling the header data in buffer and once done write it to the BMS_Log_File */
-		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at 25 Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
-				BMS_Firmware_Version[2]);
+		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at %d Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
+				BMS_Firmware_Version[2],(uint8_t)_1_SECONDS);
 
 		*String_Index += sprintf(&String_Buffer[*String_Index], "UTC Start: ");
 
@@ -272,9 +272,9 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Adjusted Pack Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,Capacity_Used,Pack_Cyles_Used,Battery C/D Rate,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"C/D Status,Temperature,Final_Pack_Voltage,Flight_Time,Health_Status_Register\r\n");
-
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Adjusted Pack Current,Total_Capacity,Capacity_Remaining,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current Gain,Battery C/D Rate,C/D Status,Temperature,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Status_Register,SMBUS Error Status\r\n");
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 		{
 			Result = RESULT_ERROR;
@@ -347,6 +347,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Int_Values[(*Index_Counter)++] = Get_BMS_Total_Pack_Cycles();														// Pack Cycles
+	Int_Values[(*Index_Counter)++] = Current_Gain;
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH										// Charge/Discharge Rate

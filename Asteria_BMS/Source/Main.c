@@ -342,7 +342,7 @@ int main(void)
 			{
 				if (Log_All_Data() != RESULT_OK)
 				{
-					BMS_Debug_COM_Write_Data("Write error\r",12);
+//					BMS_Debug_COM_Write_Data("Write error\r",12);
 				}
 				else
 				{
@@ -365,10 +365,10 @@ int main(void)
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
 			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Current = %0.3fmA\r",Get_BMS_Pack_Current());
-			Length += sprintf(&Buffer[Length],"Current Adj = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r\r",Get_BMS_Pack_Temperature());
+			Length = sprintf(Buffer,"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+			Length += sprintf(&Buffer[Length],"Batt Rem = %0.3f%c\r",Get_BMS_Capacity_Remaining(),0x25);
+//			Length += sprintf(&Buffer[Length],"Current Adj = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r\r",Get_BMS_Pack_Temperature());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
