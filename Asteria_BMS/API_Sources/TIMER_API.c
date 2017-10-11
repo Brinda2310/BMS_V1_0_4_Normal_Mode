@@ -164,7 +164,7 @@ uint8_t Timer_DeInit(uint8_t Timer_Num)
 }
 
 
-/* Timer interrrupt handlers for stm32l432kc micro controller */
+/* Timer interrupt handlers for stm32l432kc micro controller */
 #ifdef BMS_VERSION
 #if TIMER2_INT_MODE == ENABLE
 void TIM2_IRQHandler()

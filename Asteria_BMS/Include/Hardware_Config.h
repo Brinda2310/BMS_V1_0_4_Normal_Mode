@@ -34,7 +34,7 @@
 
 #define PWM_FUNCTION									DISABLE
 #define USE_TIMER2
-//#define USE_TIMER6
+#define USE_TIMER6
 //#define USE_TIMER7
 #define USE_USART1
 //#define USE_USART2
@@ -89,8 +89,8 @@
 #endif
 
 #ifdef USE_TIMER6
-#define TIMER6_INT_MODE									DISABLE
-#define TIMER6_PRIORITY									1
+#define TIMER6_INT_MODE									ENABLE
+#define TIMER6_PRIORITY									2
 #define TIMER6_SUBPRIORITY								0
 #endif
 

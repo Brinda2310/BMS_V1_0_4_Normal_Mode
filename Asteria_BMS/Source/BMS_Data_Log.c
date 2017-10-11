@@ -180,7 +180,7 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 10,10,2017,15,02,05);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 11,10,2017,15,18,05);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
@@ -271,10 +271,10 @@ uint8_t Create_BMS_Log_File()
 		Stop_Time_Cursor = *String_Index + 8;
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
-		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Pack Current Adjusted,Total_Capacity,Capacity_Remaining,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current Gain,Battery C/D Rate,C/D Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Status_Register,SMBUS Error Status\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate\r\n");
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 		{
 			Result = RESULT_ERROR;
@@ -392,6 +392,10 @@ uint8_t Log_All_Data()
 	}
 
 	String_Buffer[(*String_Index)++] = ',';
+
+	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
+
 	String_Buffer[(*String_Index)++] = '\r';
 	String_Buffer[(*String_Index)++] = '\n';
 
@@ -444,7 +448,7 @@ void Stop_Log()
 	f_lseek(&BMS_Log_File,Stop_Time_Cursor);
 
 	if(1)
-		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d",10,10,2017,15,02,05);
+		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d",11,10,2017,18,17,05);
 	else
 		length = sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d:%02d:%02d", 0,0,0,0,0,0);
 

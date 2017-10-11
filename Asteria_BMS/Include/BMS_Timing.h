@@ -27,14 +27,16 @@
 #define SHORT_PERIOD							_500_MILLIS
 #define LONG_PEROID								_2_SECONDS
 
-extern bool _25Hz_Flag,_1Hz_Flag,_25_Hz_SMBUS_Flag;
+#define _1SEC_PERIOD							1000
+
+extern bool _25Hz_Flag,_1Hz_Flag;
+extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 
 void BMS_Timers_Init();
 double Get_System_Time_Seconds();
 uint64_t Get_System_Time_Millis();
 void TIM2_PeriodElapsedCallback(void);
-
-//void TIM6_PeriodElapsedCallback(void);
+void TIM6_PeriodElapsedCallback(void);
 //void TIM7_PeriodElapsedCallback(void);
 
 #endif /* BMS_TIMING_H_ */

@@ -237,6 +237,7 @@ typedef struct
 extern ISL_943203_Data BMS_Data;
 extern bool Last_Charge_Disharge_Status;
 extern uint16_t Current_Gain;
+extern double C_D_Rate_Temp;
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();

@@ -83,7 +83,7 @@ int main(void)
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
-	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+	BMS_Set_Current_Gain(CURRENT_GAIN_50X);
 
 	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
@@ -123,7 +123,7 @@ int main(void)
 
 			/* Set the current gain in the BMS ASIC register. After having number of iterations and
 			 * analyzing the curves we will decide which gain is suitable for which current range(Amperes) */
-			BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
 
 			/* Read the pack voltage to calculate the battery capacity used/remaining */
 			BMS_Read_Pack_Voltage();
@@ -357,6 +357,7 @@ int main(void)
 				Delay_Millis(3);
 			}
 
+			Loop_Rate_Counter++;
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
@@ -365,10 +366,12 @@ int main(void)
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
 			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-			Length += sprintf(&Buffer[Length],"Batt Rem = %0.3f%c\r",Get_BMS_Capacity_Remaining(),0x25);
-//			Length += sprintf(&Buffer[Length],"Current Adj = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r\r",Get_BMS_Pack_Temperature());
+			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
@@ -414,6 +417,7 @@ int main(void)
 				BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
 				Flight_Stat_Received = false;
 			}
+			C_D_Rate_Temp = 0.0;
 			_1Hz_Flag = false;
 		}
 	}

@@ -26,7 +26,7 @@ ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
 static bool BMS_Com_Restart = false;
-
+double C_D_Rate_Temp = 0;
 uint16_t Current_Gain = CURRENT_GAIN_5X;
 
 /* Function initializes the I2C communication between MCU and BMS IC */
@@ -368,6 +368,8 @@ void BMS_Estimate_Capacity_Used()
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
+	C_D_Rate_Temp +=BMS_Data.Pack_Charge_Discharge_Rate;
+
 	if(Status_Flag.Pack_Charging == YES)
 	{
 		BMS_Data.Pack_Capacity_Used -= BMS_Data.Pack_Charge_Discharge_Rate;
