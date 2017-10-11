@@ -272,7 +272,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate\r\n");
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
@@ -337,7 +337,8 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage
-	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
+	Float_Values[(*Index_Counter)++] = Get_BMS_Accumulated_Pack_Voltage();
+	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current
 	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();

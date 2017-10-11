@@ -252,6 +252,7 @@ void BMS_Read_Pack_Voltage(void);
 void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
 float Get_BMS_Pack_Current_Adj();
+float Get_BMS_Accumulated_Pack_Voltage();
 
 float Constrain(float Variable, float Lower_Limit, float Upper_Limit);
 

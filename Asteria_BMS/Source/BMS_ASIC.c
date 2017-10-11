@@ -545,6 +545,12 @@ float Get_BMS_Pack_Current_Adj()
 	return BMS_Data.Pack_Current_Adjusted;
 }
 
+float Get_BMS_Accumulated_Pack_Voltage()
+{
+	return (BMS_Data.Cell1_Voltage + BMS_Data.Cell2_Voltage + BMS_Data.Cell3_Voltage
+			+ BMS_Data.Cell6_Voltage + BMS_Data.Cell7_Voltage + BMS_Data.Cell8_Voltage);
+}
+
 float Get_BMS_Pack_Current()
 {
 	float Temp_Current = 0.0;
