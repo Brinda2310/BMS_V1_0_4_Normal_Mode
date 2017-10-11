@@ -272,7 +272,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Voltage,C2_Voltage,C3_Voltage,C4_Voltage,C5_Voltage,C6_Voltage,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Adjusted Pack Current,Total_Capacity,Capacity_Remaining,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Pack_Current,Pack Current Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current Gain,Battery C/D Rate,C/D Status,Temperature,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Status_Register,SMBUS Error Status\r\n");
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
