@@ -83,7 +83,7 @@ int main(void)
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
-	BMS_Set_Current_Gain(CURRENT_GAIN_50X);
+	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
 	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
@@ -123,7 +123,7 @@ int main(void)
 
 			/* Set the current gain in the BMS ASIC register. After having number of iterations and
 			 * analyzing the curves we will decide which gain is suitable for which current range(Amperes) */
-			BMS_Set_Current_Gain(CURRENT_GAIN_50X);
+			BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
 			/* Read the pack voltage to calculate the battery capacity used/remaining */
 			BMS_Read_Pack_Voltage();
