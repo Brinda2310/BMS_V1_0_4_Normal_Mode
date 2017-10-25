@@ -14,6 +14,7 @@
 #include <BMS_Timing.h>
 #include <Power_Management.h>
 #include <AP_Communication.h>
+#include <IWDG_API.h>
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -57,7 +58,7 @@ int main(void)
 
 	/* Delay of 2 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(2000);
+	Delay_Millis(500);
 
 	/* Initialize the timer to 33mS(30Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -107,6 +108,8 @@ int main(void)
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY;
 
+	IWDG_Init(1);
+
 	while(1)
 	{
 		/* If MCU is awaken from sleep mode then we have to reinitialize all the peripherals */
@@ -150,6 +153,12 @@ int main(void)
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
+		BMS_Status_LED_Toggle();
+
+		HAL_Delay(995);
+
+		IWDG_Reset_Counter();
+
 		if(RecData == 'A')
 		{
 			/* Debug code to set the last charge/discharge status to charging to see whether discharge
@@ -174,7 +183,7 @@ int main(void)
 		RecData = 0;
 
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
-		if (_25Hz_Flag == true)
+		if (_25Hz_Flag == true && RecData == 'P')
 		{
 			/* If switch is pressed then start counting the time */
 			if (BMS_Read_Switch_Status() == PRESSED)
@@ -346,7 +355,7 @@ int main(void)
 				}
 				else
 				{
-					BMS_Status_LED_Toggle();
+//					BMS_Status_LED_Toggle();
 				}
 			}
 
@@ -374,7 +383,7 @@ int main(void)
 			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-			BMS_Debug_COM_Write_Data(Buffer, Length);
+//			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			if(GPS_Data_Received == true)
 			{
