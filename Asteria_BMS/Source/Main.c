@@ -14,7 +14,7 @@
 #include <BMS_Timing.h>
 #include <Power_Management.h>
 #include <AP_Communication.h>
-#include <IWDG_API.h>
+#include <BMS_Watchdog.h>
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -108,7 +108,9 @@ int main(void)
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY;
 
-	IWDG_Init(1);
+	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
+	 * automatically restart the code */
+	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -155,9 +157,9 @@ int main(void)
 
 		BMS_Status_LED_Toggle();
 
-		HAL_Delay(995);
+		HAL_Delay(2100);
 
-		IWDG_Reset_Counter();
+		BMS_Watchdog_Refresh();
 
 		if(RecData == 'A')
 		{

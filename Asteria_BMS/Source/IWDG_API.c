@@ -105,7 +105,7 @@ uint8_t IWDG_Init(uint8_t Reset_Value)
 
 	IwdgHandle.Instance 		= IWDG;
 	IwdgHandle.Init.Prescaler 	= IWDG_PRESCALER_32;
-	IwdgHandle.Init.Reload 		= ((LSI_Frequency) / 32);
+	IwdgHandle.Init.Reload 		= ((LSI_Frequency * Reset_Value) / 32);
 	IwdgHandle.Init.Window 		= IWDG_WINDOW_DISABLE;
 
 	if (HAL_IWDG_Init(&IwdgHandle) != HAL_OK)
