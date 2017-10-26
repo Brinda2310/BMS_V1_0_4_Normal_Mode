@@ -42,11 +42,13 @@ bool Update_Pack_Cycles = false;
 char Buffer[400];
 uint8_t RecData = 0;
 bool Stop_Log_Var = false;
+uint8_t Log_Init_Counter = 0 ;
+bool Stop_Logging_Flag = false,SOC_SOH_Flag = false;
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
  * otherwise check load presence for 1 minute(normal operation) */
-uint16_t Timer_Value = 0;
+uint16_t Timer_Value = 0,Time_Count = 0;
 
 int main(void)
 {
@@ -110,7 +112,7 @@ int main(void)
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
-	BMS_watchdog_Init();
+//	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -148,16 +150,16 @@ int main(void)
 			 * next values */
 			BMS_Estimate_Initial_Capacity();
 
+			/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
+			 * automatically restart the code */
+			BMS_watchdog_Init();
+
 			/* This flag must be cleared to avoid reinitializing all the peripherals again and again */
 			Wakeup_From_Sleep = false;
 		}
 
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
-
-		BMS_Status_LED_Toggle();
-
-		HAL_Delay(2100);
 
 		BMS_Watchdog_Refresh();
 
@@ -185,12 +187,13 @@ int main(void)
 		RecData = 0;
 
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
-		if (_25Hz_Flag == true && RecData == 'P')
+		if (_25Hz_Flag == true)
 		{
 			/* If switch is pressed then start counting the time */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
+				BMS_Debug_COM_Write_Data("*\r",2);
 			}
 			else
 			{
@@ -199,17 +202,30 @@ int main(void)
 				 * seconds then show SOH status on LEDs */
 				if(Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
 				{
-					BMS_Show_LED_Pattern(SOC);
+					SOC_SOH_Flag = true;
+//					BMS_Debug_COM_Write_Data("Press\r",6);
 				}
 				else if(Switch_Press_Time_Count >= LONG_PEROID)
 				{
-					BMS_Show_LED_Pattern(SOH);
+//					BMS_Show_LED_Pattern(SOH);
 				}
 
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
 			}
 
+			if(SOC_SOH_Flag == true && Time_Count <= 80)
+			{
+				Time_Count++;
+//				BMS_Debug_COM_Write_Data("&\r",2);
+				BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+			}
+			else if (Time_Count > 80)
+			{
+				SOC_SOH_Flag = false;
+				Time_Count = 0;
+				BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+			}
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
 			BMS_Read_Cell_Voltages();
@@ -351,24 +367,30 @@ int main(void)
 
 			if(Stop_Log_Var == false)
 			{
-				if (Log_All_Data() != RESULT_OK)
+				if (Log_All_Data() != RESULT_OK && Stop_Logging_Flag == false)
 				{
-//					BMS_Debug_COM_Write_Data("Write error\r",12);
-				}
-				else
-				{
-//					BMS_Status_LED_Toggle();
+					Log_Init_Counter++;
+					if(Log_Init_Counter <= 5)
+					{
+						BMS_Log_Init();
+					}
+					else
+					{
+						Stop_Logging_Flag = true;
+						Log_Init_Counter = 0;
+					}
 				}
 			}
 
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
-				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
+//				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
 
 			Loop_Rate_Counter++;
+//			BMS_Status_LED_Toggle();
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
@@ -376,13 +398,13 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
-			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
-			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
-			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
+//			uint8_t Length = 0;
+//			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+//			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+//			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+//			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 //			BMS_Debug_COM_Write_Data(Buffer, Length);

@@ -24,16 +24,16 @@ void MCU_Enter_Sleep_Mode()
 	RCC->APB1SMENR2 = 0x0;
 	RCC->APB2SMENR = 0x0;
 
-	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	GPIO_InitStruct.Mode = WAKEUP_EDGE;
-
-	/* Enable GPIOA clock */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	NVIC_SetPriority((IRQn_Type) (EXTI9_5_IRQn), 0x03);
-	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI9_5_IRQn));
+//	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
+//	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+//	GPIO_InitStruct.Mode = WAKEUP_EDGE;
+//
+//	/* Enable GPIOA clock */
+//	__HAL_RCC_GPIOA_CLK_ENABLE();
+//	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+//
+//	NVIC_SetPriority((IRQn_Type) (EXTI9_5_IRQn), 0x03);
+//	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI9_5_IRQn));
 
 	/* Reduce the System clock to below 2 MHz */
 	SystemClock_Decrease();
@@ -141,17 +141,17 @@ void Set_System_Clock_Frequency(void)
 
 /* ISR which handles the wake up of MCU from sleep mode and resumes the operation from where it
  * had left off */
-void EXTI9_5_IRQHandler(void)
-{
-  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
-  /* Once MCU is awaken either by external switch press or by Vref of BMS IC, resume the operation of
-   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
-   * is triggered by external event again */
-  if(Wakeup_From_Sleep == false && Sleep_Mode == true)
-  {
-	  MCU_Exit_Sleep_Mode();
-	  Wakeup_From_Sleep = true;
-	  Sleep_Mode = false;
-  }
-}
+//void EXTI9_5_IRQHandler(void)
+//{
+//  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
+//  /* Once MCU is awaken either by external switch press or by Vref of BMS IC, resume the operation of
+//   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
+//   * is triggered by external event again */
+//  if(Wakeup_From_Sleep == false && Sleep_Mode == true)
+//  {
+//	  MCU_Exit_Sleep_Mode();
+//	  Wakeup_From_Sleep = true;
+//	  Sleep_Mode = false;
+//  }
+//}
 

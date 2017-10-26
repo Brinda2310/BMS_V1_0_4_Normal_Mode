@@ -26,7 +26,7 @@
 #define LED_4											(1 << 5)
 #define LED_5											(1 << 2)
 #define LED_6											(1 << 0)
-#define BMS_SWITCH										(1 << 11)
+#define BMS_SWITCH										(1 << 8)
 
 /* Enums for patterns to be displayed on LEDs
  * @ SOC	: State of charge
@@ -35,6 +35,11 @@
 enum LED_Patterns
 {
 	SOC = 0, SOH
+};
+
+enum LED_Status
+{
+	HIDE_STATUS = 0,SHOW_STATUS
 };
 enum Switch_Status
 {
@@ -46,6 +51,6 @@ void BMS_Switch_Init();
 uint8_t BMS_Read_Switch_Status();
 void BMS_Status_LEDs_Init();
 void BMS_Status_LED_Toggle();
-void BMS_Show_LED_Pattern(uint8_t Battery_Capacity);
+void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status);
 
 #endif /* BMS_GPIOS_H_ */

@@ -56,7 +56,7 @@ static uint32_t GetLSIFrequency(void)
 
 	HAL_TIM_IC_Start_IT(&Input_Handle, TIM_CHANNEL_1);
 
-	while (uwCaptureNumber != 2)
+	while (uwCaptureNumber != 2 && Timeout-- > 0)
 	{
 	}
 
