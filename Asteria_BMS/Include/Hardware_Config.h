@@ -27,7 +27,7 @@
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define DEBUG_COM										DISABLE
+#define DEBUG_COM										ENABLE
 
 #define NUM_OF_USARTS									1
 #define NUM_OF_SPI_BUSES								1
