@@ -17,11 +17,11 @@
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
 
-#define SLOPE_5X									0.0746
+#define SLOPE_5X									0.0759
 #define SLOPE_50X									0.0831
 #define SLOPE_500X									0.0774
 
-#define CONSTANT_5X									95.4001
+#define CONSTANT_5X									55.2004
 #define CONSTANT_50X								127.6836
 #define CONSTANT_500X								96.6649
 

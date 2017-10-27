@@ -378,6 +378,7 @@ int main(void)
 					{
 						Stop_Logging_Flag = true;
 						Log_Init_Counter = 0;
+
 					}
 				}
 			}
@@ -390,7 +391,7 @@ int main(void)
 			}
 
 			Loop_Rate_Counter++;
-//			BMS_Status_LED_Toggle();
+			BMS_Status_LED_Toggle();
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
