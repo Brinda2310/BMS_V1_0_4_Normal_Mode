@@ -69,16 +69,13 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status)
 	if(Battery_Capacity == SOC)
 	{
 		Battery_Health = Get_BMS_Capacity_Remaining();
-		if(Battery_Health > 70.00f && Battery_Health <= 76.00f)
-		{
-			GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
-			GPIO_Write(LED4_PORT,LED_4,PIN_LOW);
-		}
-		else if (Battery_Health > 76.00f && Battery_Health <= 80.00f)
+		if(Battery_Health > 0.00f && Battery_Health <= 25.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
-			GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
-
+		}
+		else if (Battery_Health > 25.00f && Battery_Health <= 50.00f)
+		{
+			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
 #if DEBUG_COM == DISABLE
 			GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
 #endif
@@ -91,7 +88,7 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status)
 			GPIO_Write(LED3_PORT,LED_3,PIN_LOW);
 #endif
 		}
-		else if(Battery_Health > 90.00f)
+		else
 		{
 			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
 #if DEBUG_COM == DISABLE

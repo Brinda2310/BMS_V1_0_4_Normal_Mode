@@ -16,7 +16,7 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
-#define _2_SECONDS_TIME				80
+#define _2_SECONDS_TIME				75
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -45,7 +45,11 @@ char Buffer[400];
 uint8_t RecData = 0;
 bool Stop_Log_Var = false;
 uint8_t Log_Init_Counter = 0 ;
-bool Stop_Logging_Flag = false,SOC_SOH_Flag = false;
+bool Stop_Logging_Flag = false;
+
+/* These flags are used to indicate the external button has been pressed for more than specified time
+ * so that SOC or SOH status can be shown on LEDs */
+bool SOC_Flag = false,SOH_Flag = false;
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
@@ -163,8 +167,10 @@ int main(void)
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
+		/* Reload the watchdog timer value to avoid resetting of code */
 		BMS_Watchdog_Refresh();
 
+		/* Debug code to be removed after testing */
 		if(RecData == 'A')
 		{
 			/* Debug code to set the last charge/discharge status to charging to see whether discharge
@@ -200,12 +206,12 @@ int main(void)
 				 * seconds then show SOH status on LEDs */
 				if (Switch_Press_Time_Count >= SHORT_PERIOD	&& Switch_Press_Time_Count <= LONG_PEROID)
 				{
-					SOC_SOH_Flag = true;
-					Switch_Press_Time_Count = 0;
-					BMS_Debug_COM_Write_Data("Pressed\r", 8);
+					SOC_Flag = true;
 				}
 				else if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
+					SOC_Flag = false;
+					SOH_Flag = true;
 //					BMS_Show_LED_Pattern(SOH);
 				}
 			}
@@ -215,16 +221,26 @@ int main(void)
 				Switch_Press_Time_Count = 0;
 			}
 
-			if(SOC_SOH_Flag == true && Time_Count <= _2_SECONDS_TIME && Switch_Press_Time_Count == 0)
+			/* If switch is pressed for more than 500ms then show the SOC status on LEDs*/
+			if(SOC_Flag == true)
 			{
-				Time_Count++;
-				BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+				if(Time_Count <= _2_SECONDS_TIME)
+				{
+					Time_Count++;
+					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+					BMS_Debug_COM_Write_Data("Press\r",6);
+				}
+				else
+				{
+					SOC_Flag = false;
+					Time_Count = 0;
+					BMS_Debug_COM_Write_Data("Release\r",8);
+					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+				}
 			}
-			else if (SOC_SOH_Flag == true && Time_Count > _2_SECONDS_TIME)
+			else if (SOH_Flag == true)
 			{
-				SOC_SOH_Flag = false;
-				Time_Count = 0;
-				BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+				SOH_Flag = false;
 			}
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
@@ -385,7 +401,7 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
-//				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
+				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
 
@@ -408,7 +424,7 @@ int main(void)
 //			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-			BMS_Debug_COM_Write_Data(Buffer, Length);
+//			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			if(GPS_Data_Received == true)
 			{
