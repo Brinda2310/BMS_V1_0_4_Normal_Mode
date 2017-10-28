@@ -20,8 +20,8 @@
 
 static uint32_t GetLSIFrequency(void)
 {
+	uint16_t Timeout = 2000;
 #ifdef BMS_VERSION
-	uint16_t Timeout = 1000;
 	TIM_IC_InitTypeDef TIMInput_Config;
 
 	RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -34,6 +34,7 @@ static uint32_t GetLSIFrequency(void)
 
 	__HAL_RCC_TIM16_CLK_ENABLE();
 
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_3);
 	HAL_NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 5, 0);
 
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);

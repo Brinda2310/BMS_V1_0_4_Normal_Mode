@@ -112,7 +112,7 @@ int main(void)
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
-//	BMS_watchdog_Init();
+	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -161,6 +161,7 @@ int main(void)
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
+		HAL_Delay(1800);
 		BMS_Watchdog_Refresh();
 
 		if(RecData == 'A')
