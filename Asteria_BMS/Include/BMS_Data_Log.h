@@ -32,6 +32,9 @@
 #define TOTAL_FILE_COUNT_INDEX						22
 #define POWER_UP_NUMBER_INDEX						46
 
+#define _1MB_FILE_SIZE								1048576
+#define _200MB_FILE_SIZE							200
+
 /* Enums for SD card status
  * @SDC_NOT_PRESENT	: SD card is not present in the slot
  * @SDC_PRESENT		: SD card is present in the slot */
@@ -70,5 +73,6 @@ uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable);
 void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type);
 uint8_t Log_All_Data();
 void Stop_Log();
+unsigned long Get_BMS_Log_File_Size(void);
 
 #endif /* BMS_DATA_LOG_H_ */

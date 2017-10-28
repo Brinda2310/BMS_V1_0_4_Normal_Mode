@@ -18,7 +18,7 @@ UINT BytesWritten;
 static char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
-static char String_Buffer[512];
+static char String_Buffer[4096];
 
 /* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
@@ -39,10 +39,10 @@ static Log_SD_Summary_Vars SD_Summary_Data;
 static uint16_t Old_Power_Up_Num = 0;
 
 /* New file created only upon power up otherwise logging is done in the old file after wake up */
-static bool New_File_Created = false;
+static bool New_File_Created = false,File_Size_Exceed = false;
 
 /* Variable to create only one log file in each power up */
-static bool Power_Up_AP = false;
+static bool Power_Up_BMS = false;
 
 /* Function to create/check the log summary file. Create the BMS log files by reading the counts stored
  * in the summary file */
@@ -70,8 +70,8 @@ uint8_t Create_Log_Summary_File()
 	FRESULT Result;
 	/* We want to create only one log file during each power up. This flag does that job. It becomes false
 	 * as soon as file is created */
-	if(Power_Up_AP == false)
-		Power_Up_AP = true;
+	if(Power_Up_BMS == false)
+		Power_Up_BMS = true;
 
 	/* Very first thing that should happen is checking the log summary file and initialize the variables
 	 * used for indexing */
@@ -127,7 +127,7 @@ uint8_t Create_Log_Summary_File()
 	Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
 
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
-	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false)
+	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false && File_Size_Exceed == false)
 	{
 		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
 		SD_Summary_Data.Power_Up_Number++;
@@ -185,10 +185,10 @@ uint8_t Create_BMS_Log_File()
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
 	/* Make sure that only one is file created on each power up */
-	if (Power_Up_AP == true && New_File_Created == false)
+	if (Power_Up_BMS == true && New_File_Created == false)
 	{
 		/* Set this variable to false to avoid creating the new file */
-		Power_Up_AP = false;
+		Power_Up_BMS = false;
 
 		/* File name for log file inside the directory */
 		File_Name[Lcl_Counter++] = '0';
@@ -274,7 +274,17 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,\r\n");
+
+//		while((*String_Index) != 1021)
+//		{
+//			String_Buffer[(*String_Index)++] = 'A';
+//		}
+//
+//		String_Buffer[(*String_Index)++] = ',';
+//		String_Buffer[(*String_Index)++] = '\r';
+//		String_Buffer[(*String_Index)++] = '\n';
+
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 		{
 			Result = RESULT_ERROR;
@@ -314,6 +324,13 @@ uint8_t Log_All_Data()
 	uint8_t Char_Values[1];
 	uint8_t Result = RESULT_OK;
 
+	if((Get_BMS_Log_File_Size()/_1MB_FILE_SIZE) > _200MB_FILE_SIZE)
+	{
+		Power_Up_BMS = true;
+		New_File_Created = false;
+		File_Size_Exceed = true;
+		BMS_Log_Init();
+	}
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
@@ -397,10 +414,19 @@ uint8_t Log_All_Data()
 	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
+//	while(*String_Index != 1021)
+//	{
+//		String_Buffer[(*String_Index)++] = 'A';
+//	}
+//	String_Buffer[(*String_Index)++] = ',';
 	String_Buffer[(*String_Index)++] = '\r';
 	String_Buffer[(*String_Index)++] = '\n';
 
+//	uint8_t Buffer[20];
+//	uint16_t Len = sprintf(Buffer,"%d\r\n",*String_Index);
+//	BMS_Debug_COM_Write_Data(Buffer,Len);
 	/* Write all the variables stored in the buffer to the SD card */
+
 	if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 	{
 		Result = RESULT_ERROR;
@@ -455,6 +481,11 @@ void Stop_Log()
 
 	f_write(&BMS_Log_File, GPS_Date_Time, (UINT)length, &BytesWritten);
 	f_close(&BMS_Log_File);
+}
+
+unsigned long Get_BMS_Log_File_Size()
+{
+	return f_size(&BMS_Log_File);
 }
 
 /* Function to convert the user variables into CSV format
