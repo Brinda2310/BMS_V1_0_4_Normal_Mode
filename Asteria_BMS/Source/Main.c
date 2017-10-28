@@ -16,6 +16,8 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
+#define _2_SECONDS_TIME				80
+
 const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
@@ -161,7 +163,6 @@ int main(void)
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
-		HAL_Delay(1800);
 		BMS_Watchdog_Refresh();
 
 		if(RecData == 'A')
@@ -194,34 +195,32 @@ int main(void)
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
-				BMS_Debug_COM_Write_Data("*\r",2);
-			}
-			else
-			{
 				/* As soon as switch is released, check for timer count value. If count is in between
 				 * 500ms and 1 seconds then show the SOC status on LEDs and if count is more than 2
 				 * seconds then show SOH status on LEDs */
-				if(Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
+				if (Switch_Press_Time_Count >= SHORT_PERIOD	&& Switch_Press_Time_Count <= LONG_PEROID)
 				{
 					SOC_SOH_Flag = true;
-//					BMS_Debug_COM_Write_Data("Press\r",6);
+					Switch_Press_Time_Count = 0;
+					BMS_Debug_COM_Write_Data("Pressed\r", 8);
 				}
-				else if(Switch_Press_Time_Count >= LONG_PEROID)
+				else if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
 //					BMS_Show_LED_Pattern(SOH);
 				}
-
+			}
+			else
+			{
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
 			}
 
-			if(SOC_SOH_Flag == true && Time_Count <= 80)
+			if(SOC_SOH_Flag == true && Time_Count <= _2_SECONDS_TIME && Switch_Press_Time_Count == 0)
 			{
 				Time_Count++;
-//				BMS_Debug_COM_Write_Data("&\r",2);
 				BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
 			}
-			else if (Time_Count > 80)
+			else if (SOC_SOH_Flag == true && Time_Count > _2_SECONDS_TIME)
 			{
 				SOC_SOH_Flag = false;
 				Time_Count = 0;
@@ -379,7 +378,6 @@ int main(void)
 					{
 						Stop_Logging_Flag = true;
 						Log_Init_Counter = 0;
-
 					}
 				}
 			}
@@ -392,7 +390,7 @@ int main(void)
 			}
 
 			Loop_Rate_Counter++;
-			BMS_Status_LED_Toggle();
+//			BMS_Status_LED_Toggle();
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
@@ -404,11 +402,11 @@ int main(void)
 			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
 			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
 			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+			Length += sprintf(&Buffer[Length],"Temp = %0.3f%c\r",Get_BMS_Capacity_Remaining(),'%');
 			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
-//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-//			Buffer[Length++] = '\r';
+			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
+			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			if(GPS_Data_Received == true)
