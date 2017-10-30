@@ -205,6 +205,8 @@ typedef struct
 extern BMS_Status_Flags Status_Flag;
 extern uint32_t Error_Check_Data;
 extern I2C_Errors I2C_Error_Flag;
+extern bool BMS_Com_Restart;
+
 /* Structure holding all the variables to be logged on SD card and to be used in the code */
 typedef struct
 {

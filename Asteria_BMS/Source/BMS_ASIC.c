@@ -25,7 +25,7 @@ uint32_t Error_Check_Data = 0;
 ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
-static bool BMS_Com_Restart = false;
+bool BMS_Com_Restart = false;
 double C_D_Rate_Temp = 0;
 uint16_t Current_Gain = CURRENT_GAIN_5X;
 
@@ -195,7 +195,7 @@ void BMS_Force_Sleep()
 	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
 	while(I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
 	{
-		BMS_Com_Restart = true;;
+		BMS_Com_Restart = true;
 	}
 }
 

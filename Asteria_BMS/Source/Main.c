@@ -401,6 +401,7 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
+				BMS_Com_Restart = false;
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
@@ -425,12 +426,10 @@ int main(void)
 			Length += sprintf(&Buffer[Length],"Flight Status = %x\r",AP_Stat_Data.value);
 			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 			Buffer[Length++] = '\r';
-//			BMS_Debug_COM_Write_Data(Buffer, Length);
-
-			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
-			BMS_Debug_COM_Write_Data("\r",1);
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;
+			AP_Stat_Data.value = 0;
 			_1Hz_Flag = false;
 		}
 
@@ -470,10 +469,10 @@ int main(void)
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}
-		if(Flight_Stat_Received == true)
-		{
-			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
-			Flight_Stat_Received = false;
-		}
+//		if(Flight_Stat_Received == true)
+//		{
+//			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
+//			Flight_Stat_Received = false;
+//		}
 	}
 }
