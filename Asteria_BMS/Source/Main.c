@@ -422,53 +422,58 @@ int main(void)
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f%c\r",Get_BMS_Capacity_Remaining(),'%');
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
 //			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
-//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-//			Buffer[Length++] = '\r';
+			Length += sprintf(&Buffer[Length],"Flight Status = %x\r",AP_Stat_Data.value);
+			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+			Buffer[Length++] = '\r';
 //			BMS_Debug_COM_Write_Data(Buffer, Length);
 
-			if(GPS_Data_Received == true)
-			{
-				uint8_t Index = 0;
-				RTC_Info.Day = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Day |= (GPS_Data[Index++] - '0');
+			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
+			BMS_Debug_COM_Write_Data("\r",1);
 
-				RTC_Info.Date = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Date |= (GPS_Data[Index++] - '0');
-
-				RTC_Info.Month = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Month |= (GPS_Data[Index++] - '0');
-
-				Index++;
-				Index++;
-
-				RTC_Info.Year = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Year |= (GPS_Data[Index++] - '0');
-
-				Index++;
-
-				RTC_Info.Hours = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Hours |= (GPS_Data[Index++] - '0');
-
-				RTC_Info.Minutes = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Minutes |= (GPS_Data[Index++] - '0');
-
-				RTC_Info.Seconds = ((GPS_Data[Index++] - '0') << 4);
-				RTC_Info.Seconds |= (GPS_Data[Index++] - '0');
-
-				/* Set the date and time received from AP into the BMS RTC */
-				RTC_Set_Date(&RTC_Info.Day, &RTC_Info.Date, &RTC_Info.Month,
-						&RTC_Info.Year);
-				RTC_Set_Time(&RTC_Info.Hours, &RTC_Info.Minutes,
-						&RTC_Info.Seconds);
-				GPS_Data_Received = false;
-			}
-			if(Flight_Stat_Received == true)
-			{
-				BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
-				Flight_Stat_Received = false;
-			}
 			C_D_Rate_Temp = 0.0;
 			_1Hz_Flag = false;
+		}
+
+		if(GPS_Data_Received == true)
+		{
+			uint8_t Index = 0;
+			RTC_Info.Day = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Day |= (GPS_Data[Index++] - '0');
+
+			RTC_Info.Date = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Date |= (GPS_Data[Index++] - '0');
+
+			RTC_Info.Month = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Month |= (GPS_Data[Index++] - '0');
+
+			Index++;
+			Index++;
+
+			RTC_Info.Year = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Year |= (GPS_Data[Index++] - '0');
+
+			Index++;
+
+			RTC_Info.Hours = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Hours |= (GPS_Data[Index++] - '0');
+
+			RTC_Info.Minutes = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Minutes |= (GPS_Data[Index++] - '0');
+
+			RTC_Info.Seconds = ((GPS_Data[Index++] - '0') << 4);
+			RTC_Info.Seconds |= (GPS_Data[Index++] - '0');
+
+			/* Set the date and time received from AP into the BMS RTC */
+			RTC_Set_Date(&RTC_Info.Day, &RTC_Info.Date, &RTC_Info.Month,&RTC_Info.Year);
+			RTC_Set_Time(&RTC_Info.Hours, &RTC_Info.Minutes,&RTC_Info.Seconds);
+
+			/* Make this flag to false so as to serve next GPS date and time update request from AP */
+			GPS_Data_Received = false;
+		}
+		if(Flight_Stat_Received == true)
+		{
+			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
+			Flight_Stat_Received = false;
 		}
 	}
 }
