@@ -63,6 +63,8 @@ typedef struct
 }Log_SD_Summary_Vars;
 
 extern const uint8_t BMS_Firmware_Version[3];
+extern uint32_t ASIC_Restart_Count;
+extern Log_SD_Summary_Vars SD_Summary_Data;
 
 /* Function prototypes */
 uint8_t BMS_Log_Init();

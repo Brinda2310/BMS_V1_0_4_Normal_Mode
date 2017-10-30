@@ -401,8 +401,8 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
+				ASIC_Restart_Count++;
 				BMS_Com_Restart = false;
-				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
 
@@ -417,15 +417,17 @@ int main(void)
 		{
 			uint8_t Length = 0;
 			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"File size = %d\r",(int)Get_BMS_Log_File_Size());
-//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
-//			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+//			Length += sprintf(&Buffer[Length],"File size = %d\r",(int)Get_BMS_Log_File_Size());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f%c\r",Get_BMS_Capacity_Remaining(),'%');
-//			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-//			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
-			Length += sprintf(&Buffer[Length],"Flight Status = %x\r",AP_Stat_Data.value);
-			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-			Buffer[Length++] = '\r';
+			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
+			Length += sprintf(&Buffer[Length],"Power Up Number = %d\r",SD_Summary_Data.Power_Up_Number);
+			Length += sprintf(&Buffer[Length],"ASIC Restart = %d\r\r",(int)ASIC_Restart_Count);
+
+//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+//			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;

@@ -35,7 +35,7 @@ static char File_Name[50] = "";
 uint16_t Stop_Time_Cursor = 0;
 
 /* Variable to hold the respective values as mentioned in the name and the same variables which are updated in log_summary_file */
-static Log_SD_Summary_Vars SD_Summary_Data;
+Log_SD_Summary_Vars SD_Summary_Data;
 static uint16_t Old_Power_Up_Num = 0;
 
 /* New file created only upon power up otherwise logging is done in the old file after wake up */
@@ -43,6 +43,9 @@ static bool New_File_Created = false,File_Size_Exceed = false;
 
 /* Variable to create only one log file in each power up */
 static bool Power_Up_BMS = false;
+
+/* Variable to log the count for number of restarts occurred for ISL */
+uint32_t ASIC_Restart_Count = 0;
 
 /* Function to create/check the log summary file. Create the BMS log files by reading the counts stored
  * in the summary file */
@@ -274,7 +277,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,ISL_Restart_Count\r\n");
 
 //		while((*String_Index) != 1021)
 //		{
@@ -413,6 +416,9 @@ uint8_t Log_All_Data()
 
 	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
+
+	Int_Values[(*Index_Counter)++] = ASIC_Restart_Count;
+	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
 
 //	while(*String_Index != 1021)
 //	{
