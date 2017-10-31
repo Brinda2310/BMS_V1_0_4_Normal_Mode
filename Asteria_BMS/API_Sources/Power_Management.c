@@ -24,16 +24,16 @@ void MCU_Enter_Sleep_Mode()
 	RCC->APB1SMENR2 = 0x0;
 	RCC->APB2SMENR = 0x0;
 
-//	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
-//	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-//	GPIO_InitStruct.Mode = WAKEUP_EDGE;
-//
-//	/* Enable GPIOA clock */
-//	__HAL_RCC_GPIOA_CLK_ENABLE();
-//	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-//
-//	NVIC_SetPriority((IRQn_Type) (EXTI9_5_IRQn), 0x03);
-//	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI9_5_IRQn));
+	GPIO_InitStruct.Pin = MCU_WAKEUP_PIN;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Mode = WAKEUP_EDGE;
+
+	/* Enable GPIOA clock */
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	NVIC_SetPriority((IRQn_Type) (EXTI9_5_IRQn), 0x03);
+	HAL_NVIC_EnableIRQ((IRQn_Type) (EXTI9_5_IRQn));
 
 	/* Reduce the System clock to below 2 MHz */
 	SystemClock_Decrease();

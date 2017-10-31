@@ -9,6 +9,7 @@
 #define BMS_DATA_LOG_H_
 
 #include "ff.h"
+#include <BMS_Watchdog.h>
 
 /* Base number for converting the integer to strings */
 #define MAX_DIGITS_IN_COUNT							6		/* Specifies the maximum digits in decimal number */

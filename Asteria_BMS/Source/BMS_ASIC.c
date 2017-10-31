@@ -8,8 +8,13 @@
 #include <BMS_ASIC.h>
 #include <BMS_Timing.h>
 
+/* Battery Parameters */
+const uint8_t Battery_ID[] = "AA/BATT/001";
+const uint8_t BMS_Board_Serial_Number[] = "AA___";
+
 /* Data bytes to be sent over I2C to enable write to ERPROM */
 uint8_t EEPROM_ENABLE_DATA[2] = {0x89,0x01};
+
 /* Data bytes to be sent over I2C to enable write to RAM  */
 uint8_t RAM_ENABLE_DATA[2] = {0x89,0x00};
 
@@ -356,10 +361,10 @@ void BMS_Estimate_Initial_Capacity(void)
 	BMS_Data.Pack_Capacity_Remaining = Battery_Estimate;//(float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
 	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 
-	uint8_t Buffer[50];
-	uint8_t Length = sprintf(Buffer,"Batt Rem = %0.3f%c\r",BMS_Data.Pack_Capacity_Remaining,'%');
-	Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",BMS_Data.Pack_Capacity_Used);
-	BMS_Debug_COM_Write_Data(Buffer,Length);
+//	uint8_t Buffer[50];
+//	uint8_t Length = sprintf(Buffer,"Batt Rem = %0.3f%c\r",BMS_Data.Pack_Capacity_Remaining,'%');
+//	Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",BMS_Data.Pack_Capacity_Used);
+//	BMS_Debug_COM_Write_Data(Buffer,Length);
 }
 
 /* Function to calculate the pack capacity used over the time(dt = 30ms) */
@@ -585,7 +590,6 @@ float Get_BMS_Total_Pack_Cycles()
 {
 	return BMS_Data.Pack_Total_Cycles;
 }
-
 float Get_BMS_Charge_Discharge_Rate()
 {
 	return BMS_Data.Pack_Charge_Discharge_Rate;

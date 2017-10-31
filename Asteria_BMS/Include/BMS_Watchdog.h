@@ -12,6 +12,8 @@
 
 #define _2_SECONDS_WDG			2
 
+extern bool BMS_Watchdog_Enable;
+
 void BMS_watchdog_Init(void);
 void BMS_Watchdog_Refresh(void);
 

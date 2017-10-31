@@ -274,10 +274,33 @@ uint8_t Create_BMS_Log_File()
 		Stop_Time_Cursor = *String_Index + 8;
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
+
+		/* Fill the buffer with battery parameters */
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery ID:%s   ",Battery_ID);
+
+		if(BATTERY_TYPE == LI_POLYMER)
+		{
+			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Li-Polymer   ");
+		}
+		else if(BATTERY_TYPE == LI_ION)
+		{
+			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Li-Ion   ");
+		}
+		else
+		{
+			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Not defined   ");
+		}
+
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Number of Cells:%d   ",(int)BATT_NUMBER_OF_CELLS);
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cpacity(mAH):%0.2f   ",(float)BATT_MAH);
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cell Max(V):%0.2f   ",(float)BATT_CELL_VOLT_MAX);
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cell Min(V):%0.2f   ",(float)BATT_CELL_VOLT_MIN);
+		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Pack Cycles(V):%d   \r\n",(int)BATT_MAX_PACK_CYCLES);
+
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,ISL_Restart_Count\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,ISL_Restart_Count,Watchdog Flag,\r\n");
 
 //		while((*String_Index) != 1021)
 //		{
@@ -419,6 +442,9 @@ uint8_t Log_All_Data()
 
 	Int_Values[(*Index_Counter)++] = ASIC_Restart_Count;
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
+
+	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
+	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 //	while(*String_Index != 1021)
 //	{

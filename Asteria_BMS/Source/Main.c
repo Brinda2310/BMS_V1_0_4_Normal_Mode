@@ -66,7 +66,7 @@ int main(void)
 
 	/* Delay of 2 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(500);
+	Delay_Millis(1000);
 
 	/* Initialize the timer to 33mS(30Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -118,7 +118,7 @@ int main(void)
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
-	BMS_watchdog_Init();
+//	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -158,7 +158,7 @@ int main(void)
 
 			/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 			 * automatically restart the code */
-			BMS_watchdog_Init();
+//			BMS_watchdog_Init();
 
 			/* This flag must be cleared to avoid reinitializing all the peripherals again and again */
 			Wakeup_From_Sleep = false;

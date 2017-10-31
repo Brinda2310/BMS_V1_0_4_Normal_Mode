@@ -106,6 +106,17 @@
 #define CHARGE_CURRENT_CONSUMPTION					1000
 #define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
 
+/* Battery Parameters */
+#define LI_ION										1
+#define LI_POLYMER									2
+
+#define BATT_NUMBER_OF_CELLS						6
+#define BATT_MAH									11000
+#define BATT_CELL_VOLT_MAX							4.20
+#define BATT_CELL_VOLT_MIN							3.60
+#define BATTERY_TYPE								LI_POLYMER
+#define BATT_MAX_PACK_CYCLES						200
+
 /* Enums to define the write results;
  * @WRITE_OK	: Write operation is successful
  * @WRITE_ERROR	: Write operation is unsuccessful */
@@ -207,6 +218,10 @@ extern uint32_t Error_Check_Data;
 extern I2C_Errors I2C_Error_Flag;
 extern bool BMS_Com_Restart;
 
+/* Constant battery parameters */
+extern const uint8_t Battery_ID[];
+extern const uint8_t BMS_Board_Serial_Number[];
+
 /* Structure holding all the variables to be logged on SD card and to be used in the code */
 typedef struct
 {
@@ -276,4 +291,8 @@ float Get_BMS_Pack_Temperature(void);
 float Get_BMS_Charge_Discharge_Rate();
 float Get_BMS_Total_Pack_Cycles();
 
+
+/* Values to be loaded into the ISL for parameters
+ * temperature in hex = 0x5A6 for 70 degrees (0.635mV)
+ * */
 #endif /* BMS_BMS_H_ */
