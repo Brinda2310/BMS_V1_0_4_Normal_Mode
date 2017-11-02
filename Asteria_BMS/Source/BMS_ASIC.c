@@ -204,6 +204,118 @@ void BMS_Force_Sleep()
 	}
 }
 
+void BMS_Configure_Parameters(void)
+{
+	BMS_EEPROM_Access_Enable();
+
+}
+
+void BMS_Set_Over_Voltage_Threshold(uint8_t Test_Data)
+{
+	uint8_t Send_Data_Values[5];
+	uint32_t Pack_Data = 0;
+
+//	BMS_EEPROM_Access_Enable();
+
+	Send_Data_Values[0] = OV_THRESHOLD_ADDR;
+	Send_Data_Values[1] = 0x2A;
+	Send_Data_Values[2] = 0xAB;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,3);
+
+//	Send_Data_Values[0] = 0x01;
+//	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,2);
+//	BMS_RAM_Access_Enable();
+
+	uint8_t Address = OV_THRESHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 4);
+
+	char Buffer[20],Length = 0;
+	Length = sprintf(Buffer,"Set voltage : %x",Pack_Data);
+	BMS_Debug_COM_Write_Data(Buffer,Length);
+}
+
+/*static uint8_t BMS_Set_Over_Voltage_Recovery(void)
+{
+	uint8_t Result = 0xFF;
+
+
+	return Result;
+}
+
+static uint8_t BMS_Set_Under_Voltage_Threshold(void)
+{
+	uint8_t Result = 0xFF;
+
+
+	return Result;
+}
+
+static uint8_t BMS_Set_Under_Voltage_Recovery(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_OV_LockOut_Threshold(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_UV_LockOut_Threshold(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_End_of_Charge_Threshold(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_OV_Delay_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_UV_Delay_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_Open_Wiring_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_Internal_Temp_Threshold(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Disable_Cell_Balancing(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+*/
 /* Function to set the gain value to the EEPROM of BMS ASIC */
 uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 {

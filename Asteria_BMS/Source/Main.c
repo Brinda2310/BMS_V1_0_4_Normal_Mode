@@ -90,6 +90,8 @@ int main(void)
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
 
+	BMS_Set_Over_Voltage_Threshold(1);
+
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
 	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
@@ -171,26 +173,35 @@ int main(void)
 		BMS_Watchdog_Refresh();
 
 		/* Debug code to be removed after testing */
-		if(RecData == 'A')
+		switch(RecData)
 		{
-			/* Debug code to set the last charge/discharge status to charging to see whether discharge
-			 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
-			 * only if last state was charging */
-			NVIC_SystemReset();
-		}
-		else if (RecData == 'B')
-		{
-			AP_COM_Init(AP_COM_SMBUS_MODE);
-		}
-		else if (RecData == 'E')
-		{
-			Stop_Log();
-			Stop_Log_Var = true;
-		}
-		else if (RecData == 'F')
-		{
-			BMS_Log_Init();
-			Stop_Log_Var = false;
+			case 'A':
+				/* Debug code to set the last charge/discharge status to charging to see whether discharge
+				 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
+				 * only if last state was charging */
+				NVIC_SystemReset();
+				break;
+			case 'B':
+				AP_COM_Init(AP_COM_SMBUS_MODE);
+				break;
+			case 'C':
+				BMS_Set_Over_Voltage_Threshold(1);
+				break;
+			case 'D':
+				BMS_Set_Over_Voltage_Threshold(2);
+				break;
+			case 'E':
+				BMS_Set_Over_Voltage_Threshold(3);
+				break;
+			case 'F':
+				Stop_Log();
+				Stop_Log_Var = true;
+				break;
+			case 'G':
+				BMS_Log_Init();
+				Stop_Log_Var = false;
+				break;
+
 		}
 		RecData = 0;
 
@@ -415,6 +426,7 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
+			BMS_Status_LED_Toggle();
 			uint8_t Length = 0;
 			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
 //			Length += sprintf(&Buffer[Length],"File size = %d\r",(int)Get_BMS_Log_File_Size());

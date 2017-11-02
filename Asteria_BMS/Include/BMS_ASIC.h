@@ -56,6 +56,11 @@
 #define BATTERY_CELLS_COUNT							6
 
 /* BMS ISL94203 Internal register's addresses */
+#define OV_THRESHOLD_ADDR							0x00
+#define OV_RECOVERY_ADDR							0x02
+#define UV_THROSHOLD_ADDR							0x04
+
+
 #define USER_EEPROM_START_ADDR						0x50	/* ISL's user EEPROM start address */
 #define RAM_STATUS_REG_ADDR							0x80	/* ISL's RAM status flags address */
 #define PACK_CURRENT_ADDR							0x8E	/* ISL's pack current register address */
@@ -210,6 +215,20 @@ typedef struct
 	uint8_t I2C_Read_Pack_Temp_Flag:1;
 	uint8_t I2C_Set_Current_Gain_Flag:1;
 
+	uint8_t I2C_Set_OV_Thresh_Flag:1;
+	uint8_t I2C_Set_OV_Recovery_Flag:1;
+	uint8_t I2C_Set_UV_Thresh_Flag:1;
+	uint8_t I2C_Set_UV_Recovery_Flag:1;
+	uint8_t I2C_Set_OV_Lockout_Thresh_Flag:1;
+	uint8_t I2C_Set_UV_Lockout_Thresh_Flag:1;
+	uint8_t I2C_Set_EOC_Thresh_Flag:1;
+	uint8_t I2C_Set_IOT_Thresh_Flag:1;
+
+	uint8_t I2C_Disable_Cell_Balancing_Flag:1;
+	uint8_t I2C_Set_OV_Delay_Timeout_Flag:1;
+	uint8_t I2C_Set_UV_Delay_Timeout_Flag:1;
+	uint8_t I2C_Set_Open_Wiring_Timeout_Flag:1;
+
 }I2C_Errors;
 
 /* Variable which holds the value of all the status flags updated from ISL at 25Hz */
@@ -255,6 +274,23 @@ extern ISL_943203_Data BMS_Data;
 extern bool Last_Charge_Disharge_Status;
 extern uint16_t Current_Gain;
 extern double C_D_Rate_Temp;
+
+/* BMS IC configurations functions which will get called only at the start of the code */
+void BMS_Set_Over_Voltage_Threshold(uint8_t Test_Data);
+//uint8_t BMS_Set_Over_Voltage_Threshold(void);
+//uint8_t BMS_Set_Over_Voltage_Recovery(void);
+//uint8_t BMS_Set_Under_Voltage_Threshold(void);
+//uint8_t BMS_Set_Under_Voltage_Recovery(void);
+//uint8_t BMS_Set_OV_LockOut_Threshold(void);
+//uint8_t BMS_Set_UV_LockOut_Threshold(void);
+//uint8_t BMS_Set_End_of_Charge_Threshold(void);
+//uint8_t BMS_Set_OV_Delay_Timeout(void);
+//uint8_t BMS_Set_UV_Delay_Timeout(void);
+//uint8_t BMS_Set_Open_Wiring_Timeout(void);
+//
+//uint8_t BMS_Set_Internal_Temp_Threshold(void);
+//uint8_t BMS_Disable_Cell_Balancing(void);
+
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
