@@ -59,7 +59,14 @@
 #define OV_THRESHOLD_ADDR							0x00
 #define OV_RECOVERY_ADDR							0x02
 #define UV_THROSHOLD_ADDR							0x04
+#define UV_RECOVERY_ADDR							0x06
+#define OV_LOCKOUT_THRESHOLD_ADDR					0x08
+#define UV_LOCKOUT_THRESHOLD_ADDR					0x0A
+#define EOC_THRESHOLD_ADDR							0x0C
 
+#define INTERNAL_OT_THRESHOLD_ADDR					0x40
+#define INTERNAL_OT_RECOVERY_ADDR					0x42
+#define DISABLE_CELL_BALANCE_ADDR					0x87
 
 #define USER_EEPROM_START_ADDR						0x50	/* ISL's user EEPROM start address */
 #define RAM_STATUS_REG_ADDR							0x80	/* ISL's RAM status flags address */
@@ -276,15 +283,16 @@ extern uint16_t Current_Gain;
 extern double C_D_Rate_Temp;
 
 /* BMS IC configurations functions which will get called only at the start of the code */
-void BMS_Set_Over_Voltage_Threshold(uint8_t Test_Data);
-//uint8_t BMS_Set_Over_Voltage_Threshold(void);
-//uint8_t BMS_Set_Over_Voltage_Recovery(void);
-//uint8_t BMS_Set_Under_Voltage_Threshold(void);
-//uint8_t BMS_Set_Under_Voltage_Recovery(void);
-//uint8_t BMS_Set_OV_LockOut_Threshold(void);
-//uint8_t BMS_Set_UV_LockOut_Threshold(void);
-//uint8_t BMS_Set_End_of_Charge_Threshold(void);
-//uint8_t BMS_Set_OV_Delay_Timeout(void);
+void BMS_Configure_Parameters(void);
+//static void BMS_Set_Over_Voltage_Threshold(void);
+//static void BMS_Set_Over_Voltage_Threshold(void);
+//static void BMS_Set_Over_Voltage_Recovery(void);
+//static void BMS_Set_Under_Voltage_Threshold(void);
+//static void BMS_Set_Under_Voltage_Recovery(void);
+//static void BMS_Set_OV_LockOut_Threshold(void);
+//static void BMS_Set_UV_LockOut_Threshold(void);
+//static void BMS_Set_End_of_Charge_Threshold(void);
+//static uint8_t BMS_Set_OV_Delay_Timeout(void);
 //uint8_t BMS_Set_UV_Delay_Timeout(void);
 //uint8_t BMS_Set_Open_Wiring_Timeout(void);
 //

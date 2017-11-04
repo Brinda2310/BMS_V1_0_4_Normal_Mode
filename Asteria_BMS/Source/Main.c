@@ -90,7 +90,8 @@ int main(void)
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
 
-	BMS_Set_Over_Voltage_Threshold(1);
+	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
+	BMS_Configure_Parameters();
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
@@ -184,15 +185,6 @@ int main(void)
 			case 'B':
 				AP_COM_Init(AP_COM_SMBUS_MODE);
 				break;
-			case 'C':
-				BMS_Set_Over_Voltage_Threshold(1);
-				break;
-			case 'D':
-				BMS_Set_Over_Voltage_Threshold(2);
-				break;
-			case 'E':
-				BMS_Set_Over_Voltage_Threshold(3);
-				break;
 			case 'F':
 				Stop_Log();
 				Stop_Log_Var = true;
@@ -201,7 +193,6 @@ int main(void)
 				BMS_Log_Init();
 				Stop_Log_Var = false;
 				break;
-
 		}
 		RecData = 0;
 
@@ -440,7 +431,7 @@ int main(void)
 
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-			BMS_Debug_COM_Write_Data(Buffer, Length);
+//			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;
 			AP_Stat_Data.value = 0;

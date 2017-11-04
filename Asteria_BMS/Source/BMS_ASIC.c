@@ -26,6 +26,7 @@ uint32_t Current_Time = 0,Previous_Time = 0;
 
 bool Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
 uint32_t Error_Check_Data = 0;
+bool Configuration_OK = false;
 
 ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
@@ -204,118 +205,278 @@ void BMS_Force_Sleep()
 	}
 }
 
-void BMS_Configure_Parameters(void)
+static void BMS_Set_Over_Voltage_Threshold(void)
 {
-	BMS_EEPROM_Access_Enable();
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x1E2A;
+	uint16_t Pack_Data = 0;
 
-}
+	Send_Data_Values[Index++] = OV_THRESHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
 
-void BMS_Set_Over_Voltage_Threshold(uint8_t Test_Data)
-{
-	uint8_t Send_Data_Values[5];
-	uint32_t Pack_Data = 0;
-
-//	BMS_EEPROM_Access_Enable();
-
-	Send_Data_Values[0] = OV_THRESHOLD_ADDR;
-	Send_Data_Values[1] = 0x2A;
-	Send_Data_Values[2] = 0xAB;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,3);
-
-//	Send_Data_Values[0] = 0x01;
-//	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,2);
-//	BMS_RAM_Access_Enable();
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Send_Data_Values, Index);
 
 	uint8_t Address = OV_THRESHOLD_ADDR;
 
 	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 4);
+	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	char Buffer[20],Length = 0;
-	Length = sprintf(Buffer,"Set voltage : %x",Pack_Data);
-	BMS_Debug_COM_Write_Data(Buffer,Length);
+	if(Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-/*static uint8_t BMS_Set_Over_Voltage_Recovery(void)
+static void BMS_Set_Over_Voltage_Recovery(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0DD4;
+	uint16_t Pack_Data = 0;
 
+	Send_Data_Values[Index++] = OV_RECOVERY_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
 
-	return Result;
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = OV_RECOVERY_ADDR;
+
+	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Recovery_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_Under_Voltage_Threshold(void)
+static void BMS_Set_Under_Voltage_Threshold(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x1BA9;
+	uint16_t Pack_Data = 0;
 
+	Send_Data_Values[Index++] = UV_THROSHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
 
-	return Result;
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = UV_THROSHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_UV_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_Under_Voltage_Recovery(void)
+static void BMS_Set_Under_Voltage_Recovery(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0AAA;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = UV_RECOVERY_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = UV_RECOVERY_ADDR;
+
+	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data != 0x09FF || I2C_Error_Flag.I2C_Set_UV_Recovery_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_OV_LockOut_Threshold(void)
+static void BMS_Set_OV_LockOut_Threshold(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0E7F;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = OV_LOCKOUT_THRESHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = OV_LOCKOUT_THRESHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_UV_LockOut_Threshold(void)
+static void BMS_Set_UV_LockOut_Threshold(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0600;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = UV_LOCKOUT_THRESHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = UV_LOCKOUT_THRESHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_End_of_Charge_Threshold(void)
+static void BMS_Set_End_of_Charge_Threshold(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0DFF;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = EOC_THRESHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = EOC_THRESHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_OV_Delay_Timeout(void)
+//static uint8_t BMS_Set_OV_Delay_Timeout(void)
+//{
+//	uint8_t Result = 0xFF;
+//
+//	return Result;
+//}
+//
+//static uint8_t BMS_Set_UV_Delay_Timeout(void)
+//{
+//	uint8_t Result = 0xFF;
+//
+//	return Result;
+//}
+//
+//static uint8_t BMS_Set_Open_Wiring_Timeout(void)
+//{
+//	uint8_t Result = 0xFF;
+//
+//	return Result;
+//}
+//
+static void BMS_Set_Internal_OT_Threshold(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x05A6;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = INTERNAL_OT_THRESHOLD_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = INTERNAL_OT_THRESHOLD_ADDR;
+
+	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag == RESULT_OK)
+	{
+		Configuration_OK = true;
+	}
 }
 
-static uint8_t BMS_Set_UV_Delay_Timeout(void)
+static void BMS_Set_Internal_OT_Recovery(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Data_Value = 0x0591;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = INTERNAL_OT_RECOVERY_ADDR;
+	Send_Data_Values[Index++] = (Data_Value & 0xFF);
+	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = INTERNAL_OT_RECOVERY_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+
+	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2) == RESULT_OK)
+	{
+		if(Pack_Data == Data_Value)
+		{
+			Configuration_OK = true;
+		}
+	}
 }
 
-static uint8_t BMS_Set_Open_Wiring_Timeout(void)
+static void BMS_Disable_Cell_Balancing(void)
 {
-	uint8_t Result = 0xFF;
+	uint8_t Send_Data_Values[3],Index = 0;
+	uint16_t Pack_Data = 0;
 
-	return Result;
+	Send_Data_Values[Index++] = DISABLE_CELL_BALANCE_ADDR;
+	Send_Data_Values[Index++] = 0x00;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+
+	uint8_t Address = DISABLE_CELL_BALANCE_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+
+	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 1) == RESULT_OK)
+	{
+		if(Pack_Data == 0x00)
+		{
+			Configuration_OK = true;
+		}
+	}
 }
 
-static uint8_t BMS_Set_Internal_Temp_Threshold(void)
+void BMS_Configure_Parameters(void)
 {
-	uint8_t Result = 0xFF;
+	BMS_Set_Over_Voltage_Threshold();
+	BMS_Set_Over_Voltage_Recovery();
+	BMS_Set_Under_Voltage_Threshold();
+	BMS_Set_Under_Voltage_Recovery();
+	BMS_Set_OV_LockOut_Threshold();
+	BMS_Set_UV_LockOut_Threshold();
+	BMS_Set_End_of_Charge_Threshold();
+	BMS_Set_Internal_OT_Threshold();
+	BMS_Disable_Cell_Balancing();
+	BMS_Set_Internal_OT_Recovery();
 
-	return Result;
+	if(Configuration_OK == false)
+	{
+		BMS_Debug_COM_Write_Data("Configuration Failed\r",21);
+	}
 }
 
-static uint8_t BMS_Disable_Cell_Balancing(void)
-{
-	uint8_t Result = 0xFF;
-
-	return Result;
-}
-*/
 /* Function to set the gain value to the EEPROM of BMS ASIC */
 uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 {
