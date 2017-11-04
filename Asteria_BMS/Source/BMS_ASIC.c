@@ -25,7 +25,7 @@ uint32_t Error_Check_Data = 0;
 ISL_943203_Data BMS_Data;
 BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
-static bool BMS_Com_Restart = false;
+bool BMS_Com_Restart = false;
 double C_D_Rate_Temp = 0;
 uint16_t Current_Gain = CURRENT_GAIN_5X;
 

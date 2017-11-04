@@ -394,7 +394,7 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-	uint8_t State = 255;
+	static uint8_t State = 255;
 	Index = 0;
 
 	AddrMatchCode = AddrMatchCode << 1;
@@ -404,25 +404,11 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
-//			if(GPS_Data_Request == false)
-//			{
-//				uint8_t Reply_Byte = 0xAA;
-//				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-//				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-//				GPS_Data_Request = true;
-//			}
-//			if (SMBUS_RxData[0] == FLIGHT_STATUS_REG && Flight_Status_Request == false)
-//			{
-//				uint8_t Reply_Byte = 0xAA;
-//				Bytes_Count = FLIGHT_STATUS_DATA_SIZE;
-//				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-//				Flight_Status_Request = true;
-//			}
+			State = SMBUS_RxData[0];
 		}
 		/* Write request */
 		else
 		{
-			State = SMBUS_RxData[0];
 			switch(State)
 			{
 			case CELL1_VOLTAGE_REG:
