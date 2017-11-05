@@ -40,6 +40,8 @@ uint32_t Discharge_Time_Count = 0;
 /* Variable to avoid multiple increments of the same cycle either charging or discharging */
 bool Update_Pack_Cycles = false;
 
+uint32_t Current_Time_Instant = 0;
+
 /* Debug code variables definition; to be removed after testing */
 char Buffer[400];
 uint8_t RecData = 0;
@@ -196,6 +198,21 @@ int main(void)
 		}
 		RecData = 0;
 
+		if(SMBUS_Request == true)
+		{
+			Current_Time_Instant = Get_System_Time_Millis();
+			if((Current_Time_Instant - SMBUS_Request_Start_Time) > 5)
+			{
+				SMBUS_Request = false;
+				AP_COM_Init(AP_COM_SMBUS_MODE);
+				BMS_Debug_COM_Write_Data("SMBUS restart\r",14);
+			}
+		}
+		else
+		{
+			Current_Time_Instant = Get_System_Time_Millis();
+			SMBUS_Request_Start_Time = Current_Time_Instant;
+		}
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
@@ -246,10 +263,13 @@ int main(void)
 			}
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-			BMS_Read_Cell_Voltages();
-			BMS_Read_Pack_Voltage();
-			BMS_Read_Pack_Current();
-			BMS_Read_Pack_Temperature();
+			if(Status_Flag.Internal_Scan_Progress == NO)
+			{
+				BMS_Read_Cell_Voltages();
+				BMS_Read_Pack_Voltage();
+				BMS_Read_Pack_Current();
+				BMS_Read_Pack_Temperature();
+			}
 			BMS_Read_RAM_Status_Register();
 			BMS_Estimate_Capacity_Used();
 
@@ -405,6 +425,7 @@ int main(void)
 				BMS_ASIC_Init();
 				ASIC_Restart_Count++;
 				BMS_Com_Restart = false;
+				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
 
@@ -419,19 +440,18 @@ int main(void)
 		{
 			BMS_Status_LED_Toggle();
 			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-//			Length += sprintf(&Buffer[Length],"File size = %d\r",(int)Get_BMS_Log_File_Size());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
-			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-//			Length += sprintf(&Buffer[Length],"Temp = %0.3f%c\r",Get_BMS_Capacity_Remaining(),'%');
-			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r",C_D_Rate_Temp);
-			Length += sprintf(&Buffer[Length],"Power Up Number = %d\r",SD_Summary_Data.Power_Up_Number);
-			Length += sprintf(&Buffer[Length],"ASIC Restart = %d\r\r",(int)ASIC_Restart_Count);
 
+			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+//			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+//			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+//			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-//			BMS_Debug_COM_Write_Data(Buffer, Length);
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;
 			AP_Stat_Data.value = 0;

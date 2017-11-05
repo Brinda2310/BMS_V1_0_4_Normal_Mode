@@ -634,10 +634,10 @@ void BMS_Estimate_Initial_Capacity(void)
 	BMS_Data.Pack_Capacity_Remaining = Battery_Estimate;//(float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
 	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 
-//	uint8_t Buffer[50];
-//	uint8_t Length = sprintf(Buffer,"Batt Rem = %0.3f%c\r",BMS_Data.Pack_Capacity_Remaining,'%');
-//	Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",BMS_Data.Pack_Capacity_Used);
-//	BMS_Debug_COM_Write_Data(Buffer,Length);
+	uint8_t Buffer[80];
+	uint8_t Length = sprintf(Buffer,"Batt Rem = %0.3fmA\r",BMS_Data.Pack_Capacity_Remaining);
+	Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmA\r",BMS_Data.Pack_Capacity_Used);
+	BMS_Debug_COM_Write_Data(Buffer,Length);
 }
 
 /* Function to calculate the pack capacity used over the time(dt = 30ms) */

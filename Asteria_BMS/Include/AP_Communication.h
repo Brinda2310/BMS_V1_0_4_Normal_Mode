@@ -63,8 +63,8 @@ enum Flight_Status
 
 typedef union
 {
-	uint8_t bytes[32];
-	float values[8];
+	uint8_t bytes[40];
+	float values[10];
 }Pack_Info;
 
 typedef union

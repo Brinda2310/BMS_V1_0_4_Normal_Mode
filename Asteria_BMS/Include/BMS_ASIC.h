@@ -17,11 +17,11 @@
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
 
-#define SLOPE_5X									0.0759
+#define SLOPE_5X									0.07713
 #define SLOPE_50X									0.0831
 #define SLOPE_500X									0.0774
 
-#define CONSTANT_5X									55.2004
+#define CONSTANT_5X									54.9544
 #define CONSTANT_50X								127.6836
 #define CONSTANT_500X								96.6649
 
@@ -42,8 +42,8 @@
 #define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
 
 //#define TATTU_BATTERY_9000
-//#define TATTU_BATTERY_10000
-#define MAX_AMP_11000
+#define TATTU_BATTERY_10000
+//#define MAX_AMP_11000
 
 #ifdef TATTU_BATTERY_9000									/* TATTU Battery has capacity of 9000mAH */
 	#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
@@ -281,6 +281,7 @@ extern ISL_943203_Data BMS_Data;
 extern bool Last_Charge_Disharge_Status;
 extern uint16_t Current_Gain;
 extern double C_D_Rate_Temp;
+extern bool BMS_Com_Restart;
 
 /* BMS IC configurations functions which will get called only at the start of the code */
 void BMS_Configure_Parameters(void);
@@ -298,7 +299,6 @@ void BMS_Configure_Parameters(void);
 //
 //uint8_t BMS_Set_Internal_Temp_Threshold(void);
 //uint8_t BMS_Disable_Cell_Balancing(void);
-
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
