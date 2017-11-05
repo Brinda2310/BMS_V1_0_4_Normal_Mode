@@ -22,7 +22,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		2			// Beta code release--modified when code is being merged to test_develop branch.
+		3			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
@@ -444,13 +444,13 @@ int main(void)
 			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
 			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
 			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
 //			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
 //			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
-//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-//			Buffer[Length++] = '\r';
+			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;
