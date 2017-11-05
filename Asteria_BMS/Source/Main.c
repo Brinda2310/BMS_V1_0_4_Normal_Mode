@@ -37,6 +37,8 @@ uint32_t Discharge_Time_Count = 0;
 /* Variable to avoid multiple increments of the same cycle either charging or discharging */
 bool Update_Pack_Cycles = false;
 
+uint32_t Current_Time_Instant = 0;
+
 /* Debug code variables definition; to be removed after testing */
 char Buffer[400];
 uint8_t RecData = 0;
@@ -173,6 +175,21 @@ int main(void)
 		}
 		RecData = 0;
 
+		if(SMBUS_Request == true)
+		{
+			Current_Time_Instant = Get_System_Time_Millis();
+			if((Current_Time_Instant - SMBUS_Request_Start_Time) > 5)
+			{
+				SMBUS_Request = false;
+				AP_COM_Init(AP_COM_SMBUS_MODE);
+				BMS_Debug_COM_Write_Data("SMBUS restart\r",14);
+			}
+		}
+		else
+		{
+			Current_Time_Instant = Get_System_Time_Millis();
+			SMBUS_Request_Start_Time = Current_Time_Instant;
+		}
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{

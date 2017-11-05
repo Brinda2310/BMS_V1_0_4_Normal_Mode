@@ -17,11 +17,14 @@
 #if I2C1_MODE == SMBUS_MODE || I2C3_MODE == SMBUS_MODE
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
-    uint8_t SMBUS_RxData[20];
+    volatile uint8_t SMBUS_RxData[20];
     uint16_t Bytes_Count = 1;
-    uint8_t GPS_Data_Request = false,Flight_Status_Request = false;
-    uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
-    uint8_t Index = 0, Reply_Byte = 0xAA;
+    volatile uint8_t GPS_Data_Request = false,Flight_Status_Request = false;
+    volatile uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
+    volatile uint8_t SMBUS_Request = false;
+    volatile uint8_t Index = 0, Reply_Byte = 0xAA;
+    volatile uint32_t SMBUS_Request_Start_Time = 0;
+	static uint8_t State = 255;
 #endif
 #endif
 
@@ -362,16 +365,23 @@ void I2C3_EV_IRQHandler(void)
 
 void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+//	SMBUS_Request = false;
+//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+	SMBUS_Request = false;
+//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
+
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+	SMBUS_Request = false;
+//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
 	/* This function will called when all the bytes mentioned in the address callback function
 	 * are received */
 	if(GPS_Data_Request == true)
@@ -388,18 +398,20 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 		Flight_Status_Request = false;
 		Flight_Stat_Received = true;
 	}
-
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-	static uint8_t State = 255;
 	Index = 0;
 
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
 	{
+		SMBUS_Request = true;
+
+		SMBUS_Request_Start_Time= Get_System_Time_Millis();
+
 		/* Read request (AP requests BMS to send the data as per the packet index */
 		if(TransferDirection == 0)
 		{
@@ -462,8 +474,11 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 			default:
 				break;
 			}
-			HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
+			if(Bytes_Count == 1)
+			{
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
 					(Index * 4),SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+			}
 		}
 	}
 }

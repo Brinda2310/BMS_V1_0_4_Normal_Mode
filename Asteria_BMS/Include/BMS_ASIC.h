@@ -42,8 +42,8 @@
 #define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
 
 //#define TATTU_BATTERY_9000
-//#define TATTU_BATTERY_10000
-#define MAX_AMP_11000
+#define TATTU_BATTERY_10000
+//#define MAX_AMP_11000
 
 #ifdef TATTU_BATTERY_9000									/* TATTU Battery has capacity of 9000mAH */
 	#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
