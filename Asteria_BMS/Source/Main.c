@@ -66,11 +66,11 @@ int main(void)
 	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();
 
-	/* Delay of 2 Seconds is required to make sure BMS is not polled before it's POR cycle otherwise
+	/* Delay of 50 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(1000);
+	Delay_Millis(50);
 
-	/* Initialize the timer to 33mS(30Hz) and the same is used to achieve different loop rates */
+	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
 	/* Initialize the USART to 115200 baud rate to debug the code */
