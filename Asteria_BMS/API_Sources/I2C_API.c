@@ -394,8 +394,9 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-	uint8_t State = 255;
+	static uint8_t State = 255;
 	Index = 0;
+	bool Default_Case = false;
 
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
@@ -426,7 +427,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 			switch(State)
 			{
 			case CELL1_VOLTAGE_REG:
-				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				Pack_Data.values[Index++] = Get_Cell1_Voltage();
 				Bytes_Count = 1;
 				break;
 			case CELL2_VOLTAGE_REG:
@@ -459,7 +460,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				break;
 			case GPS_PACKET_REG:
 				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
 				GPS_Data_Request = true;
 				break;
 			case ALL_CELL_VOLTAGES_REG:
@@ -474,10 +475,14 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				Bytes_Count = 1;
 				break;
 			default:
+				Default_Case = true;
 				break;
 			}
-			HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
-					(Index * 4),SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+			if(Default_Case == false)
+			{
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
+					(Index * 4),SMBUS_AUTOEND_MODE);
+			}
 		}
 	}
 }

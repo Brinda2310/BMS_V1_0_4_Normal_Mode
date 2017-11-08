@@ -238,6 +238,7 @@ extern ISL_943203_Data BMS_Data;
 extern bool Last_Charge_Disharge_Status;
 extern uint16_t Current_Gain;
 extern double C_D_Rate_Temp;
+extern bool BMS_Com_Restart;
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();

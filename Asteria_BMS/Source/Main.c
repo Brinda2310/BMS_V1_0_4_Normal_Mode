@@ -353,6 +353,7 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
+				BMS_Com_Restart = false;
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 				Delay_Millis(3);
 			}
