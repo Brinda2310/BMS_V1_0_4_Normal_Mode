@@ -394,7 +394,7 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-	static uint8_t State = 255;
+	uint8_t State = 255;
 	Index = 0;
 	bool Default_Case = false;
 

@@ -66,7 +66,7 @@ int main(void)
 	BMS_Debug_COM_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-	BMS_Status_LEDs_Init();
+//	BMS_Status_LEDs_Init();
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/
@@ -367,12 +367,14 @@ int main(void)
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
 			uint8_t Length = 0;
-			Length = sprintf(Buffer,"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
-			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
-			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
+			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"%0.3fV\r%0.3fV\r%0.3fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+			Length += sprintf(&Buffer[Length],"%0.3fV\r%0.3fV\r%0.3fV\r\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+//			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
+//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
+//			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
+//			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
