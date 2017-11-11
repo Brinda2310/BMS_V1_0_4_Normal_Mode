@@ -40,13 +40,9 @@ void BMS_ASIC_Init()
 {
 	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Init_Flag = I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
-	while((I2C_Error_Flag.I2C_Init_Flag != RESULT_OK) && Max_Tries-- > 1)
+	while (I2C_Error_Flag.I2C_Init_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
 		BMS_Com_Restart = true;
-	}
-	if(Max_Tries < 1)
-	{
-		BMS_Debug_COM_Write_Data("Power restart is needed\r",24);
 	}
 }
 
@@ -199,7 +195,7 @@ void BMS_Force_Sleep()
 {
 	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
-	while(I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
+	while (I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
 	{
 		BMS_Com_Restart = true;
 	}
@@ -222,9 +218,13 @@ static void BMS_Set_Over_Voltage_Threshold(void)
 	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if(Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Thresh_Flag == RESULT_OK)
+	if(Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -245,9 +245,13 @@ static void BMS_Set_Over_Voltage_Recovery(void)
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Recovery_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -268,9 +272,13 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_UV_Thresh_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -291,9 +299,13 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data != 0x09FF || I2C_Error_Flag.I2C_Set_UV_Recovery_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -314,9 +326,13 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -337,9 +353,13 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -360,9 +380,13 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -404,9 +428,13 @@ static void BMS_Set_Internal_OT_Threshold(void)
 	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value || I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag == RESULT_OK)
+	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
+	}
+	else
+	{
+		Configuration_OK = false;
 	}
 }
 
@@ -432,6 +460,10 @@ static void BMS_Set_Internal_OT_Recovery(void)
 		{
 			Configuration_OK = true;
 		}
+		else
+		{
+			Configuration_OK = false;
+		}
 	}
 }
 
@@ -455,6 +487,10 @@ static void BMS_Disable_Cell_Balancing(void)
 		{
 			Configuration_OK = true;
 		}
+		else
+		{
+			Configuration_OK = false;
+		}
 	}
 }
 
@@ -474,6 +510,10 @@ void BMS_Configure_Parameters(void)
 	if(Configuration_OK == false)
 	{
 		BMS_Debug_COM_Write_Data("Configuration Failed\r",21);
+	}
+	else
+	{
+		BMS_Debug_COM_Write_Data("Configuration OK\r",17);
 	}
 }
 
@@ -852,6 +892,7 @@ float Get_BMS_Pack_Current()
 				(Temp_Current * SLOPE_5X) + CONSTANT_5X;
 	}
 
+	Temp_Current = 34.56;
 	return Temp_Current;
 }
 

@@ -9,6 +9,7 @@
 #define BMS_DATA_LOG_H_
 
 #include "ff.h"
+#include <SD_SPI.h>
 #include <BMS_Watchdog.h>
 
 /* Base number for converting the integer to strings */

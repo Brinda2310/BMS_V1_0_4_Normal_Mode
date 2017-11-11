@@ -77,11 +77,11 @@ int main(void)
 	BMS_Debug_COM_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-	BMS_Status_LEDs_Init();
+//	BMS_Status_LEDs_Init();
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/
-	BMS_Switch_Init();
+//	BMS_Switch_Init();
 
 	/* Configure the ISL94203 I2C communication to 100KHz */
 	BMS_ASIC_Init();
@@ -93,7 +93,7 @@ int main(void)
 	RTC_Init();
 
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
-	BMS_Configure_Parameters();
+//	BMS_Configure_Parameters();
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
@@ -198,21 +198,6 @@ int main(void)
 		}
 		RecData = 0;
 
-		if(SMBUS_Request == true)
-		{
-			Current_Time_Instant = Get_System_Time_Millis();
-			if((Current_Time_Instant - SMBUS_Request_Start_Time) > 5)
-			{
-				SMBUS_Request = false;
-				AP_COM_Init(AP_COM_SMBUS_MODE);
-				BMS_Debug_COM_Write_Data("SMBUS restart\r",14);
-			}
-		}
-		else
-		{
-			Current_Time_Instant = Get_System_Time_Millis();
-			SMBUS_Request_Start_Time = Current_Time_Instant;
-		}
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
@@ -241,35 +226,32 @@ int main(void)
 			}
 
 			/* If switch is pressed for more than 500ms then show the SOC status on LEDs*/
-			if(SOC_Flag == true)
-			{
-				if(Time_Count <= _2_SECONDS_TIME)
-				{
-					Time_Count++;
-					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
-					BMS_Debug_COM_Write_Data("Press\r",6);
-				}
-				else
-				{
-					SOC_Flag = false;
-					Time_Count = 0;
-					BMS_Debug_COM_Write_Data("Release\r",8);
-					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
-				}
-			}
-			else if (SOH_Flag == true)
-			{
-				SOH_Flag = false;
-			}
+//			if(SOC_Flag == true)
+//			{
+//				if(Time_Count <= _2_SECONDS_TIME)
+//				{
+//					Time_Count++;
+//					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+//					BMS_Debug_COM_Write_Data("Press\r",6);
+//				}
+//				else
+//				{
+//					SOC_Flag = false;
+//					Time_Count = 0;
+//					BMS_Debug_COM_Write_Data("Release\r",8);
+//					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+//				}
+//			}
+//			else if (SOH_Flag == true)
+//			{
+//				SOH_Flag = false;
+//			}
 			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-			if(Status_Flag.Internal_Scan_Progress == NO)
-			{
-				BMS_Read_Cell_Voltages();
-				BMS_Read_Pack_Voltage();
-				BMS_Read_Pack_Current();
-				BMS_Read_Pack_Temperature();
-			}
+			BMS_Read_Cell_Voltages();
+			BMS_Read_Pack_Voltage();
+			BMS_Read_Pack_Current();
+			BMS_Read_Pack_Temperature();
 			BMS_Read_RAM_Status_Register();
 			BMS_Estimate_Capacity_Used();
 
@@ -403,19 +385,15 @@ int main(void)
 				}
 			}
 
-			if(Stop_Log_Var == false)
+			if(SdStatus == SD_PRESENT)
 			{
-				if (Log_All_Data() != RESULT_OK && Stop_Logging_Flag == false)
+				if (Log_All_Data() != RESULT_OK)
 				{
 					Log_Init_Counter++;
-					if(Log_Init_Counter <= 5)
+					if (Log_Init_Counter >= 5)
 					{
-						BMS_Log_Init();
-					}
-					else
-					{
-						Stop_Logging_Flag = true;
 						Log_Init_Counter = 0;
+						BMS_Log_Init();
 					}
 				}
 			}
@@ -423,10 +401,8 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
-				ASIC_Restart_Count++;
-				BMS_Com_Restart = false;
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
-				Delay_Millis(3);
+				BMS_Com_Restart = false;
 			}
 
 			Loop_Rate_Counter++;
@@ -438,19 +414,19 @@ int main(void)
 		 * are initialized properly */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
-			BMS_Status_LED_Toggle();
+			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
 			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
 			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
 			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
 //			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
 //			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
-			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-			Buffer[Length++] = '\r';
+//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+//			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			C_D_Rate_Temp = 0.0;

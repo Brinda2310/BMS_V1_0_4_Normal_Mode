@@ -365,23 +365,18 @@ void I2C3_EV_IRQHandler(void)
 
 void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
-//	SMBUS_Request = false;
-//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 	SMBUS_Request = false;
-//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
 
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
-	SMBUS_Request = false;
-//	SMBUS_Request_Start_Time = Get_System_Time_Millis();
 	/* This function will called when all the bytes mentioned in the address callback function
 	 * are received */
 	if(GPS_Data_Request == true)
@@ -404,6 +399,7 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
 	Index = 0;
+	bool Default_Case = false;
 
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
@@ -416,15 +412,15 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
-			State = SMBUS_RxData[0];
 		}
 		/* Write request */
 		else
 		{
+			State = SMBUS_RxData[0];
 			switch(State)
 			{
 			case CELL1_VOLTAGE_REG:
-				Pack_Data.values[Index++] = Get_Cell2_Voltage();
+				Pack_Data.values[Index++] = Get_Cell1_Voltage();
 				Bytes_Count = 1;
 				break;
 			case CELL2_VOLTAGE_REG:
@@ -457,7 +453,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				break;
 			case GPS_PACKET_REG:
 				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
 				GPS_Data_Request = true;
 				break;
 			case FLIGHT_STATUS_REG:
@@ -477,12 +473,13 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				Bytes_Count = 1;
 				break;
 			default:
+				Default_Case = true;
 				break;
 			}
-			if(Bytes_Count == 1)
+			if(Default_Case == false)
 			{
 				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],
-					(Index * 4),SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+					(Index * 4),SMBUS_AUTOEND_MODE);
 			}
 		}
 	}
