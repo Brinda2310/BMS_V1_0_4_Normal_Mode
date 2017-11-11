@@ -892,7 +892,6 @@ float Get_BMS_Pack_Current()
 				(Temp_Current * SLOPE_5X) + CONSTANT_5X;
 	}
 
-	Temp_Current = 34.56;
 	return Temp_Current;
 }
 
