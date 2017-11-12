@@ -32,32 +32,38 @@ uint8_t BMS_Read_Switch_Status()
 /* Function to initialize the LEDs connected to respective GPIOs of MCU */
 void BMS_Status_LEDs_Init()
 {
-	GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
 #if DEBUG_COM == DISABLE
+	GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
 	GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
 	GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
-#endif
 	GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
 
 	GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
 	GPIO_Write(LED2_PORT,LED_2,PIN_HIGH);
 	GPIO_Write(LED3_PORT,LED_3,PIN_HIGH);
 	GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
+#endif
+
+#if BOARD_STATUS_ERROR_LED == ENABLE
+	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
+
+	GPIO_Write(LED5_PORT,LED_5,PIN_HIGH);
+	GPIO_Write(LED6_PORT,LED_6,PIN_HIGH);
+#endif
+
 }
 
 /* Function to toggle the status LED connected on STM32L4 dev board; Used only for debugging */
 void BMS_Status_LED_Toggle()
 {
-	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
 #if DEBUG_COM == DISABLE
+	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
 	GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
 	GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
-#endif
 	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
-//	GPIO_Write(LED5_PORT,LED_5,PIN_TOGGLE);
-//	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
+#endif
+	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
 
 /* Function to show the LED pattern upon switch press; It shows SOC and SOH based

@@ -2,8 +2,8 @@
  ******************************************************************************
  * @file    Main.c
  * @author  Nikhil Ingale
- * @version V1.0.0
- * @date    27-May-2017
+ * @version V1.0.3
+ * @date    12-Nov-2017
  * @brief   Default main function.
  ******************************************************************************
 */
@@ -27,23 +27,27 @@ const uint8_t BMS_Firmware_Version[3] =
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
 uint32_t Switch_Press_Time_Count = 0;
+
 /* Variable to keep the track of time when there is no current consumption so as to force the ISL to sleep */
 uint32_t BMS_Sleep_Time_Count = 0;
+
 /* Variable to keep the track of time when ISL goes to sleep so as to put MCU in sleep mode */
 uint32_t MCU_Sleep_Time_Count = 0;
 
 /* Variable to keep the track of time since charging is started and increment the cycles accordingly */
 uint32_t Charge_Time_Count = 0;
+
 /* Variable to keep the track of time since discharging is started and increment the cycles accordingly */
 uint32_t Discharge_Time_Count = 0;
 
 /* Variable to avoid multiple increments of the same cycle either charging or discharging */
 bool Update_Pack_Cycles = false;
 
-uint32_t Current_Time_Instant = 0;
+/* Debug code variables definition; Allocate the buffer size only if debugging is to be done */
+#if DEBUG_COM == ENABLE
+	char Buffer[400];
+#endif
 
-/* Debug code variables definition; to be removed after testing */
-char Buffer[400];
 uint8_t RecData = 0;
 bool Stop_Log_Var = false;
 uint8_t Log_Init_Counter = 0 ;
@@ -66,9 +70,9 @@ int main(void)
 	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();
 
-	/* Delay of 50 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
+	/* Delay of 100 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
-	Delay_Millis(50);
+	Delay_Millis(100);
 
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -77,11 +81,11 @@ int main(void)
 	BMS_Debug_COM_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-//	BMS_Status_LEDs_Init();
+	BMS_Status_LEDs_Init();
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/
-//	BMS_Switch_Init();
+	BMS_Switch_Init();
 
 	/* Configure the ISL94203 I2C communication to 100KHz */
 	BMS_ASIC_Init();
@@ -187,14 +191,6 @@ int main(void)
 			case 'B':
 				AP_COM_Init(AP_COM_SMBUS_MODE);
 				break;
-			case 'F':
-				Stop_Log();
-				Stop_Log_Var = true;
-				break;
-			case 'G':
-				BMS_Log_Init();
-				Stop_Log_Var = false;
-				break;
 		}
 		RecData = 0;
 
@@ -211,6 +207,7 @@ int main(void)
 				if (Switch_Press_Time_Count >= SHORT_PERIOD	&& Switch_Press_Time_Count <= LONG_PEROID)
 				{
 					SOC_Flag = true;
+					BMS_Debug_COM_Write_Data("Press\r",6);
 				}
 				else if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
@@ -406,7 +403,7 @@ int main(void)
 			}
 
 			Loop_Rate_Counter++;
-//			BMS_Status_LED_Toggle();
+			BMS_Status_LED_Toggle();
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
