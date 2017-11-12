@@ -21,31 +21,61 @@ uint8_t RAM_ENABLE_DATA[2] = {0x89,0x00};
 /* Data bytes to be sent over I2C to force BMS IC to sleep mode */
 uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 
+/* Variable to calculate the discharge rate of pack */
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
 uint32_t Current_Time = 0,Previous_Time = 0;
 
-bool Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
-uint32_t Error_Check_Data = 0;
-bool Configuration_OK = false;
-
+/* Object of the structure holding all the data variables in which queried data is stored and used in the code */
 ISL_943203_Data BMS_Data;
+
+/* Object of the structure which holds the value of all the status flags updated from ISL at 25Hz */
 BMS_Status_Flags Status_Flag;
+
+/* Object of the structure which holds all I2C errors occurred during read and write operation */
 I2C_Errors I2C_Error_Flag;
-bool BMS_Com_Restart = false;
-double C_D_Rate_Temp = 0;
+
+/* Variable to decide whether last pack operation was charging or discharging or low power mode */
+bool Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
+
+/* Variable to set the current gain value which code sets during power up. The same value is used in the current
+ * calculation in various BMS functions defined in the code */
 uint16_t Current_Gain = CURRENT_GAIN_5X;
 
-/* Function initializes the I2C communication between MCU and BMS IC */
-void BMS_ASIC_Init()
+/* Variable to calculate the rate at which battery is discharging(per seconds) */
+double C_D_Rate_Seconds = 0;
+
+/* Variable to copy the data from status flags and same is used to log it in the SD card */
+uint32_t Error_Check_Data = 0;
+
+/* Variable to set restart the I2C if any problem occurs during read and write operation */
+bool BMS_Com_Restart = false;
+
+/* Variable used to monitor the configuration settings done in BMS ASIC. If all parameters are written
+ * properly to the ASIC then this flag will be true otherwise it will remain false */
+bool Configuration_OK = false;
+
+/**
+ * @brief  Function initializes the I2C communication between MCU and BMS IC
+ * @param  None
+ * @retval None
+ */
+void BMS_ASIC_Init(void)
 {
 	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Init_Flag = I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
+	/* If there is any problem in the I2C initialization then I2C re-initialization is required */
 	while (I2C_Error_Flag.I2C_Init_Flag != RESULT_OK && Max_Tries-- > 1)
 	{
 		BMS_Com_Restart = true;
 	}
 }
 
+/**
+ * @brief  Function to check if there is proper communication happening with BMS ASIC
+ * @param  None
+ * @retval HEALTH_NOT_OK : Problem with I2C read or write operation
+ * 		   HEALTH_OK	 : I2C read/write operation is successful
+ */
 uint8_t BMS_Check_COM_Health()
 {
 	if(BMS_Com_Restart == true)
@@ -58,19 +88,31 @@ uint8_t BMS_Check_COM_Health()
 	}
 }
 
-/* Function to enable the access to the EERPOM section of BMS IC */
+/**
+ * @brief  Function to enable the access to the EERPOM section of BMS IC
+ * @param  None
+ * @retval None
+ */
 static void BMS_EEPROM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,EEPROM_ENABLE_DATA,sizeof(EEPROM_ENABLE_DATA));
 }
 
-/* Function to enable the access to the RAM section of BMS IC */
+/**
+ * @brief  Function to enable the access to the RAM section of BMS IC
+ * @param  None
+ * @retval None
+ */
 static void BMS_RAM_Access_Enable()
 {
 	I2C_WriteData(BMS_I2C,BMS_ADDRESS,RAM_ENABLE_DATA,sizeof(RAM_ENABLE_DATA));
 }
 
-/* Function to set the respective flags defined in the code read from BMS status registers */
+/**
+ * @brief  Function to set the respective flags defined in the code which are read from BMS status registers
+ * @param  Flags	: Actual status data received from BMS ASIC
+ * @retval None
+ */
 static void BMS_Set_Status_Flags(uint32_t Flags)
 {
 	if(Flags & IS_ISL_IN_SLEEP)
@@ -108,7 +150,11 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	}
 }
 
-/* Function to convert the cell voltages read from ISL registers(HEX) into float values */
+/**
+ * @brief  Function to convert the cell voltages read from ISL registers(HEX) into float values
+ * @param  Flags	: Pointer to the char data which is to be converted into the float
+ * @retval None
+ */
 static void Convert_To_Cell_Voltages(uint8_t *Data)
 {
 	unsigned short  *Integers;
@@ -188,36 +234,49 @@ void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Si
 	BMS_RAM_Access_Enable();
 }
 
-/*
- * Function to put ISL94203 into the sleep mode
+/**
+ * @brief  Function to put BMS ASIC into the sleep mode
+ * @param  None
+ * @retval None
  */
 void BMS_Force_Sleep()
 {
 	int8_t Max_Tries = 5;
 	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
+	/* If there is any problem in the I2C write operation then I2C re-initialization is required */
 	while (I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
 	{
 		BMS_Com_Restart = true;
 	}
 }
 
+/**
+ * @brief  Function to set the over voltage threshold value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Over_Voltage_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x1E2A;
 	uint16_t Pack_Data = 0;
 
+	/* Write the OV threshold value to the register. If any cell value is above threshold value then OV flag is
+	 * set and logged on SD card */
 	Send_Data_Values[Index++] = OV_THRESHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
 
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Send_Data_Values, Index);
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	uint8_t Address = OV_THRESHOLD_ADDR;
 
 	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again  */
 	if(Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -228,12 +287,19 @@ static void BMS_Set_Over_Voltage_Threshold(void)
 	}
 }
 
+/**
+ * @brief  Function to set the over voltage recovery value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Over_Voltage_Recovery(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x0DD4;
 	uint16_t Pack_Data = 0;
 
+	/* Write the OV recovery value to the register. If any of the cell value comes below this value
+	 * then OV flag is reseted and logged on SD card */
 	Send_Data_Values[Index++] = OV_RECOVERY_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -255,12 +321,19 @@ static void BMS_Set_Over_Voltage_Recovery(void)
 	}
 }
 
+/**
+ * @brief  Function to set the under voltage threshold value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Under_Voltage_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x1BA9;
 	uint16_t Pack_Data = 0;
 
+	/* Write the UV threshold value to the register. If any cell value is below threshold value then UV flag
+	 * is set and logged on SD card */
 	Send_Data_Values[Index++] = UV_THROSHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -282,12 +355,19 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 	}
 }
 
+/**
+ * @brief  Function to set the under voltage recovery value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Under_Voltage_Recovery(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x0AAA;
 	uint16_t Pack_Data = 0;
 
+	/* Write the UV recovery value to the register. If any cell value is below threshold value then UV flag
+	 * is set and logged on SD card */
 	Send_Data_Values[Index++] = UV_RECOVERY_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -309,6 +389,11 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 	}
 }
 
+/**
+ * @brief  Function to set the OV lockout value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_OV_LockOut_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
@@ -336,6 +421,11 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 	}
 }
 
+/**
+ * @brief  Function to set the UV lockout value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_UV_LockOut_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
@@ -363,6 +453,11 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 	}
 }
 
+/**
+ * @brief  Function to set the end of charge threshold value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_End_of_Charge_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
@@ -633,7 +728,7 @@ void BMS_Estimate_Initial_Capacity(void)
 {
 	float Batt_Volt_Per_Cell = 0, volt_z = 0, pow_volt_z = 0, Battery_Estimate = 0;
 
-	Batt_Volt_Per_Cell = Get_BMS_Pack_Voltage() / (float) BATTERY_CELLS_COUNT;
+	Batt_Volt_Per_Cell = Get_BMS_Pack_Voltage() / (float) BATT_NUMBER_OF_CELLS;
 
 	volt_z = (float) ((float) (Batt_Volt_Per_Cell - BATT_EST_Mu) / (float) BATT_EST_Sigma);
 
@@ -686,7 +781,7 @@ void BMS_Estimate_Capacity_Used()
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
-	C_D_Rate_Temp +=BMS_Data.Pack_Charge_Discharge_Rate;
+	C_D_Rate_Seconds +=BMS_Data.Pack_Charge_Discharge_Rate;
 
 	if(Status_Flag.Pack_Charging == YES)
 	{

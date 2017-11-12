@@ -16,7 +16,7 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
-#define _2_SECONDS_TIME				75
+#define _2_SECONDS_TIME				80		/* Time for which SOC to be shown (80 * 25Hz) */
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -49,9 +49,9 @@ bool Update_Pack_Cycles = false;
 #endif
 
 uint8_t RecData = 0;
-bool Stop_Log_Var = false;
+/* This variable counts the time for which log was unsuccessful; If it more than 125ms then SD card is
+ * reinitialized */
 uint8_t Log_Init_Counter = 0 ;
-bool Stop_Logging_Flag = false;
 
 /* These flags are used to indicate the external button has been pressed for more than specified time
  * so that SOC or SOH status can be shown on LEDs */
@@ -189,6 +189,7 @@ int main(void)
 				NVIC_SystemReset();
 				break;
 			case 'B':
+				/* Debug code to test the SMBUS function with AP */
 				AP_COM_Init(AP_COM_SMBUS_MODE);
 				break;
 		}
@@ -243,7 +244,7 @@ int main(void)
 //			{
 //				SOH_Flag = false;
 //			}
-			/* Query the BMS data at 30Hz; All cell voltages, pack voltage, pack current, pack temperature
+			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
 			BMS_Read_Cell_Voltages();
 			BMS_Read_Pack_Voltage();
@@ -382,10 +383,15 @@ int main(void)
 				}
 			}
 
+			/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
+			 * code stuck due to insertion of SD card while running the code */
 			if(SdStatus == SD_PRESENT)
 			{
+				/* Log all the variable in the SD card */
 				if (Log_All_Data() != RESULT_OK)
 				{
+					/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+					 * the SD card functionality */
 					Log_Init_Counter++;
 					if (Log_Init_Counter >= 5)
 					{
@@ -395,6 +401,8 @@ int main(void)
 				}
 			}
 
+			/* If any time there is problem in querying the data from ISL94203 then restsrt the
+			 * I2C communication with ISL94203 */
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
@@ -402,7 +410,9 @@ int main(void)
 				BMS_Com_Restart = false;
 			}
 
+			/* Variable to log the loop rate */
 			Loop_Rate_Counter++;
+			/* Debug LED to see whether the code is running or stuck */
 			BMS_Status_LED_Toggle();
 			_25Hz_Flag = false;
 		}
@@ -421,13 +431,10 @@ int main(void)
 //			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-//			Length += sprintf(&Buffer[Length],"C/D Rate = %0.3fAH\r\r",C_D_Rate_Temp);
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
-			C_D_Rate_Temp = 0.0;
-			AP_Stat_Data.value = 0;
 			_1Hz_Flag = false;
 		}
 
@@ -467,10 +474,13 @@ int main(void)
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}
-//		if(Flight_Stat_Received == true)
-//		{
-//			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
-//			Flight_Stat_Received = false;
-//		}
+		/* If AP sends the Flight status then this variable will be true in driver file and the same status
+		 * is logged in SD card */
+		if(Flight_Stat_Received == true)
+		{
+			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
+			/* Make this flag false to get the updated status from AP */
+			Flight_Stat_Received = false;
+		}
 	}
 }

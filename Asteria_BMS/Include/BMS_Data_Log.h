@@ -8,9 +8,10 @@
 #ifndef BMS_DATA_LOG_H_
 #define BMS_DATA_LOG_H_
 
-#include "ff.h"
+#include <ff.h>
 #include <SD_SPI.h>
 #include <BMS_Watchdog.h>
+#include <AP_Communication.h>
 
 /* Base number for converting the integer to strings */
 #define MAX_DIGITS_IN_COUNT							6		/* Specifies the maximum digits in decimal number */

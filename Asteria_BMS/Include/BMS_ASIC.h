@@ -8,7 +8,7 @@
 #ifndef BMS_ASIC_H_
 #define BMS_ASIC_H_
 
-#include "I2C_API.h"
+#include <I2C_API.h>
 
 #define BMS_ADDRESS									0x50	/* ISL94203 slave address */
 #define BMS_I2C										I2C_1	/* I2C bus of MCU to be used for ISL */
@@ -17,11 +17,11 @@
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 
 
-#define SLOPE_5X									0.07713
+#define SLOPE_5X									0.07713	/* Equation(slope M)coefficients derived from log analysis */
 #define SLOPE_50X									0.0831
 #define SLOPE_500X									0.0774
 
-#define CONSTANT_5X									54.9544
+#define CONSTANT_5X									54.9544	/* Equation (constant C) derived from log analysis */
 #define CONSTANT_50X								127.6836
 #define CONSTANT_500X								96.6649
 
@@ -41,8 +41,8 @@
 #define BATT_EST_Mu									3.94	/* constant used 3.94 (mean value)in above equation */
 #define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
 
-//#define TATTU_BATTERY_9000
-#define TATTU_BATTERY_10000
+#define TATTU_BATTERY_9000
+//#define TATTU_BATTERY_10000
 //#define MAX_AMP_11000
 
 #ifdef TATTU_BATTERY_9000									/* TATTU Battery has capacity of 9000mAH */
@@ -53,9 +53,7 @@
 	#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
 #endif
 
-#define BATTERY_CELLS_COUNT							6
-
-/* BMS ISL94203 Internal register's addresses */
+/* BMS ISL94203 status flags Internal register's addresses */
 #define OV_THRESHOLD_ADDR							0x00
 #define OV_RECOVERY_ADDR							0x02
 #define UV_THROSHOLD_ADDR							0x04
@@ -118,7 +116,7 @@
 #define CHARGE_CURRENT_CONSUMPTION					1000
 #define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
 
-/* Battery Parameters */
+/* Battery Parameters to be logged in the SD card */
 #define LI_ION										1
 #define LI_POLYMER									2
 
@@ -129,41 +127,37 @@
 #define BATTERY_TYPE								LI_POLYMER
 #define BATT_MAX_PACK_CYCLES						200
 
-/* Enums to define the write results;
- * @WRITE_OK	: Write operation is successful
- * @WRITE_ERROR	: Write operation is unsuccessful */
+/* Enums to define the write results */
 enum Write_Result
 {
 	WRITE_ERROR = 0,WRITE_OK
 };
 
-/* Enums to define the current battery status
- * @DISCHARGING 		 : Current is going out of pack
- * @CHARGING			 : Current is coming into the pack
- * @LOW_POWER_CONSUMPTION: BMS is in IDLE state */
+/* Enums to define the current battery status */
 enum Pack_Status
 {
 	DISCHARGING = 0,CHARGING,LOW_POWER_CONSUMPTION
 };
 
-/* Enums to define the flags inside the BMS IC registers
- * @NO	: Operation not successful / flag value is reset (i.e. 0)
- * @YES	: Operation successful / flag value is set (i.e.1) */
+/* Enums to define the flags inside the BMS IC registers */
 enum Flag_Results
 {
 	NO = 0, YES
 };
+
+/* Enums to define whether BMS is in sleep mode or not */
 enum BMS_Sleep_Status
 {
 	NON_SLEEP_MODE = 0,SLEEP_MODE
 };
-/* Enums defining the different gain values that can be set in the BMS ASIC */
+
+/* Enums to define different gain values that can be set in the BMS ASIC */
 enum Current_Gain_Values
 {
 	CURRENT_GAIN_5X = 5, CURRENT_GAIN_50X = 50,CURRENT_GAIN_500X = 500
 };
 
-/* BMS Health status enumerations */
+/* Enums to define BMS Health status */
 enum Health_Status
 {
 	HEALTH_NOT_OK = 0, HEALTH_OK
@@ -211,6 +205,8 @@ typedef struct
 
 }BMS_Status_Flags;
 
+/* Structure holding all the status flags for the queried data from BMS ASIC. These flags will give the
+ * result of write and read operation happening over I2C */
 typedef struct
 {
 	uint8_t I2C_Init_Flag:1;
@@ -238,17 +234,8 @@ typedef struct
 
 }I2C_Errors;
 
-/* Variable which holds the value of all the status flags updated from ISL at 25Hz */
-extern BMS_Status_Flags Status_Flag;
-extern uint32_t Error_Check_Data;
-extern I2C_Errors I2C_Error_Flag;
-extern bool BMS_Com_Restart;
-
-/* Constant battery parameters */
-extern const uint8_t Battery_ID[];
-extern const uint8_t BMS_Board_Serial_Number[];
-
-/* Structure holding all the variables to be logged on SD card and to be used in the code */
+/* Structure holding all the variables related to the data queried from BMS ASIC and which are to be logged
+ * on SD card and used in the code */
 typedef struct
 {
 	float Cell1_Voltage;
@@ -278,27 +265,28 @@ typedef struct
 }ISL_943203_Data;
 
 extern ISL_943203_Data BMS_Data;
+
+extern BMS_Status_Flags Status_Flag;
+
+extern I2C_Errors I2C_Error_Flag;
+
 extern bool Last_Charge_Disharge_Status;
+
 extern uint16_t Current_Gain;
-extern double C_D_Rate_Temp;
+
+extern double C_D_Rate_Seconds;
+
+extern uint32_t Error_Check_Data;
+
 extern bool BMS_Com_Restart;
+
+/* Constant battery parameters */
+extern const uint8_t Battery_ID[];
+extern const uint8_t BMS_Board_Serial_Number[];
+
 
 /* BMS IC configurations functions which will get called only at the start of the code */
 void BMS_Configure_Parameters(void);
-//static void BMS_Set_Over_Voltage_Threshold(void);
-//static void BMS_Set_Over_Voltage_Threshold(void);
-//static void BMS_Set_Over_Voltage_Recovery(void);
-//static void BMS_Set_Under_Voltage_Threshold(void);
-//static void BMS_Set_Under_Voltage_Recovery(void);
-//static void BMS_Set_OV_LockOut_Threshold(void);
-//static void BMS_Set_UV_LockOut_Threshold(void);
-//static void BMS_Set_End_of_Charge_Threshold(void);
-//static uint8_t BMS_Set_OV_Delay_Timeout(void);
-//uint8_t BMS_Set_UV_Delay_Timeout(void);
-//uint8_t BMS_Set_Open_Wiring_Timeout(void);
-//
-//uint8_t BMS_Set_Internal_Temp_Threshold(void);
-//uint8_t BMS_Disable_Cell_Balancing(void);
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
