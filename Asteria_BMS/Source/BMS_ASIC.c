@@ -304,10 +304,13 @@ static void BMS_Set_Over_Voltage_Recovery(void)
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
 
 	uint8_t Address = OV_RECOVERY_ADDR;
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
@@ -342,9 +345,12 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 
 	uint8_t Address = UV_THROSHOLD_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -366,8 +372,8 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 	uint16_t Data_Value = 0x0AAA;
 	uint16_t Pack_Data = 0;
 
-	/* Write the UV recovery value to the register. If any cell value is below threshold value then UV flag
-	 * is set and logged on SD card */
+	/* Write the UV recovery value to the register. If any cell value is above recovery value then UV flag
+	 * is reseted and logged on SD card */
 	Send_Data_Values[Index++] = UV_RECOVERY_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -376,9 +382,12 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 
 	uint8_t Address = UV_RECOVERY_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -400,6 +409,8 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 	uint16_t Data_Value = 0x0E7F;
 	uint16_t Pack_Data = 0;
 
+	/* Write the OV lockout threshold value to the register. If any if the cell voltage is above this value
+	 * for more than 5 successive scans then OVLO flag is set and logged on SD card */
 	Send_Data_Values[Index++] = OV_LOCKOUT_THRESHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -408,9 +419,12 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 
 	uint8_t Address = OV_LOCKOUT_THRESHOLD_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -432,6 +446,8 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 	uint16_t Data_Value = 0x0600;
 	uint16_t Pack_Data = 0;
 
+	/* Write the UV lockout threshold value to the register. If any if the cell voltage is below this value
+	 * for more than 5 successive scans then UVLO flag is set and logged on SD card */
 	Send_Data_Values[Index++] = UV_LOCKOUT_THRESHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -440,9 +456,12 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 
 	uint8_t Address = UV_LOCKOUT_THRESHOLD_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -464,6 +483,8 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 	uint16_t Data_Value = 0x0DFF;
 	uint16_t Pack_Data = 0;
 
+	/* Write the EOC threshold value to the register. If any if the cell voltage is above this value
+	 * EOC flag is set and logged on SD card */
 	Send_Data_Values[Index++] = EOC_THRESHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -472,9 +493,12 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 
 	uint8_t Address = EOC_THRESHOLD_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -506,12 +530,19 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 //	return Result;
 //}
 //
+/**
+ * @brief  Function to set internal OT threshold value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Internal_OT_Threshold(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x05A6;
 	uint16_t Pack_Data = 0;
 
+	/* Write the Internal over temperature threshold value to the register. If internal temperature is
+	 * above this value then IOT flag is set and logged on SD card */
 	Send_Data_Values[Index++] = INTERNAL_OT_THRESHOLD_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -520,9 +551,12 @@ static void BMS_Set_Internal_OT_Threshold(void)
 
 	uint8_t Address = INTERNAL_OT_THRESHOLD_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_IOT_Thresh_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (Pack_Data == Data_Value)
 	{
 		Configuration_OK = true;
@@ -533,12 +567,19 @@ static void BMS_Set_Internal_OT_Threshold(void)
 	}
 }
 
+/**
+ * @brief  Function to set the internal over temperature recovery value into BMS ASIC (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Set_Internal_OT_Recovery(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Data_Value = 0x0591;
 	uint16_t Pack_Data = 0;
 
+	/* Write the Internal over temperature recovery value to the register. If internal temperature is
+	 * below this value then IOT flag is reseted and logged on SD card */
 	Send_Data_Values[Index++] = INTERNAL_OT_RECOVERY_ADDR;
 	Send_Data_Values[Index++] = (Data_Value & 0xFF);
 	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
@@ -547,8 +588,11 @@ static void BMS_Set_Internal_OT_Recovery(void)
 
 	uint8_t Address = INTERNAL_OT_RECOVERY_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2) == RESULT_OK)
 	{
 		if(Pack_Data == Data_Value)
@@ -562,11 +606,17 @@ static void BMS_Set_Internal_OT_Recovery(void)
 	}
 }
 
+/**
+ * @brief  Function to disable the cell balancing by external micro controller (configuration parameter)
+ * @param  None
+ * @retval None
+ */
 static void BMS_Disable_Cell_Balancing(void)
 {
 	uint8_t Send_Data_Values[3],Index = 0;
 	uint16_t Pack_Data = 0;
 
+	/* Write the value to the register to disable the cell balancing; BMS ASIC does the cell balancing */
 	Send_Data_Values[Index++] = DISABLE_CELL_BALANCE_ADDR;
 	Send_Data_Values[Index++] = 0x00;
 
@@ -574,8 +624,11 @@ static void BMS_Disable_Cell_Balancing(void)
 
 	uint8_t Address = DISABLE_CELL_BALANCE_ADDR;
 
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 1) == RESULT_OK)
 	{
 		if(Pack_Data == 0x00)
@@ -589,6 +642,11 @@ static void BMS_Disable_Cell_Balancing(void)
 	}
 }
 
+/**
+ * @brief  Function to set all the configuration parameters in the BMS ASIC
+ * @param  None
+ * @retval None
+ */
 void BMS_Configure_Parameters(void)
 {
 	BMS_Set_Over_Voltage_Threshold();
@@ -602,6 +660,8 @@ void BMS_Configure_Parameters(void)
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
 
+	/* If there is any problem in configuring the parameter into the BSM ASIC then it is necessary to
+	 * re configure the parameters */
 	if(Configuration_OK == false)
 	{
 		BMS_Debug_COM_Write_Data("Configuration Failed\r",21);
@@ -612,7 +672,12 @@ void BMS_Configure_Parameters(void)
 	}
 }
 
-/* Function to set the gain value to the EEPROM of BMS ASIC */
+/**
+ * @brief  Function to set the current gain value to the EEPROM of BMS ASIC
+ * @param  None
+ * @retval WRITE_OK		: I2C write is successful
+ * 		   WRITE_ERROR	: I2C write is failed
+ */
 uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 {
 	uint8_t Gain_Value, Result;
@@ -666,7 +731,11 @@ uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 	return Result;
 }
 
-/* Function to set the maximum of charge/discharge pack cycles */
+/**
+ * @brief  Function to set the maximum of charge/discharge pack cycles
+ * @param  None
+ * @retval None
+ */
 void BMS_Update_Pack_Cycles()
 {
 	if(BMS_Data.Pack_Charge_Cycles > BMS_Data.Pack_Discharge_Cycles)
@@ -679,7 +748,11 @@ void BMS_Update_Pack_Cycles()
 	}
 }
 
-/* This function to query the status flags of various RAM registers */
+/**
+ * @brief  This function to query the status flags of various RAM registers
+ * @param  None
+ * @retval None
+ */
 void BMS_Read_RAM_Status_Register()
 {
 	int8_t Max_Tries = 5;
@@ -703,7 +776,11 @@ void BMS_Read_RAM_Status_Register()
 	}
 }
 
-/* Function to read individual cell voltages inside the pack */
+/**
+ * @brief  Function to read individual cell voltages inside the pack
+ * @param  None
+ * @retval None
+ */
 void BMS_Read_Cell_Voltages()
 {
 	int8_t Max_Tries = 5;
@@ -723,7 +800,11 @@ void BMS_Read_Cell_Voltages()
 	}
 }
 
-/* Function to calculate the initial battery capacity */
+/**
+ * @brief  Function to calculate the battery capacity used and remaining
+ * @param  None
+ * @retval None
+ */
 void BMS_Estimate_Initial_Capacity(void)
 {
 	float Batt_Volt_Per_Cell = 0, volt_z = 0, pow_volt_z = 0, Battery_Estimate = 0;
@@ -775,7 +856,11 @@ void BMS_Estimate_Initial_Capacity(void)
 	BMS_Debug_COM_Write_Data(Buffer,Length);
 }
 
-/* Function to calculate the pack capacity used over the time(dt = 30ms) */
+/**
+ * @brief  Function to calculate the pack capacity used over the time(dt = 40ms)
+ * @param  None
+ * @retval None
+ */
 void BMS_Estimate_Capacity_Used()
 {
 	Current_Time = Get_System_Time_Millis();
@@ -813,7 +898,11 @@ void BMS_Estimate_Capacity_Used()
 	BMS_Data.Pack_Capacity_Remaining = (float)(1 - (BMS_Data.Pack_Capacity_Used /(float)BATTERY_CAPACITY)) * 100;
 }
 
-/* Function to read the pack voltage from ISL IC */
+/**
+ * @brief  Function to read the pack voltage from BMS ASIC
+ * @param  None
+ * @retval None
+ */
 void BMS_Read_Pack_Voltage()
 {
 	uint16_t Pack_Data;
@@ -832,7 +921,11 @@ void BMS_Read_Pack_Voltage()
 	}
 }
 
-/* Function to read the pack current going into or out of pack from ISL IC */
+/**
+ * @brief  Function to read the pack current going into or out of pack from BMS ASIC
+ * @param  None
+ * @retval None
+ */
 void BMS_Read_Pack_Current()
 {
 	uint16_t Pack_Data;
@@ -851,7 +944,11 @@ void BMS_Read_Pack_Current()
 	}
 }
 
-/* Function to read the temperature of pack from BMS ASIC */
+/**
+ * @brief  Function to read the temperature of pack from BMS ASIC
+ * @param  None
+ * @retval None
+ */
 void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
@@ -873,7 +970,11 @@ void BMS_Read_Pack_Temperature()
 	}
 }
 
-/* Function to round off the float variable between lower limit and upper limit */
+/**
+ * @brief  Function to round off the float variable between lower limit and upper limit
+ * @param  None
+ * @retval Value	: Constrained value
+ */
 float Constrain(float Value, float Lower_Limit, float Upper_Limit)
 {
 	if(Value > Upper_Limit)
@@ -887,17 +988,34 @@ float Constrain(float Value, float Lower_Limit, float Upper_Limit)
 	return Value;
 }
 
-/* All these function just return the values that are updated from BMS ASIC registers */
+/**
+ * @brief  Function to return the charge discharge status of the BMS
+ * @param  None
+ * @retval CHARGING 	: BMS is in charging state
+ * 		   DISCHARGING	: BMS is in discharging state
+ * 		   LOW_POWER_CONSUMPTION: BMS is in IDLE mode without any power consumption
+ */
 uint8_t Get_BMS_Charge_Discharge_Status()
 {
 	return BMS_Data.Charging_Discharging_Status;
 }
 
+/**
+ * @brief  Function to return the sleep mode status of the BMS
+ * @param  None
+ * @retval YES 	: BMS is sleep mode
+ * 		   NO	: BMS is awake and querying the pack data
+ */
 uint8_t Get_BMS_Sleep_Mode_Status()
 {
 	return Status_Flag.BMS_In_Sleep;
 }
 
+/**
+ * @brief  Function to return the individual cell voltages from the pack
+ * @param  None
+ * @retval Cell voltages in float
+ */
 float Get_Cell1_Voltage()
 {
 	return BMS_Data.Cell1_Voltage;
@@ -938,32 +1056,62 @@ float Get_Cell8_Voltage()
 	return BMS_Data.Cell8_Voltage;
 }
 
+/**
+ * @brief  Function to return the pack voltage
+ * @param  None
+ * @retval Pack voltage in float
+ */
 float Get_BMS_Pack_Voltage()
 {
 	return BMS_Data.Pack_Voltage;
 }
 
+/**
+ * @brief  Function to return pack capacity remaining
+ * @param  None
+ * @retval Battery capacity remaining in percentage
+ */
 float Get_BMS_Capacity_Remaining()
 {
 	return BMS_Data.Pack_Capacity_Remaining;
 }
 
+/**
+ * @brief  Function to return pack capacity used
+ * @param  None
+ * @retval Battery capacity used in mAH
+ */
 float Get_BMS_Capacity_Used()
 {
 	return BMS_Data.Pack_Capacity_Used;
 }
 
+/**
+ * @brief  Function to return the corrected pack current based on the equation derived in MATLAB
+ * @param  None
+ * @retval Pack current going into or out of the pack
+ */
 float Get_BMS_Pack_Current_Adj()
 {
 	return BMS_Data.Pack_Current_Adjusted;
 }
 
+/**
+ * @brief  Function to calculate the pack voltage by adding all the cell voltages
+ * @param  None
+ * @retval Pack voltage
+ */
 float Get_BMS_Accumulated_Pack_Voltage()
 {
 	return (BMS_Data.Cell1_Voltage + BMS_Data.Cell2_Voltage + BMS_Data.Cell3_Voltage
 			+ BMS_Data.Cell6_Voltage + BMS_Data.Cell7_Voltage + BMS_Data.Cell8_Voltage);
 }
 
+/**
+ * @brief  Function to return the corrected pack current based on the equation derived in MATLAB
+ * @param  None
+ * @retval Pack current going into or out of the pack
+ */
 float Get_BMS_Pack_Current()
 {
 	float Temp_Current = 0.0;
@@ -990,14 +1138,31 @@ float Get_BMS_Pack_Current()
 	return Temp_Current;
 }
 
+/**
+ * @brief  Function to return the pack temperature
+ * @param  None
+ * @retval Pack temperature in degree celsius
+ */
 float Get_BMS_Pack_Temperature()
 {
 	return BMS_Data.Pack_Temperature_Degress;
 }
-float Get_BMS_Total_Pack_Cycles()
+
+/**
+ * @brief  Function to return total pack cycles used
+ * @param  None
+ * @retval Number of pack cyles used
+ */
+uint32_t Get_BMS_Total_Pack_Cycles()
 {
 	return BMS_Data.Pack_Total_Cycles;
 }
+
+/**
+ * @brief  Function to return charge discharge rate of the pack
+ * @param  None
+ * @retval C_D rate
+ */
 float Get_BMS_Charge_Discharge_Rate()
 {
 	return BMS_Data.Pack_Charge_Discharge_Rate;

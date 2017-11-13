@@ -321,7 +321,7 @@ float Get_BMS_Capacity_Used(void);
 float Get_BMS_Pack_Current(void);
 float Get_BMS_Pack_Temperature(void);
 float Get_BMS_Charge_Discharge_Rate();
-float Get_BMS_Total_Pack_Cycles();
+uint32_t Get_BMS_Total_Pack_Cycles();
 
 
 /* Values to be loaded into the ISL for parameters
