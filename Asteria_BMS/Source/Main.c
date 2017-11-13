@@ -16,7 +16,7 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
-#define _2_SECONDS_TIME				80		/* Time for which SOC to be shown (80 * 25Hz) */
+#define _2_SECONDS_TIME				50		/* Time for which SOC to be shown (50 * 40ms) */
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -55,7 +55,7 @@ uint8_t Log_Init_Counter = 0 ;
 
 /* These flags are used to indicate the external button has been pressed for more than specified time
  * so that SOC or SOH status can be shown on LEDs */
-bool SOC_Flag = false,SOH_Flag = false;
+bool SOC_Flag = false,SOH_Flag = false,Display_SOH = false,Display_SOC = false;
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
@@ -127,7 +127,7 @@ int main(void)
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
-//	BMS_watchdog_Init();
+	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -167,7 +167,7 @@ int main(void)
 
 			/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 			 * automatically restart the code */
-//			BMS_watchdog_Init();
+			BMS_watchdog_Init();
 
 			/* This flag must be cleared to avoid reinitializing all the peripherals again and again */
 			Wakeup_From_Sleep = false;
@@ -205,45 +205,71 @@ int main(void)
 				/* As soon as switch is released, check for timer count value. If count is in between
 				 * 500ms and 1 seconds then show the SOC status on LEDs and if count is more than 2
 				 * seconds then show SOH status on LEDs */
-				if (Switch_Press_Time_Count >= SHORT_PERIOD	&& Switch_Press_Time_Count <= LONG_PEROID)
+				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= (SHORT_PERIOD + 2))
 				{
 					SOC_Flag = true;
-					BMS_Debug_COM_Write_Data("Press\r",6);
 				}
 				else if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
-					SOC_Flag = false;
 					SOH_Flag = true;
-//					BMS_Show_LED_Pattern(SOH);
+					SOC_Flag = false;
+				}
+				else
+				{
+					Time_Count = 0;
 				}
 			}
 			else
 			{
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
+				if(SOH_Flag == true)
+				{
+					SOH_Flag = false;
+					Display_SOH = true;
+					Time_Count = 0;
+				}
+				if(SOC_Flag == true)
+				{
+					SOC_Flag = false;
+					Display_SOC = true;
+					Time_Count = 0;
+				}
 			}
 
 			/* If switch is pressed for more than 500ms then show the SOC status on LEDs*/
-//			if(SOC_Flag == true)
-//			{
-//				if(Time_Count <= _2_SECONDS_TIME)
-//				{
-//					Time_Count++;
-//					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
-//					BMS_Debug_COM_Write_Data("Press\r",6);
-//				}
-//				else
-//				{
-//					SOC_Flag = false;
-//					Time_Count = 0;
-//					BMS_Debug_COM_Write_Data("Release\r",8);
-//					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
-//				}
-//			}
-//			else if (SOH_Flag == true)
-//			{
-//				SOH_Flag = false;
-//			}
+			if(Display_SOC == true)
+			{
+				if(Time_Count <= _2_SECONDS_TIME)
+				{
+					Time_Count++;
+					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+//					BMS_Debug_COM_Write_Data("SOC Shown\r",10);
+				}
+				else
+				{
+					Display_SOC = false;
+					Time_Count = 0;
+					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+//					BMS_Debug_COM_Write_Data("Released\r",9);
+				}
+			}
+			else if (Display_SOH == true)
+			{
+				if (Time_Count <= _2_SECONDS_TIME)
+				{
+					Time_Count++;
+					BMS_Show_LED_Pattern(SOH, SHOW_STATUS);
+//					BMS_Debug_COM_Write_Data("SOH Shown\r", 10);
+				}
+				else
+				{
+					Display_SOH = false;
+					Time_Count = 0;
+//					BMS_Debug_COM_Write_Data("Released\r", 9);
+					BMS_Show_LED_Pattern(SOH, HIDE_STATUS);
+				}
+			}
 			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
 			BMS_Read_Cell_Voltages();
@@ -401,7 +427,7 @@ int main(void)
 				}
 			}
 
-			/* If any time there is problem in querying the data from ISL94203 then restsrt the
+			/* If any time there is problem in querying the data from ISL94203 then restart the
 			 * I2C communication with ISL94203 */
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
