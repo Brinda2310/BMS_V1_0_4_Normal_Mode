@@ -7,7 +7,11 @@
 
 #include <BMS_Serial_Communication.h>
 
-/* Function to initialize debug USART to 115200 baud rate */
+/**
+ * @brief  Function to initialize debug USART to 115200 baud rate
+ * @param  None
+ * @retval None
+ */
 void BMS_Debug_COM_Init()
 {
 #if DEBUG_COM == ENABLE
@@ -17,8 +21,8 @@ void BMS_Debug_COM_Init()
 
 /**
  * @brief  Function to receive data through debug COM port
- * @param  RxBuffer		: Pointer to the data buffer in which data is read
- * @param  Size			: Size of data buffer to be read through COM port
+ * @param  RxBuffer		: Pointer to the data buffer in which data is to be read
+ * @param  Size			: Size of data buffer to be read over USART
  */
 void BMS_Debug_COM_Read_Data(uint8_t *RxBuffer,uint16_t Size)
 {
@@ -29,8 +33,8 @@ void BMS_Debug_COM_Read_Data(uint8_t *RxBuffer,uint16_t Size)
 
 /*
  * @brief  Function to transmit the data over debug COM port
- * @param  TxBuffer		: Pointer to the data buffer to be sent over COM port
- * @param  Size			: Size of data buffer to be sent over COM port
+ * @param  TxBuffer		: Pointer to the data buffer to be sent over USART
+ * @param  Size			: Size of data buffer to be sent over USART
  */
 void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 {
