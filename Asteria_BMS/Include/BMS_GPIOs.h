@@ -8,7 +8,7 @@
 #ifndef BMS_GPIOS_H_
 #define BMS_GPIOS_H_
 
-#include "GPIO_API.h"
+#include <GPIO_API.h>
 
 /* LED port definitions as per the designed hardware */
 #define LED1_PORT										GPIO_A
@@ -28,19 +28,27 @@
 #define LED_6											(1 << 0)
 #define BMS_SWITCH										(1 << 8)
 
-/* Enums for patterns to be displayed on LEDs
+/**
+ * Enums for patterns to be displayed on LEDs
  * @ SOC	: State of charge
  * @ SOH	: State of health
- * */
+ */
 enum LED_Patterns
 {
 	SOC = 0, SOH
 };
 
+/**
+ *  Enums for LED statuses (Hide/Show)
+ */
 enum LED_Status
 {
 	HIDE_STATUS = 0,SHOW_STATUS
 };
+
+/**
+ *  Enums for switch statuses (Pressed/Not pressed)
+ */
 enum Switch_Status
 {
 	NOT_PRESSED = 0, PRESSED

@@ -9,14 +9,23 @@
 #include <BMS_Serial_Communication.h>
 #include <BMS_ASIC.h>
 
-/* Function to initialize the switch functionality connected to respective GPIO of MCU */
+/**
+ * @brief  Function to initialize the switch functionality connected to respective GPIO of MCU
+ * @param  None
+ * @retval None
+ */
 void BMS_Switch_Init()
 {
 	GPIO_Init(BMS_SWITCH_PORT,BMS_SWITCH,GPIO_INPUT,NOPULL);
 }
 
-/* Function to read the switch status. Switch is pulled up with internal resistor,
- * If pressed pin status will be LOW and if not pressed it will remain to high state */
+/**
+ * @brief  Function to read the switch status. Switch is pulled up with internal resistor,
+ * 		   If pressed pin status will be LOW and if not pressed it will remain to high state
+ * @param  None
+ * @retval PRESSED		: Switch is pressed
+ * 		   NOT_PRESSED	: Switch is not pressed
+ */
 uint8_t BMS_Read_Switch_Status()
 {
 	if(GPIO_Read(BMS_SWITCH_PORT,BMS_SWITCH) == PIN_HIGH)
@@ -29,7 +38,11 @@ uint8_t BMS_Read_Switch_Status()
 	}
 }
 
-/* Function to initialize the LEDs connected to respective GPIOs of MCU */
+/**
+ * @brief  Function to initialize the LEDs connected to respective GPIOs of MCU
+ * @param  None
+ * @retval None
+ */
 void BMS_Status_LEDs_Init()
 {
 #if DEBUG_COM == DISABLE
@@ -54,7 +67,11 @@ void BMS_Status_LEDs_Init()
 
 }
 
-/* Function to toggle the status LED connected on STM32L4 dev board; Used only for debugging */
+/**
+ * @brief  Function to toggle the status LEDs connected on board; Used only for debugging
+ * @param  None
+ * @retval None
+ */
 void BMS_Status_LED_Toggle()
 {
 #if DEBUG_COM == DISABLE
@@ -66,13 +83,18 @@ void BMS_Status_LED_Toggle()
 	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
 
-/* Function to show the LED pattern upon switch press; It shows SOC and SOH based
- * on time for which switch is pressed */
-void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status)
+/**
+ * @brief  Function to show the LED pattern upon switch press; It shows SOC and SOH based
+ * 		   on time for which switch is pressed
+ * @param  Pattern_Type		: Type of pattern to be shown on LEDs (SOC/SOH)
+ * @param  Status			: Type of status (HIDE_STATUS/SHOW_STATUS)
+ * @retval None
+ */
+void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 {
 	float Battery_Health = 0.0;
 
-	if(Battery_Capacity == SOC)
+	if(Pattern_Type == SOC)
 	{
 		Battery_Health = Get_BMS_Capacity_Remaining();
 		if(Battery_Health > 0.00f && Battery_Health <= 25.00f)
@@ -96,26 +118,26 @@ void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status)
 		}
 		else
 		{
-			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
 #if DEBUG_COM == DISABLE
+			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
 			GPIO_Write(LED2_PORT, LED_2, PIN_LOW);
 			GPIO_Write(LED3_PORT, LED_3, PIN_LOW);
-#endif
 			GPIO_Write(LED4_PORT, LED_4, PIN_LOW);
+#endif
 		}
 	}
-	else if (Battery_Capacity == SOH)
+	else if (Pattern_Type == SOH)
 	{
 //		BMS_Debug_COM_Write_Data("Long Press\r",11);
 	}
 
 	if(Status == HIDE_STATUS)
 	{
-		GPIO_Write(LED1_PORT, LED_1, PIN_HIGH);
 #if DEBUG_COM == DISABLE
+		GPIO_Write(LED1_PORT, LED_1, PIN_HIGH);
 		GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
 		GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
-#endif
 		GPIO_Write(LED4_PORT, LED_4, PIN_HIGH);
+#endif
 	}
 }

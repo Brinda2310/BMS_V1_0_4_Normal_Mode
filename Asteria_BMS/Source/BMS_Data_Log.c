@@ -51,7 +51,7 @@ uint32_t ASIC_Restart_Count = 0;
 
 /**
  * @brief  Function to create/check the log summary file. Create the BMS log files by reading the counts
- * stored in the summary file
+ * 		   stored in the summary file
  * @param  None
  * @retval RESULT_OK	: Log initialization is successful
  * 		   RESULT_ERROR	: Log initialization is unsuccessful
@@ -73,7 +73,7 @@ uint8_t BMS_Log_Init()
 
 /**
  * @brief  Function to create the log summary file and write strings for number of directories,
- * current directory and file counts along with header data.
+ * 		   current directory and file counts along with header data.
  * @retval RESULT_OK	: Log summary file creation is successful
  *		   RESULT_ERROR	: Log summary file creation is unsuccessful
  */
@@ -160,7 +160,7 @@ uint8_t Create_Log_Summary_File()
 
 /**
  * @brief  Function to retrieve the different counts from log_summary_file
- * current directory and file counts along with header data.
+ * 		   current directory and file counts along with header data.
  * @param  Offset		: The cursor position from which data is to read from file
  * @param  Variable		: The pointer to the variable in which read data from file is stored
  * @retval RESULT_OK	: Counts reading from log summary file is successful
@@ -183,7 +183,7 @@ return RESULT_OK;
 
 /**
  * @brief  Function to create the new BMS_Log_File on SD card with incremented file number,
- * current directory and file counts along with header data.
+ * 		   current directory and file counts along with header data.
  * @retval RESULT_OK	: Log file creation is successful
  *		   RESULT_ERROR	: Log file creation is unsuccessful
  */
@@ -362,7 +362,7 @@ uint8_t Create_BMS_Log_File()
 
 /**
  * @brief  Function to write all the BMS variables to the SD card
- * current directory and file counts along with header data.
+ * 		   current directory and file counts along with header data.
  * @retval RESULT_OK	: File writing is successful
  *		   RESULT_ERROR	: File writing is unsuccessful
  */
@@ -498,7 +498,7 @@ uint8_t Log_All_Data()
 
 /**
  * @brief  Function to write the updated counts i.e. Current_file_count and Power_Up_Number
- * current directory and file counts along with header data.
+ * 		   current directory and file counts along with header data.
  * @param  Offset			: The cursor position at which data is to be written to the file
  * @param  Decimal_Number	: The decimal number which is to be stored in the file
  * @retval RESULT_OK	: Writing counts to the log summary file is successful
@@ -559,15 +559,15 @@ unsigned long Get_BMS_Log_File_Size()
 	return f_size(&BMS_Log_File);
 }
 
-/* Function to convert the user variables into CSV format
- * Parameters:
- * 		data_array: pointer to the array of integer/float/long/short float/short int
- * 		dst_array : pointer to the array of character to which resulting string is stored
- * 		count 	  : number of data values to be converted into string
- * 		offset    : location from which converted characters are stored
- * 		data_type : it can be INT_DATA/SHORT_INT_DATA/FLOAT_DATA/SHORT_FLOAT_DATA/LONG/CHAR_DATA
- *
- * */
+/**
+ * @brief  Function to convert the user variables into CSV format
+ * @param  data_array	: pointer to the array of integer/float/long/short float/short int
+ * @param  dst_array 	: pointer to the array of character to which resulting string is stored
+ * @param  count 	  	: number of data values to be converted into string
+ * @param  offset    	: location from which converted characters are stored
+ * @param  data_type 	: it can be INT_DATA/SHORT_INT_DATA/FLOAT_DATA/SHORT_FLOAT_DATA/LONG/CHAR_DATA
+ * @retval None
+ */
 void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type)
 {
 	unsigned char index = 0;
