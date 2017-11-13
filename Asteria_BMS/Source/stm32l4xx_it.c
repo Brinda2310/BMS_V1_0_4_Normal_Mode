@@ -35,6 +35,8 @@ uint64_t SysTickCounter = 0;
   */
 void SysTick_Handler(void)
 {
+	/* This variable value is incremented after every one millisecond and the same variable is used for
+	 * get time from boot calculation */
 	SysTickCounter++;
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();

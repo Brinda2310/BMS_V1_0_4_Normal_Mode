@@ -14,6 +14,7 @@
 
 extern bool BMS_Watchdog_Enable;
 
+/* Prototypes for the functions defined in the BMS_Watchdog.c file */
 void BMS_watchdog_Init(void);
 void BMS_Watchdog_Refresh(void);
 
