@@ -8,7 +8,7 @@
 #ifndef BMS_TIMING_H_
 #define BMS_TIMING_H_
 
-#include "TIMER_API.h"
+#include <TIMER_API.h>
 
 #define _40ms_PERIOD 							40
 #define _1_SECONDS								(1000/_40ms_PERIOD)
@@ -30,8 +30,10 @@
 #define _1SEC_PERIOD							1000
 
 extern bool _25Hz_Flag,_1Hz_Flag;
+
 extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 
+/* Prototypes for the function defined in the BMS_Timing.c file */
 void BMS_Timers_Init();
 double Get_System_Time_Seconds();
 uint64_t Get_System_Time_Millis();
