@@ -36,6 +36,8 @@ uint16_t Stop_Time_Cursor = 0;
 
 /* Variable to hold the respective values as mentioned in the name and the same variables which are updated in log_summary_file */
 Log_SD_Summary_Vars SD_Summary_Data;
+
+/* Variable to compare the current read power up number from SD card and the one which code is running at */
 static uint16_t Old_Power_Up_Num = 0;
 
 /* New file created only upon power up otherwise logging is done in the old file after wake up */
@@ -47,8 +49,13 @@ static bool Power_Up_BMS = false;
 /* Variable to log the count for number of restarts occurred for ISL */
 uint32_t ASIC_Restart_Count = 0;
 
-/* Function to create/check the log summary file. Create the BMS log files by reading the counts stored
- * in the summary file */
+/**
+ * @brief  Function to create/check the log summary file. Create the BMS log files by reading the counts
+ * stored in the summary file
+ * @param  None
+ * @retval RESULT_OK	: Log initialization is successful
+ * 		   RESULT_ERROR	: Log initialization is unsuccessful
+ */
 uint8_t BMS_Log_Init()
 {
 	uint8_t Result = RESULT_OK;
@@ -64,9 +71,11 @@ uint8_t BMS_Log_Init()
 	return Result;
 }
 
-/*
- * Function to create the log summary file and write strings for number of directories,
+/**
+ * @brief  Function to create the log summary file and write strings for number of directories,
  * current directory and file counts along with header data.
+ * @retval RESULT_OK	: Log summary file creation is successful
+ *		   RESULT_ERROR	: Log summary file creation is unsuccessful
  */
 uint8_t Create_Log_Summary_File()
 {
@@ -149,8 +158,13 @@ uint8_t Create_Log_Summary_File()
 	return RESULT_OK;
 }
 
-/*
- * Function to retrieve the different counts from log_summary_file
+/**
+ * @brief  Function to retrieve the different counts from log_summary_file
+ * current directory and file counts along with header data.
+ * @param  Offset		: The cursor position from which data is to read from file
+ * @param  Variable		: The pointer to the variable in which read data from file is stored
+ * @retval RESULT_OK	: Counts reading from log summary file is successful
+ *		   RESULT_ERROR	: Counts reading from log summary file is unsuccessful
  */
 uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable)
 {
@@ -167,7 +181,12 @@ uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable)
 return RESULT_OK;
 }
 
-/* Function to create the new BMS_Log_File on SD card with incremented file number */
+/**
+ * @brief  Function to create the new BMS_Log_File on SD card with incremented file number,
+ * current directory and file counts along with header data.
+ * @retval RESULT_OK	: Log file creation is successful
+ *		   RESULT_ERROR	: Log file creation is unsuccessful
+ */
 uint8_t Create_BMS_Log_File()
 {
 	uint8_t Result = RESULT_OK;
@@ -341,7 +360,12 @@ uint8_t Create_BMS_Log_File()
 	return Result;
 }
 
-/* Function to write all the BMS variables to the SD card */
+/**
+ * @brief  Function to write all the BMS variables to the SD card
+ * current directory and file counts along with header data.
+ * @retval RESULT_OK	: File writing is successful
+ *		   RESULT_ERROR	: File writing is unsuccessful
+ */
 uint8_t Log_All_Data()
 {
 	int Int_Values[3];
@@ -472,8 +496,13 @@ uint8_t Log_All_Data()
 	return Result;
 }
 
-/*
- * Function to write the updated counts i.e. Current_file_count and Power_Up_Number
+/**
+ * @brief  Function to write the updated counts i.e. Current_file_count and Power_Up_Number
+ * current directory and file counts along with header data.
+ * @param  Offset			: The cursor position at which data is to be written to the file
+ * @param  Decimal_Number	: The decimal number which is to be stored in the file
+ * @retval RESULT_OK	: Writing counts to the log summary file is successful
+ *		   RESULT_ERROR	: Writing counts to the log summary file is unsuccessful
  */
 uint8_t Write_Count_Log_Summary_File(uint32_t Offset,uint16_t Decimal_Number)
 {
@@ -500,7 +529,11 @@ uint8_t Write_Count_Log_Summary_File(uint32_t Offset,uint16_t Decimal_Number)
 	return RESULT_OK;
 }
 
-/* Function to stop the logging as when requested by user */
+/**
+ * @brief  Function to write the updated counts i.e. Current_file_count and Power_Up_Number
+ * @param  None
+ * @retval None
+ */
 void Stop_Log()
 {
 	uint8_t length;
@@ -516,6 +549,11 @@ void Stop_Log()
 	f_close(&BMS_Log_File);
 }
 
+/**
+ * @brief  Function to return the size of the file in bytes
+ * @param  None
+ * @retval Size of the file in bytes
+ */
 unsigned long Get_BMS_Log_File_Size()
 {
 	return f_size(&BMS_Log_File);
