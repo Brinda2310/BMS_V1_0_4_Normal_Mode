@@ -22,7 +22,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		3			// Beta code release--modified when code is being merged to test_develop branch.
+		1			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
@@ -223,12 +223,17 @@ int main(void)
 			{
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
+
+				/* If switch is pressed more than 2 seconds then display only SOH on LEDs and reset the time
+				 * count which is used to keep LEDs ON for specified time */
 				if(SOH_Flag == true)
 				{
 					SOH_Flag = false;
 					Display_SOH = true;
 					Time_Count = 0;
 				}
+				/* If switch is pressed more than 500ms and less than 580ms then display only SOC on LEDs and
+				 * reset the time count which is used to keep LEDs ON for specified time */
 				if(SOC_Flag == true)
 				{
 					SOC_Flag = false;
