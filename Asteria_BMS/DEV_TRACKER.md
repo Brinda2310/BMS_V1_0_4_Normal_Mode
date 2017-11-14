@@ -49,19 +49,19 @@
 ### ****BMS_CODE  1.0.1  ****
 	Pull request number: 6
 			
-	Features developed in BMS code for this release :
+	Features developed in BMS code for this release:
 	1. BMS MCU queries all pack data from ISL at 25Hz.
 	2. BMS MCU reads the external switch, if it is short press (500ms) then MCU will show SOC status on LEDs; If it is long press (2 seconds) then
-	   MCU will show SOH status on LEDs. SOC logic is implemented based on capacity remaining calcluations taken from AP code. SOC and SOH will be 
-	   displayed only upon releasing the pressed switch.One LED for (0-40%),two LEDs(41-80%), three LEDs(81-95%) and all four LEDs (>96%)  
-	3. Real time clock(RTC) is implemented and testd. MCU is able to set and get the date/time from RTC module.
+	   MCU will show SOH status on LEDs. SOC logic is implemented based on capacity remaining calculations taken from AP code. SOC and SOH will be 
+	   displayed only upon releasing the pressed switch. One LED for (0-40%),two LEDs(41-80%), three LEDs(81-95%) and all four LEDs (>96%)  
+	3. Real time clock(RTC) is implemented and tested. MCU can set and get the date/time from RTC module.
 	4. BMS MCU reads the following pack data from ISL
 		a. Pack voltage 
 		b. Pack Current
 		c. All cell voltages 
 		d. Pack temperature
 		e. All status flags (error and status)
-	5. BMS MCU sets the following parameters in ISL EEPROM. The the same parameters are read from EEPROM to confirm the configuration settings are OK. 	   
+	5. BMS MCU sets the following parameters in ISL EEPROM. The same parameters are read from EEPROM to confirm the configuration settings are OK. 	   
 	    a. OV threshold voltage
 	    b. OV recovery threshold 
 	    c. UV threshold voltage
@@ -71,27 +71,27 @@
 	    h. End of charge (EOC) threshold
 	    i. Internal over temperature threshold
 		j. Disable cell balancing by external MCU
-		k. Internal voer temperature recovery threshold
+		k. Internal over temperature recovery threshold
 		l. Internal current gain 
 	6. BMS logs all the status and error flags related to ISL on SD card.
-	7. BMS MCU estimates the pack capacity remaining based on pack voltage(voltage based capacity section taken from AP code)
-	8. BMS MCU resets the code if it stucks somewhere for more than 2 seconds (Watchdog timer functionality)
+	7. BMS MCU estimates the pack capacity remaining based on pack voltage (voltage based capacity section taken from AP code)
+	8. BMS MCU resets the code if it stuck somewhere for more than 2 seconds (Watchdog timer functionality)
 	9. BMS creates one summary file consisting of power up number and total number of files. It creates new log file after every power up and if the
 	   size of the log file exceeds 200MB size then MCU creates the new log file by incrementing the total number of files count in log summary file.
    10. BMS MCU logs all the I2C related error flags on SD card.
    11. If there is any problem in the logging then MCU will re-initialize the SD card and start logging by creating the new file.   
    12. If there is any problem in querying data from ISL then re-initialize the communication bus.
-   13. BMS MCU communicates with AP over SMBUS to query all pack data, set the GPS date and time for RTC in BMS and also reads AP flight status and log
+   13. BMS MCU communicates with AP over SMBUS to query all pack data, set the GPS date and time for RTC in BMS and reads AP flight status and log
    	   it on SD card. The packet protocol is mentioned in the BMS_V1_0_2.docx document.
    14. Sleep mode functionality is implemented and tested for following criteria without connecting the cells to the BMS cell port.
    		a. If BMS current consumption is less than 200mA and it remains same for more than 60 seconds then BMS MCU puts the ISL into sleep mode. Once 
 		   ISL goes into the sleep mode, MCU also goes into sleep mode after 5 seconds.
-		b. As of now,the only mechanism to wake up the MCU is external switch press. To wakeup BMS, BMS_WAKEUP switch has to be pressed.
+		b. As of now, the only mechanism to wake up the MCU is external switch press. To wakeup BMS, BMS_WAKEUP switch must be pressed.
 		c. Once MCU is awaken and if current consumption is still less than 200mA for continuous 10 seconds then MCU puts BMS in sleep mode again.
 		   and make himself to the sleep mode after 5 seconds
    15. BMS MCU maintains the charge and discharge cycles and logs the same on the SD card. During discharge if current consumption is more than 1A 
        for continuous 5 minutes and if previous cycle of the pack was discharge cycle, then increment the discharge count and log the same on SD card.
-	   During charging, if if current is more than 1A for continuous 5 minutes and if previous cycle of the pack was discharging, then increment 
+	   During charging, if current is more than 1A for continuous 5 minutes and if previous cycle of the pack was discharging, then increment 
 	   charge count and log the same on SD card. Pack cycles used is calculated and logged on SD card based on maximum of the charge and 
 	   discharge cycles. 
    16. BMS logs the following battery information which is hard coded in the code.
@@ -102,32 +102,32 @@
 		e. Max cell voltage 
 		f. Min cell voltage	 	   	       	   
 		g. Battery pack cycles 
-    17. BMS is able to go in debug mode if switch is pressed for more than 10 seconds. In debug mode following data is displayed over XCTU	
+    17. BMS goes to the debug mode if switch is pressed for more than 5 seconds. To come out of debug mode, switch should be pressed again for more than
+    	5 seconds 
 					   	   
-		   	
 ### ****BMS_CODE  1.0.0  ****
 	Pull request number: 4
 	
 	In this pull request version number is not added. Only added comment in Main.c  
 	
-    Major Developement on API side:
+    Major Development on API side:
         1. Generalized APIs for SPI,I2C,GPIO,RTC,FLASH,SD_SPI,USART,TIMERS are developed.
 		2. All APIs contains the functionality for specific micro controller i.e. STM32L432KC.
-		   Developer can use the same APIs for other controllers by adding respective controller's low level drivers 
+		   Developer can use the same APIs for other controllers by adding respective controller's low-level drivers 
         3. All APIs are tested for their basic functionality
 		4. This project contains one hardware configuration (Hardware_Config.h) file in which all peripherals 
 		   with their remap functionality is included
 		5. Timers (TIM2,TIM6 and TIM6) - tested for interrupt as well as polling method
 		   PWM channels (TIM1- 4 channels, TIM2- 4 channels, TIM15- 2 channels and TIM16- 1 channel) - tested for various PWM outputs
 		   I2C buses (I2C1 and I2C3) - tested along with BMS ISL94203 chip for EEPROM write and read functionality
-		   SD_SPI functionality - tested for various file operations like create, delete,open existing and write, seek,create directories etc
-		   USART(USART1 and USART2) both are tested for read and write functionality
+		   SD_SPI functionality - tested for various file operations like create, delete, open existing and write, seek, create directories etc
+		   USART (USART1 and USART2) both are tested for read and write functionality
 		   FLASH - Micro controllers internal flash tested for storing and retrieving user data (4Kb sectors for stm32l432kc)
 		   RTC - RTC functionality is tested for almost 12Hrs and found it correct without any lag/lead in real time.
-		   GPIO - tested for different GPIOs required in application like SD_CARD_SELECT,SD_CHIP_SELECT, BOARD_LED etc
+		   GPIO - tested for different GPIOs required in application like SD_CARD_SELECT, SD_CHIP_SELECT, BOARD_LED etc
 	
 	Major Development on application side:
-		1. Created the functions for reading all cell voltages, pack voltage,pack temperature, pack current flowing into and out of the pack
+		1. Created the functions for reading all cell voltages, pack voltage, pack temperature, pack current flowing into and out of the pack
 		   and tested the same
 		2. Added sleep and wakeup functionality for BMS IC and STM MCU and tested the same
 		3. Added logging structure to log the BMS data for 1Hz
@@ -168,7 +168,7 @@
 				Contains objects files generated for all source files after building the project 
 			10. Project configuration:
 				This folder contains the preference file (keyboard shortcuts and other c/c++ preferences), settings file
-				(c/c++ settings , include paths for project files)	
+				(c/c++ settings, include paths for project files)	
 			11. Enter_Character.txt:
 				This is the blank file containing only new line and carriage return characters to exit from CLI after downloading the program
 	
@@ -176,4 +176,5 @@
 			1. RTC Module #2
 			2. ISL94203 Module #1 	 	 
 			   		    			
-						 
+						
+
