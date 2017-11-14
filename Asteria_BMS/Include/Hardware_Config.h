@@ -27,7 +27,6 @@
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define DEBUG_COM										ENABLE
 #define BOARD_STATUS_ERROR_LED							ENABLE
 
 #define NUM_OF_USARTS									1

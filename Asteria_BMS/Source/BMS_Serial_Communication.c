@@ -7,6 +7,8 @@
 
 #include <BMS_Serial_Communication.h>
 
+bool Debug_COM_Enable = true;
+
 /**
  * @brief  Function to initialize debug USART to 115200 baud rate
  * @param  None
@@ -14,9 +16,10 @@
  */
 void BMS_Debug_COM_Init()
 {
-#if DEBUG_COM == ENABLE
-	USART_Init(USART_1,SYSTEM_BUAD_RATE);
-#endif
+	if(Debug_COM_Enable == true)
+	{
+		USART_Init(USART_1,SYSTEM_BUAD_RATE);
+	}
 }
 
 /**
@@ -26,9 +29,10 @@ void BMS_Debug_COM_Init()
  */
 void BMS_Debug_COM_Read_Data(uint8_t *RxBuffer,uint16_t Size)
 {
-#if DEBUG_COM == ENABLE
-	USART_Read(USART_1,RxBuffer,Size);
-#endif
+	if(Debug_COM_Enable == true)
+	{
+		USART_Read(USART_1,RxBuffer,Size);
+	}
 }
 
 /*
@@ -38,9 +42,10 @@ void BMS_Debug_COM_Read_Data(uint8_t *RxBuffer,uint16_t Size)
  */
 void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 {
-#if DEBUG_COM == ENABLE
-	USART_Write(USART_1,TxBuffer,Size);
-	Delay_Millis(4);
-#endif
+	if(Debug_COM_Enable == true)
+	{
+		USART_Write(USART_1,TxBuffer,Size);
+		Delay_Millis(4);
+	}
 }
 

@@ -44,9 +44,7 @@ uint32_t Discharge_Time_Count = 0;
 bool Update_Pack_Cycles = false;
 
 /* Debug code variables definition; Allocate the buffer size only if debugging is to be done */
-#if DEBUG_COM == ENABLE
-	char Buffer[400];
-#endif
+char Buffer[400];
 
 uint8_t RecData = 0;
 /* This variable counts the time for which log was unsuccessful; If it more than 125ms then SD card is
@@ -55,7 +53,8 @@ uint8_t Log_Init_Counter = 0 ;
 
 /* These flags are used to indicate the external button has been pressed for more than specified time
  * so that SOC or SOH status can be shown on LEDs */
-bool SOC_Flag = false,SOH_Flag = false,Display_SOH = false,Display_SOC = false;
+bool SOC_Flag = false,SOH_Flag = false,Debug_Mode_Function = false;
+bool Display_SOH = false,Display_SOC = false;
 
 /* Variable to hold the timing value to force the BMS IC to sleep mode; Values are set using macros defined
  * in BMS_Timing.h file. If MCU is awaken from sleep mode then check load presence for 10 seconds
@@ -97,7 +96,7 @@ int main(void)
 	RTC_Init();
 
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
-//	BMS_Configure_Parameters();
+	BMS_Configure_Parameters();
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
@@ -209,10 +208,19 @@ int main(void)
 				{
 					SOC_Flag = true;
 				}
-				else if (Switch_Press_Time_Count >= LONG_PEROID)
+				if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
 					SOH_Flag = true;
 					SOC_Flag = false;
+				}
+
+				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled
+				 * It will start displaying the data which is being sent over USART at 1Hz*/
+				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD)
+				{
+					SOH_Flag = false;
+					SOC_Flag = false;
+					Debug_Mode_Function = true;
 				}
 				else
 				{
@@ -239,6 +247,14 @@ int main(void)
 					SOC_Flag = false;
 					Display_SOC = true;
 					Time_Count = 0;
+				}
+				if(Debug_Mode_Function == true)
+				{
+					Display_SOC = false;
+					Display_SOH = false;
+					Debug_Mode_Function = false;
+					BMS_Debug_COM_Write_Data("Debug\r",6);
+					Debug_COM_Enable = !Debug_COM_Enable;
 				}
 			}
 
@@ -275,6 +291,7 @@ int main(void)
 					BMS_Show_LED_Pattern(SOH, HIDE_STATUS);
 				}
 			}
+
 			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
 			BMS_Read_Cell_Voltages();

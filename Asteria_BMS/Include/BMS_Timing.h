@@ -16,6 +16,7 @@
 #define _3_SECONDS								(3*_1_SECONDS)
 #define _4_SECONDS								(4*_1_SECONDS)
 #define _5_SECONDS								(5*_1_SECONDS)
+#define _10_SECONDS								(2* _5_SECONDS)
 
 #define _500_MILLIS								(_1_SECONDS/2)
 #define LOW_CONSUMPTION_DELAY					(60*_1_SECONDS)
@@ -26,6 +27,7 @@
 #define MCU_GO_TO_SLEEP_DELAY					_5_SECONDS
 #define SHORT_PERIOD							_500_MILLIS
 #define LONG_PEROID								_2_SECONDS
+#define DEBUG_FUNCTION_ENABLE_PERIOD			_5_SECONDS
 
 #define _1SEC_PERIOD							1000
 

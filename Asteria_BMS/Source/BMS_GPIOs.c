@@ -45,17 +45,19 @@ uint8_t BMS_Read_Switch_Status()
  */
 void BMS_Status_LEDs_Init()
 {
-#if DEBUG_COM == DISABLE
-	GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
-	GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
-	GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
-	GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
 
-	GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
-	GPIO_Write(LED2_PORT,LED_2,PIN_HIGH);
-	GPIO_Write(LED3_PORT,LED_3,PIN_HIGH);
-	GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
-#endif
+	if(Debug_COM_Enable == false)
+	{
+		GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
+
+		GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
+		GPIO_Write(LED2_PORT,LED_2,PIN_HIGH);
+		GPIO_Write(LED3_PORT,LED_3,PIN_HIGH);
+		GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
+	}
 
 #if BOARD_STATUS_ERROR_LED == ENABLE
 	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
@@ -74,12 +76,13 @@ void BMS_Status_LEDs_Init()
  */
 void BMS_Status_LED_Toggle()
 {
-#if DEBUG_COM == DISABLE
 	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
-	GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
-	GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
+	if(Debug_COM_Enable == false)
+	{
+		GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
+		GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
+	}
 	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
-#endif
 	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
 
@@ -97,33 +100,36 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 	if(Pattern_Type == SOC)
 	{
 		Battery_Health = Get_BMS_Capacity_Remaining();
-		if(Battery_Health > 0.00f && Battery_Health <= 25.00f)
+		if(Battery_Health > 0.00f && Battery_Health <= 40.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
 		}
-		else if (Battery_Health > 25.00f && Battery_Health <= 50.00f)
+		else if (Battery_Health > 40.00f && Battery_Health <= 80.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
-#if DEBUG_COM == DISABLE
-			GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
-#endif
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
+			}
 		}
-		else if (Battery_Health > 50.00f && Battery_Health <= 75.00f)
+		else if (Battery_Health > 80.00f && Battery_Health <= 95.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
-#if DEBUG_COM == DISABLE
-			GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
-			GPIO_Write(LED3_PORT,LED_3,PIN_LOW);
-#endif
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
+				GPIO_Write(LED3_PORT,LED_3,PIN_LOW);
+			}
 		}
 		else
 		{
-#if DEBUG_COM == DISABLE
 			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
-			GPIO_Write(LED2_PORT, LED_2, PIN_LOW);
-			GPIO_Write(LED3_PORT, LED_3, PIN_LOW);
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT, LED_2, PIN_LOW);
+				GPIO_Write(LED3_PORT, LED_3, PIN_LOW);
+			}
 			GPIO_Write(LED4_PORT, LED_4, PIN_LOW);
-#endif
 		}
 	}
 	else if (Pattern_Type == SOH)
@@ -133,11 +139,12 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 
 	if(Status == HIDE_STATUS)
 	{
-#if DEBUG_COM == DISABLE
 		GPIO_Write(LED1_PORT, LED_1, PIN_HIGH);
-		GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
-		GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
+		if(Debug_COM_Enable == true)
+		{
+			GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
+			GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
+		}
 		GPIO_Write(LED4_PORT, LED_4, PIN_HIGH);
-#endif
 	}
 }

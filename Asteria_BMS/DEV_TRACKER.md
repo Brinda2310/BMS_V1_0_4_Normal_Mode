@@ -47,16 +47,63 @@
 	**********************
 	
 ### ****BMS_CODE  1.0.1  ****
-	Pull request number: 5
+	Pull request number: 6
 			
-	Major Development on application side:
-		1. Added logic for creating the log summary file which as of now consist of Total_Number_Of_Files and Power_Up_Number. This is to 
-		   create the new log file at every power up as code is under development phase and we want to record the voltage and current reading
-		   to calculate the pack capacity. We also want to see the current readings for different current gain settings and sense resistor values
-		2. Added/updated the comments for most of the files which are not mentioned under Files Modified tag 
-	
-	Files Modified: Main.c, BMS_Data_Log.h,BMS_Data_Log.c
-			   	   
+	Features developed in BMS code for this release :
+	1. BMS MCU queries all pack data from ISL at 25Hz.
+	2. BMS MCU reads the external switch, if it is short press (500ms) then MCU will show SOC status on LEDs; If it is long press (2 seconds) then
+	   MCU will show SOH status on LEDs. SOC logic is implemented based on capacity remaining calcluations taken from AP code. SOC and SOH will be 
+	   displayed only upon releasing the pressed switch.One LED for (0-40%),two LEDs(41-80%), three LEDs(81-95%) and all four LEDs (>96%)  
+	3. Real time clock(RTC) is implemented and testd. MCU is able to set and get the date/time from RTC module.
+	4. BMS MCU reads the following pack data from ISL
+		a. Pack voltage 
+		b. Pack Current
+		c. All cell voltages 
+		d. Pack temperature
+		e. All status flags (error and status)
+	5. BMS MCU sets the following parameters in ISL EEPROM. The the same parameters are read from EEPROM to confirm the configuration settings are OK. 	   
+	    a. OV threshold voltage
+	    b. OV recovery threshold 
+	    c. UV threshold voltage
+	    d. UV recovery threshold 
+	    f. OV lockout threshold 
+	    g. UV lockout threshold 
+	    h. End of charge (EOC) threshold
+	    i. Internal over temperature threshold
+		j. Disable cell balancing by external MCU
+		k. Internal voer temperature recovery threshold
+		l. Internal current gain 
+	6. BMS logs all the status and error flags related to ISL on SD card.
+	7. BMS MCU estimates the pack capacity remaining based on pack voltage(voltage based capacity section taken from AP code)
+	8. BMS MCU resets the code if it stucks somewhere for more than 2 seconds (Watchdog timer functionality)
+	9. BMS creates one summary file consisting of power up number and total number of files. It creates new log file after every power up and if the
+	   size of the log file exceeds 200MB size then MCU creates the new log file by incrementing the total number of files count in log summary file.
+   10. BMS MCU logs all the I2C related error flags on SD card.
+   11. If there is any problem in the logging then MCU will re-initialize the SD card and start logging by creating the new file.   
+   12. If there is any problem in querying data from ISL then re-initialize the communication bus.
+   13. BMS MCU communicates with AP over SMBUS to query all pack data, set the GPS date and time for RTC in BMS and also reads AP flight status and log
+   	   it on SD card. The packet protocol is mentioned in the BMS_V1_0_2.docx document.
+   14. Sleep mode functionality is implemented and tested for following criteria without connecting the cells to the BMS cell port.
+   		a. If BMS current consumption is less than 200mA and it remains same for more than 60 seconds then BMS MCU puts the ISL into sleep mode. Once 
+		   ISL goes into the sleep mode, MCU also goes into sleep mode after 5 seconds.
+		b. As of now,the only mechanism to wake up the MCU is external switch press. To wakeup BMS, BMS_WAKEUP switch has to be pressed.
+		c. Once MCU is awaken and if current consumption is still less than 200mA for continuous 10 seconds then MCU puts BMS in sleep mode again.
+		   and make himself to the sleep mode after 5 seconds
+   15. BMS MCU maintains the charge and discharge cycles and logs the same on the SD card. During discharge if current consumption is more than 1A 
+       for continuous 5 minutes and if previous cycle of the pack was discharge cycle, then increment the discharge count and log the same on SD card.
+	   During charging, if if current is more than 1A for continuous 5 minutes and if previous cycle of the pack was discharging, then increment 
+	   charge count and log the same on SD card. Pack cycles used is calculated and logged on SD card based on maximum of the charge and 
+	   discharge cycles. 
+   16. BMS logs the following battery information which is hard coded in the code.
+   	 	a. Battery ID 
+		b. Battery type
+		c. Number of cells 
+		d. Battery capacity
+		e. Max cell voltage 
+		f. Min cell voltage	 	   	       	   
+		g. Battery pack cycles 
+    17. BMS is able to go in debug mode if switch is pressed for more than 10 seconds. In debug mode following data is displayed over XCTU	
+					   	   
 		   	
 ### ****BMS_CODE  1.0.0  ****
 	Pull request number: 4

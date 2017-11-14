@@ -12,6 +12,8 @@
 
 #define SYSTEM_BUAD_RATE							115200
 
+extern bool Debug_COM_Enable;
+
 /* Prototypes for the function defined in BMS_Serial_Communication.c file */
 void BMS_Debug_COM_Init(void);
 void BMS_Debug_COM_Read_Data(uint8_t *RxBuffer,uint16_t Size);
