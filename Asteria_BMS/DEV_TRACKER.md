@@ -51,9 +51,9 @@
 			
 	Features developed in BMS code for this release:
 	1. BMS MCU queries all pack data from ISL at 25Hz.
-	2. BMS MCU reads the external switch, if it is short press (500ms) then MCU will show SOC status on LEDs; If it is long press (2 seconds) then
-	   MCU will show SOH status on LEDs. SOC logic is implemented based on capacity remaining calculations taken from AP code. SOC and SOH will be 
-	   displayed only upon releasing the pressed switch. One LED for (0-40%),two LEDs(41-80%), three LEDs(81-95%) and all four LEDs (>96%)  
+	2. BMS MCU reads the external switch, if it is short press (<500ms) then MCU will show SOC status on LEDs; If it is long press (>2 seconds and 
+	   < 5seconds) then MCU will show SOH status on LEDs. SOC logic is implemented based on capacity remaining calculations taken from AP code. SOC 
+	   and SOH will be displayed only upon releasing the pressed switch. One LED for (0-40%),two LEDs(41-80%), three LEDs(81-95%) and all four LEDs (>96%)  
 	3. Real time clock(RTC) is implemented and tested. MCU can set and get the date/time from RTC module.
 	4. BMS MCU reads the following pack data from ISL
 		a. Pack voltage 
@@ -75,7 +75,7 @@
 		l. Internal current gain 
 	6. BMS logs all the status and error flags related to ISL on SD card.
 	7. BMS MCU estimates the pack capacity remaining based on pack voltage (voltage based capacity section taken from AP code)
-	8. BMS MCU resets the code if it stuck somewhere for more than 2 seconds (Watchdog timer functionality)
+	8. BMS MCU resets the code if it stuck somewhere for more than 2 seconds (Watchdog timer functionality). Refreshing the watchdog timer happens at 25Hz.
 	9. BMS creates one summary file consisting of power up number and total number of files. It creates new log file after every power up and if the
 	   size of the log file exceeds 200MB size then MCU creates the new log file by incrementing the total number of files count in log summary file.
    10. BMS MCU logs all the I2C related error flags on SD card.
