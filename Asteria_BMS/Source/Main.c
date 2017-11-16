@@ -175,9 +175,6 @@ int main(void)
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
-		/* Reload the watchdog timer value to avoid resetting of code */
-		BMS_Watchdog_Refresh();
-
 		/* Debug code to be removed after testing */
 		switch(RecData)
 		{
@@ -204,7 +201,7 @@ int main(void)
 				/* As soon as switch is released, check for timer count value. If count is in between
 				 * 500ms and 1 seconds then show the SOC status on LEDs and if count is more than 2
 				 * seconds then show SOH status on LEDs */
-				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= (SHORT_PERIOD + 2))
+				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
 				{
 					SOC_Flag = true;
 				}
@@ -253,7 +250,7 @@ int main(void)
 					Display_SOC = false;
 					Display_SOH = false;
 					Debug_Mode_Function = false;
-					BMS_Debug_COM_Write_Data("Debug\r",6);
+//					BMS_Debug_COM_Write_Data("Debug\r",6);
 					Debug_COM_Enable = !Debug_COM_Enable;
 				}
 			}
@@ -287,8 +284,8 @@ int main(void)
 				{
 					Display_SOH = false;
 					Time_Count = 0;
-//					BMS_Debug_COM_Write_Data("Released\r", 9);
 					BMS_Show_LED_Pattern(SOH, HIDE_STATUS);
+//					BMS_Debug_COM_Write_Data("Released\r", 9);
 				}
 			}
 
@@ -386,7 +383,7 @@ int main(void)
 					/* If current coming into the pack is more than 1amperes for more than 5mins(CHARGE_TIME_DELAY),
 					 * then increment the charge cycles count and make the status to of variable to true so as to
 					 * keep track of last state of the pack i.e. charging/discharging  */
-					if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status != CHARGING)
+					if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status == DISCHARGING)
 					{
 						BMS_Data.Pack_Charge_Cycles++;
 						Update_Pack_Cycles = true;
@@ -413,7 +410,7 @@ int main(void)
 					/* If discharge current is more than 1 amperes for more than 5 minutes then increment
 					 * the discharge cycles count by ensuring that the previous state of the pack was
 					 * not discharging */
-					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status != DISCHARGING)
+					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status == CHARGING)
 					{
 						BMS_Data.Pack_Discharge_Cycles++;
 						Update_Pack_Cycles = true;
@@ -462,6 +459,10 @@ int main(void)
 			Loop_Rate_Counter++;
 			/* Debug LED to see whether the code is running or stuck */
 			BMS_Status_LED_Toggle();
+
+			/* Reload the watchdog timer value to avoid resetting of code */
+			BMS_Watchdog_Refresh();
+
 			_25Hz_Flag = false;
 		}
 		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
