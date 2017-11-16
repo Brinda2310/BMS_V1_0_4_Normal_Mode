@@ -10,15 +10,18 @@
 
 #include "FLASH_API.h"
 
-/* STM32L4 flash's sector size is 2K */
-#define SECTOR_SIZE 				2048
-/* Number of bytes to be read/written to the flash */
-#define READ_SIZE					8
+#define SECTOR_SIZE 				2048 		/* STM32L4 flash's sector size is 2K */
+#define READ_SIZE					8			/* Number of bytes to be read/written to the flash */
 #define WRITE_SIZE					READ_SIZE
 
+/* Flash's memory location related enumerations
+ * @MEM_DATA_SIZE_OVERLFOW	: Size of data buffer given for writing is more than flash's page size
+ * @MEM_DATA_SIZE_INVALID	: Size of data given for writing is not multiple of 8Bytes
+ * @MEM_WRITE_OK			: Writing to flash locations is successful
+ * @MEM_READ_OK				: Reading from flash memory locations is successful */
 enum Mem_Write_Results
 {
-	MEM_ADDRESS_INVALID = 0, MEM_DATA_SIZE_OVERLFOW,MEM_DATA_SIZE_INVALID,MEM_WRITE_OK,MEM_READ_OK
+	MEM_DATA_SIZE_OVERLFOW = 0,MEM_DATA_SIZE_INVALID,MEM_WRITE_OK,MEM_READ_OK
 };
 
 /* Function prototypes */

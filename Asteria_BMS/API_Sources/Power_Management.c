@@ -6,6 +6,10 @@
  */
 #include <Power_Management.h>
 
+/* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or
+ * from external switch press */
+volatile bool Wakeup_From_Sleep = false,Sleep_Mode = false;
+
 void MCU_Enter_Sleep_Mode()
 {
 #ifdef BMS_VERSION
@@ -40,50 +44,34 @@ void MCU_Enter_Sleep_Mode()
 #endif
 }
 
-void SystemPower_Config(void)
-{
-#ifdef BMS_VERSION
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-/* Enable GPIOs clock */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOH_CLK_ENABLE();
-
-	GPIO_InitStructure.Pin = GPIO_PIN_All;
-	GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
-	HAL_GPIO_Init(GPIOH, &GPIO_InitStructure);
-
-	/* Disable GPIOs clock to reduce the power consumption */
-	__HAL_RCC_GPIOA_CLK_DISABLE();
-	__HAL_RCC_GPIOB_CLK_DISABLE();
-	__HAL_RCC_GPIOC_CLK_DISABLE();
-	__HAL_RCC_GPIOH_CLK_DISABLE();
-#endif
-}
-
 void MCU_Exit_Sleep_Mode()
 {
 #ifdef BMS_VERSION
     HAL_PWREx_DisableLowPowerRunMode();
     /* Reinitialize all the peripherals as they were disabled before MCU going to sleep; But sleep mode holds
      * the global variables values to their previous state as before going to sleep */
-    HAL_Init();
+	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
+	HAL_Init();
+
+	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();
+
+	/* Initialize the timer to 40mS and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
-#if DEBUG_COM == ENABLE
+
+	/* Initialize the USART to 115200 baud rate to debug the code */
 	BMS_Debug_COM_Init();
-#endif
+
+	/* Initialize the status LEDs which indicates the SOC and SOH */
 	BMS_Status_LEDs_Init();
+
+	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
+	 * to show the SOC and SOH on status LEDs*/
 	BMS_Switch_Init();
 
+	/* Configure the ISL94203 I2C communication to 100KHz */
 	BMS_ASIC_Init();
+
 #endif
 }
 
@@ -101,9 +89,7 @@ void SystemClock_Decrease(void)
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_0;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-  }
+  HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
   /* Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
@@ -112,9 +98,7 @@ void SystemClock_Decrease(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-  }
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 
   /* Disable HSI to reduce power consumption since MSI is used from that point */
   __HAL_RCC_HSI_DISABLE();
@@ -154,3 +138,20 @@ void Set_System_Clock_Frequency(void)
 
 #endif
 }
+
+/* ISR which handles the wake up of MCU from sleep mode and resumes the operation from where it
+ * had left off */
+//void EXTI9_5_IRQHandler(void)
+//{
+//  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
+//  /* Once MCU is awaken either by external switch press or by Vref of BMS IC, resume the operation of
+//   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
+//   * is triggered by external event again */
+//  if(Wakeup_From_Sleep == false && Sleep_Mode == true)
+//  {
+//	  MCU_Exit_Sleep_Mode();
+//	  Wakeup_From_Sleep = true;
+//	  Sleep_Mode = false;
+//  }
+//}
+

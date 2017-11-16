@@ -29,6 +29,19 @@
 
 #endif
 
+typedef struct
+{
+	uint8_t Day;
+	uint8_t Date;
+	uint8_t Month;
+	uint8_t Year;
+	uint8_t Hours;
+	uint8_t Minutes;
+	uint8_t Seconds;
+} RTC_Data;
+
+extern RTC_Data RTC_Info;
+
 enum WeekDays
 {
 	MONDAY = 1, TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY
@@ -45,6 +58,6 @@ uint8_t RTC_Get_Date(uint8_t *Day,uint8_t *Date,uint8_t *Month, uint8_t *Year);
 uint8_t RTC_Set_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds);
 uint8_t RTC_Get_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds);
 uint8_t RTC_AlarmConfig(uint8_t *Day,uint8_t * Hours,uint8_t * Minutes, uint8_t *Seconds);
-void RTC_TimeShow(uint8_t* showtime);
+uint8_t RTC_TimeShow(uint8_t* showtime);
 
 #endif /* RTC_API_H_ */

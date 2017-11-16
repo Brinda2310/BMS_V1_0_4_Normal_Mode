@@ -8,30 +8,40 @@
 #ifndef BMS_TIMING_H_
 #define BMS_TIMING_H_
 
-#include "TIMER_API.h"
+#include <TIMER_API.h>
 
-#define _40ms_PERIOD 			40
-#define _1_SECONDS				(1000/_40ms_PERIOD)
-#define _2_SECONDS				(2*_1_SECONDS)
-#define _3_SECONDS				(3*_1_SECONDS)
-#define _4_SECONDS				(4*_1_SECONDS)
-#define _5_SECONDS				(5*_1_SECONDS)
+#define _40ms_PERIOD 							40
+#define _1_SECONDS								(1000/_40ms_PERIOD)
+#define _2_SECONDS								(2*_1_SECONDS)
+#define _3_SECONDS								(3*_1_SECONDS)
+#define _4_SECONDS								(4*_1_SECONDS)
+#define _5_SECONDS								(5*_1_SECONDS)
+#define _10_SECONDS								(2* _5_SECONDS)
 
-#define LOW_CONSUMPTION_DELAY	(60*_5_SECONDS)
-#define MCU_GO_TO_SLEEP_DELAY	(4*_5_SECONDS)
-#define SHORT_PERIOD			_2_SECONDS
-#define LONG_PEROID				_4_SECONDS
+#define _500_MILLIS								(_1_SECONDS/2)
+#define LOW_CONSUMPTION_DELAY					(60*_1_SECONDS)
+#define LOW_CONSUMPTION_DELAY_AFTER_WAKEUP		(LOW_CONSUMPTION_DELAY/6)
+#define CHARGE_TIME_DELAY						(5 * LOW_CONSUMPTION_DELAY)
+#define DISCHARGE_TIME_DELAY					(5 * LOW_CONSUMPTION_DELAY)
+
+#define MCU_GO_TO_SLEEP_DELAY					_5_SECONDS
+#define SHORT_PERIOD							_500_MILLIS
+#define LONG_PEROID								_2_SECONDS
+#define DEBUG_FUNCTION_ENABLE_PERIOD			_5_SECONDS
+
+#define _1SEC_PERIOD							1000
 
 extern bool _25Hz_Flag,_1Hz_Flag;
 
-void BMS_Timers_Init();
-uint64_t Get_System_Time();
-void TIM2_PeriodElapsedCallback(void);
+extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 
-//void TIM6_PeriodElapsedCallback(void);
+/* Prototypes for the function defined in the BMS_Timing.c file */
+void BMS_Timers_Init();
+double Get_System_Time_Seconds();
+uint64_t Get_System_Time_Millis();
+void TIM2_PeriodElapsedCallback(void);
+void TIM6_PeriodElapsedCallback(void);
 //void TIM7_PeriodElapsedCallback(void);
-//
-//void Set_Servo_Position(uint8_t Servo,uint16_t Position);
 
 #endif /* BMS_TIMING_H_ */
 

@@ -7,17 +7,28 @@
 
 #include <BMS_GPIOs.h>
 #include <BMS_Serial_Communication.h>
+#include <BMS_ASIC.h>
 
-/* Function to initialize the switch functionality connected to respective GPIO of MCU */
+/**
+ * @brief  Function to initialize the switch functionality connected to respective GPIO of MCU
+ * @param  None
+ * @retval None
+ */
 void BMS_Switch_Init()
 {
-	GPIO_Init(GPIO_A,GPIO_PIN_11,GPIO_INPUT,PULLUP);
+	GPIO_Init(BMS_SWITCH_PORT,BMS_SWITCH,GPIO_INPUT,NOPULL);
 }
 
-/* Function to read the switch status. If pressed then it returns PRESSED otherwise NOT_PRESSED */
+/**
+ * @brief  Function to read the switch status. Switch is pulled up with internal resistor,
+ * 		   If pressed pin status will be LOW and if not pressed it will remain to high state
+ * @param  None
+ * @retval PRESSED		: Switch is pressed
+ * 		   NOT_PRESSED	: Switch is not pressed
+ */
 uint8_t BMS_Read_Switch_Status()
 {
-	if(GPIO_Read(GPIO_A,GPIO_PIN_11) == PIN_LOW)
+	if(GPIO_Read(BMS_SWITCH_PORT,BMS_SWITCH) == PIN_HIGH)
 	{
 		return PRESSED;
 	}
@@ -27,32 +38,113 @@ uint8_t BMS_Read_Switch_Status()
 	}
 }
 
-/* Function to initialize the LEDs connected to respective GPIOs of MCU */
+/**
+ * @brief  Function to initialize the LEDs connected to respective GPIOs of MCU
+ * @param  None
+ * @retval None
+ */
 void BMS_Status_LEDs_Init()
 {
-//	GPIO_Init(GPIO_B,LED_1,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_2,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_3,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_B,LED_4,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(GPIO_A,LED_5,GPIO_OUTPUT,NOPULL);
+
+	if(Debug_COM_Enable == false)
+	{
+		GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED2_PORT,LED_2,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED3_PORT,LED_3,GPIO_OUTPUT,NOPULL);
+		GPIO_Init(LED4_PORT,LED_4,GPIO_OUTPUT,NOPULL);
+
+		GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
+		GPIO_Write(LED2_PORT,LED_2,PIN_HIGH);
+		GPIO_Write(LED3_PORT,LED_3,PIN_HIGH);
+		GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
+	}
+
+#if BOARD_STATUS_ERROR_LED == ENABLE
+	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
+	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
+
+	GPIO_Write(LED5_PORT,LED_5,PIN_HIGH);
+	GPIO_Write(LED6_PORT,LED_6,PIN_HIGH);
+#endif
+
 }
 
-/* Function to show the LED pattern upon switch press; It shows SOC and SOH based
- * on time for which switch is pressed */
-void BMS_Show_LED_Pattern(uint8_t Battery_Capacity)
+/**
+ * @brief  Function to toggle the status LEDs connected on board; Used only for debugging
+ * @param  None
+ * @retval None
+ */
+void BMS_Status_LED_Toggle()
 {
-	if(Battery_Capacity == SOC)
+	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
+	if(Debug_COM_Enable == false)
 	{
-//		GPIO_Write(GPIO_B,LED_1,PIN_TOGGLE);
-#if DEBUG_MANDATORY == ENABLE
-		BMS_Debug_COM_Write_Data("Short Press\r",12);
-#endif
-		Delay_Millis(2);
+		GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
+		GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
 	}
-	else if (Battery_Capacity == SOH)
+	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
+	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
+}
+
+/**
+ * @brief  Function to show the LED pattern upon switch press; It shows SOC and SOH based
+ * 		   on time for which switch is pressed
+ * @param  Pattern_Type		: Type of pattern to be shown on LEDs (SOC/SOH)
+ * @param  Status			: Type of status (HIDE_STATUS/SHOW_STATUS)
+ * @retval None
+ */
+void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
+{
+	float Battery_Health = 0.0;
+
+	if(Pattern_Type == SOC)
 	{
-#if DEBUG_MANDATORY == ENABLE
-		BMS_Debug_COM_Write_Data("Long Press\r",11);
-#endif
+		Battery_Health = Get_BMS_Capacity_Remaining();
+		if(Battery_Health > 0.00f && Battery_Health <= 40.00f)
+		{
+			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
+		}
+		else if (Battery_Health > 40.00f && Battery_Health <= 80.00f)
+		{
+			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
+			}
+		}
+		else if (Battery_Health > 80.00f && Battery_Health <= 95.00f)
+		{
+			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
+				GPIO_Write(LED3_PORT,LED_3,PIN_LOW);
+			}
+		}
+		else
+		{
+			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
+			if(Debug_COM_Enable == true)
+			{
+				GPIO_Write(LED2_PORT, LED_2, PIN_LOW);
+				GPIO_Write(LED3_PORT, LED_3, PIN_LOW);
+			}
+			GPIO_Write(LED4_PORT, LED_4, PIN_LOW);
+		}
+	}
+	else if (Pattern_Type == SOH)
+	{
+//		BMS_Debug_COM_Write_Data("Long Press\r",11);
+	}
+
+	if(Status == HIDE_STATUS)
+	{
+		GPIO_Write(LED1_PORT, LED_1, PIN_HIGH);
+		if(Debug_COM_Enable == true)
+		{
+			GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
+			GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
+		}
+		GPIO_Write(LED4_PORT, LED_4, PIN_HIGH);
 	}
 }

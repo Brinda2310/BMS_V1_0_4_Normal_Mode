@@ -12,6 +12,8 @@
 	RTC_TimeTypeDef TimeStruct;
 #endif
 
+RTC_Data RTC_Info;
+
 uint8_t RTC_Init()
 {
 	uint8_t Result = RESULT_OK;
@@ -83,15 +85,10 @@ uint8_t RTC_Set_Date(uint8_t *Weekday, uint8_t *Date,uint8_t *Month,uint8_t *Yea
 	uint8_t Result = RESULT_OK;
 #ifdef BMS_VERSION
 	RTC_DateTypeDef  DateStruct;
-	DateStruct.Year 	= *Year;							// Year : 2017
+	DateStruct.Year 	= *Year;
 	DateStruct.Month 	= *Month;
-	DateStruct.Date 	= *Date;							// Date : 8
+	DateStruct.Date 	= *Date;
 	DateStruct.WeekDay  = *Weekday;
-
-//	DateStruct.Year 	= 0x17;							// Year : 2017
-//	DateStruct.Month 	= RTC_MONTH_FEBRUARY;
-//	DateStruct.Date 	= 0x10;							// Date : 8
-//	DateStruct.WeekDay  = RTC_WEEKDAY_FRIDAY;
 
 	if(HAL_RTC_SetDate(&RtcHandle,&DateStruct,RTC_FORMAT_BCD) != HAL_OK)
 	{
@@ -194,10 +191,11 @@ void RTC_Alarm_IRQHandler(void)
 {
   HAL_RTC_AlarmIRQHandler(&RtcHandle);
   /* User can write his own functionality when alarm is fired*/
-
 }
-void RTC_TimeShow(uint8_t* showtime)
+
+uint8_t RTC_TimeShow(uint8_t* showtime)
 {
+  uint8_t Length = 0;
   RTC_DateTypeDef sdatestructureget;
   RTC_TimeTypeDef stimestructureget;
 
@@ -206,5 +204,8 @@ void RTC_TimeShow(uint8_t* showtime)
   /* Get the RTC current Date */
   HAL_RTC_GetDate(&RtcHandle, &sdatestructureget, RTC_FORMAT_BIN);
   /* Display time Format : hh:mm:ss */
-  sprintf((char*)showtime,"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+  Length += sprintf((char*)showtime,"%02d/%02d/%02d\r",sdatestructureget.Date, sdatestructureget.Month, sdatestructureget.Year);
+  Length += sprintf((char*)&showtime[Length],"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+
+  return Length;
 }
