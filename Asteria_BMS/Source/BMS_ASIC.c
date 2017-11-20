@@ -169,7 +169,27 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 	BMS_Data.Cell6_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+}
 
+static void Convert_Float_Voltage_to_Hex(float Voltage_Value,uint8_t* Data_Buffer,uint8_t *Index)
+{
+	uint16_t Temp_Calculations = (uint16_t)(853.125 * Voltage_Value);
+//	uint8_t Temp[3];
+//	Temp[(*Index)++] = Temp_Calculations;
+//	Temp[(*Index)++] = (Temp_Calculations >> 8) & 0xFF;
+
+	Data_Buffer[(*Index)++] = (Temp_Calculations);
+	Data_Buffer[(*Index)++] = ((Temp_Calculations >> 8)& 0xFF);
+}
+
+static void Convert_Degrees_Voltage_to_Hex(float Temperature_Degrees,uint8_t* Data_Buffer)
+{
+	uint8_t Index = 0;
+	uint16_t Temperature_in_Volt = 0.0;
+	Temperature_in_Volt = (Temperature_Degrees + 273.15) * 0.0018527;
+
+	Data_Buffer[Index++] = (Temperature_in_Volt & 0xFF);
+	Data_Buffer[Index++] = ((Temperature_in_Volt >> 8) & 0xFF);
 }
 
 /**
@@ -257,17 +277,17 @@ void BMS_Force_Sleep()
  */
 static void BMS_Set_Over_Voltage_Threshold(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x1E2A;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the OV threshold value to the register. If any cell value is above threshold value then OV flag is
 	 * set and logged on SD card */
-	Send_Data_Values[Index++] = OV_THRESHOLD_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Send_Data_Values, Index);
+	Data_Value[(*Index)++] = OV_THRESHOLD_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_OVER_VOLTAGE_THR_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
 	uint8_t Address = OV_THRESHOLD_ADDR;
@@ -277,7 +297,8 @@ static void BMS_Set_Over_Voltage_Threshold(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again  */
-	if(Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -294,27 +315,30 @@ static void BMS_Set_Over_Voltage_Threshold(void)
  */
 static void BMS_Set_Over_Voltage_Recovery(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x0DD4;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the OV recovery value to the register. If any of the cell value comes below this value
 	 * then OV flag is reseted and logged on SD card */
-	Send_Data_Values[Index++] = OV_RECOVERY_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
+	Data_Value[(*Index)++] = OV_RECOVERY_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_OV_RECOVERY_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
 
 	uint8_t Address = OV_RECOVERY_ADDR;
 
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
 	I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
 
-	if (Pack_Data == Data_Value)
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -331,17 +355,17 @@ static void BMS_Set_Over_Voltage_Recovery(void)
  */
 static void BMS_Set_Under_Voltage_Threshold(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x1BA9;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the UV threshold value to the register. If any cell value is below threshold value then UV flag
 	 * is set and logged on SD card */
-	Send_Data_Values[Index++] = UV_THROSHOLD_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	Data_Value[(*Index)++] = UV_THROSHOLD_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_UNDER_VOLTAGE_THR_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	uint8_t Address = UV_THROSHOLD_ADDR;
 
@@ -351,7 +375,8 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again */
-	if (Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -368,17 +393,17 @@ static void BMS_Set_Under_Voltage_Threshold(void)
  */
 static void BMS_Set_Under_Voltage_Recovery(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x0AAA;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the UV recovery value to the register. If any cell value is above recovery value then UV flag
 	 * is reseted and logged on SD card */
-	Send_Data_Values[Index++] = UV_RECOVERY_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	Data_Value[(*Index)++] = UV_RECOVERY_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_UV_RECOVERY_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	uint8_t Address = UV_RECOVERY_ADDR;
 
@@ -388,7 +413,8 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again */
-	if (Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -405,17 +431,17 @@ static void BMS_Set_Under_Voltage_Recovery(void)
  */
 static void BMS_Set_OV_LockOut_Threshold(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x0E7F;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the OV lockout threshold value to the register. If any if the cell voltage is above this value
 	 * for more than 5 successive scans then OVLO flag is set and logged on SD card */
-	Send_Data_Values[Index++] = OV_LOCKOUT_THRESHOLD_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	Data_Value[(*Index)++] = OV_LOCKOUT_THRESHOLD_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_OV_LOCKOUT_THR_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	uint8_t Address = OV_LOCKOUT_THRESHOLD_ADDR;
 
@@ -425,7 +451,8 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again */
-	if (Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -442,17 +469,17 @@ static void BMS_Set_OV_LockOut_Threshold(void)
  */
 static void BMS_Set_UV_LockOut_Threshold(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x0600;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the UV lockout threshold value to the register. If any if the cell voltage is below this value
 	 * for more than 5 successive scans then UVLO flag is set and logged on SD card */
-	Send_Data_Values[Index++] = UV_LOCKOUT_THRESHOLD_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	Data_Value[(*Index)++] = UV_LOCKOUT_THRESHOLD_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_UV_LOCKOUT_THR_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	uint8_t Address = UV_LOCKOUT_THRESHOLD_ADDR;
 
@@ -462,7 +489,8 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again */
-	if (Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -479,17 +507,17 @@ static void BMS_Set_UV_LockOut_Threshold(void)
  */
 static void BMS_Set_End_of_Charge_Threshold(void)
 {
-	uint8_t Send_Data_Values[3],Index = 0;
-	uint16_t Data_Value = 0x0DFF;
+	uint8_t *Index = 0,Data_Value[3];
+	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
+
+	Index = &Memory_Assign;
 
 	/* Write the EOC threshold value to the register. If any if the cell voltage is above this value
 	 * EOC flag is set and logged on SD card */
-	Send_Data_Values[Index++] = EOC_THRESHOLD_ADDR;
-	Send_Data_Values[Index++] = (Data_Value & 0xFF);
-	Send_Data_Values[Index++] = ((Data_Value >> 8) & 0xFF);
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values, Index);
+	Data_Value[(*Index)++] = EOC_THRESHOLD_ADDR;
+	Convert_Float_Voltage_to_Hex(CELL_EOC_THR_VALUE,Data_Value,Index);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	uint8_t Address = EOC_THRESHOLD_ADDR;
 
@@ -499,7 +527,8 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 
 	/* If written value in BMS ASIC register and values read from the same register are same
 	 * then configuration settings are OK other wise code should write the values to the register again */
-	if (Pack_Data == Data_Value)
+	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
+	if(Pack_Data == *Temp_Data)
 	{
 		Configuration_OK = true;
 	}
@@ -509,27 +538,27 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 	}
 }
 
-//static uint8_t BMS_Set_OV_Delay_Timeout(void)
-//{
-//	uint8_t Result = 0xFF;
-//
-//	return Result;
-//}
-//
-//static uint8_t BMS_Set_UV_Delay_Timeout(void)
-//{
-//	uint8_t Result = 0xFF;
-//
-//	return Result;
-//}
-//
-//static uint8_t BMS_Set_Open_Wiring_Timeout(void)
-//{
-//	uint8_t Result = 0xFF;
-//
-//	return Result;
-//}
-//
+static uint8_t BMS_Set_OV_Delay_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_UV_Delay_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
+static uint8_t BMS_Set_Open_Wiring_Timeout(void)
+{
+	uint8_t Result = 0xFF;
+
+	return Result;
+}
+
 /**
  * @brief  Function to set internal OT threshold value into BMS ASIC (configuration parameter)
  * @param  None

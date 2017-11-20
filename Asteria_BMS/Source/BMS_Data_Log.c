@@ -447,8 +447,9 @@ uint8_t Log_All_Data()
 
 	String_Buffer[(*String_Index)++] = ',';
 
+	/* These are the flags which are set and reset based on I2C operations */
 	uint8_t *Ptr = (uint8_t*)&I2C_Error_Flag;
-	for(int i =0 ; i < 8; i++)
+	for(int i =0 ; i < 20; i++)
 	{
 		if((*Ptr & 0x80))
 		{

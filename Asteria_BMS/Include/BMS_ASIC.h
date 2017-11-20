@@ -127,6 +127,18 @@
 #define BATTERY_TYPE								LI_POLYMER
 #define BATT_MAX_PACK_CYCLES						200
 
+
+/* Battery Configuration Parameters to be stored in ISL EEPROM */
+#define CELL_OVER_VOLTAGE_THR_VALUE					4.25			// In Volt
+#define CELL_OV_RECOVERY_VALUE						4.15			// In Volt
+#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50			// In Volt
+#define CELL_UV_RECOVERY_VALUE						3.60			// In Volt
+#define CELL_OV_LOCKOUT_THR_VALUE					4.30			// In Volt
+#define CELL_UV_LOCKOUT_THR_VALUE					2.50			// In Volt
+#define CELL_EOC_THR_VALUE							4.20			// In Volt
+#define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
+#define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
+
 /* Enums to define the write results */
 enum Write_Result
 {
