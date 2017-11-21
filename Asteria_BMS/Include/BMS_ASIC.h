@@ -15,7 +15,7 @@
 #define I2C_OWN_ADDRESS								0x0F	/* This is the MCU's own address */
 #define EEPROM_PAGE_SIZE							4		/* Max size of EEPROM page in ISL */
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
-
+#define READ_WRITE_DELAY							5
 
 #define SLOPE_5X									0.07713	/* Equation(slope M)coefficients derived from log analysis */
 #define SLOPE_50X									0.0831
@@ -61,6 +61,9 @@
 #define OV_LOCKOUT_THRESHOLD_ADDR					0x08
 #define UV_LOCKOUT_THRESHOLD_ADDR					0x0A
 #define EOC_THRESHOLD_ADDR							0x0C
+#define OV_DELAY_TIMEOUT_ADDR						0x10
+#define UV_DELAY_TIMEOUT_ADDR						0x12
+#define OPEN_WIRING_TIMEOUT_ADDR					0x14
 
 #define INTERNAL_OT_THRESHOLD_ADDR					0x40
 #define INTERNAL_OT_RECOVERY_ADDR					0x42
@@ -138,6 +141,20 @@
 #define CELL_EOC_THR_VALUE							4.20			// In Volt
 #define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
 #define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
+#define OV_DELAY_TIMEOUT_VALUE						1				// In seconds
+#define	UV_DELAY_TIMEOUT_VALUE						1				// In seconds
+#define OPEN_WIRING_TIMEOUT_VALUE					20				// In Millis
+
+#define DELAY_TIMEOUT_MILLIS						0x04
+#define DELAY_TIMEOUT_SECONDS						0x08
+#define DELAY_TIMEOUT_MINUTES						0x0C
+
+#define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x01
+#define OPEN_WIRING_DELAY_TIMEOUT_MICROS			0x00
+
+#define OV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
+#define UV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
+#define OPEN_WIRING_TIMEOUT_RESOLUTION				OPEN_WIRING_DELAY_TIMEOUT_MILLIS
 
 /* Enums to define the write results */
 enum Write_Result
@@ -239,6 +256,7 @@ typedef struct
 	uint8_t I2C_Set_EOC_Thresh_Flag:1;
 	uint8_t I2C_Set_IOT_Thresh_Flag:1;
 
+	uint8_t I2C_Set_IOT_Recovery_Flag:1;
 	uint8_t I2C_Disable_Cell_Balancing_Flag:1;
 	uint8_t I2C_Set_OV_Delay_Timeout_Flag:1;
 	uint8_t I2C_Set_UV_Delay_Timeout_Flag:1;
@@ -289,8 +307,6 @@ extern uint16_t Current_Gain;
 extern double C_D_Rate_Seconds;
 
 extern uint32_t Error_Check_Data;
-
-extern bool BMS_Com_Restart;
 
 /* Constant battery parameters */
 extern const uint8_t Battery_ID[];

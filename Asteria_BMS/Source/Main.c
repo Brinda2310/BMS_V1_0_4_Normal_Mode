@@ -452,7 +452,6 @@ int main(void)
 			{
 				BMS_ASIC_Init();
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
-				BMS_Com_Restart = false;
 			}
 
 			/* Variable to log the loop rate */

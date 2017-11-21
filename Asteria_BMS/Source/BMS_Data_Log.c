@@ -319,7 +319,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,SMBUS_Error_Status,Loop_Rate,ISL_Restart_Count,Watchdog Flag,AP Status\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,Watchdog Flag,AP Status\r\n");
 
 //		while((*String_Index) != 1021)
 //		{
@@ -448,16 +448,16 @@ uint8_t Log_All_Data()
 	String_Buffer[(*String_Index)++] = ',';
 
 	/* These are the flags which are set and reset based on I2C operations */
-	uint8_t *Ptr = (uint8_t*)&I2C_Error_Flag;
-	for(int i =0 ; i < 20; i++)
+	uint32_t *I2C_Error_Code = (uint32_t*)&I2C_Error_Flag;
+	for(int i =0 ; i < 32; i++)
 	{
-		if((*Ptr & 0x80))
+		if((*I2C_Error_Code & 0x80000000))
 		{
 			String_Buffer[(*String_Index)++] = '1';
 		}
 		else
 			String_Buffer[(*String_Index)++] = '0';
-		*Ptr <<= 1;
+		*I2C_Error_Code <<= 1;
 	}
 
 	String_Buffer[(*String_Index)++] = ',';
