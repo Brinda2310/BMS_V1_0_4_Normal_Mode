@@ -449,6 +449,7 @@ uint8_t Log_All_Data()
 
 	/* These are the flags which are set and reset based on I2C operations */
 	uint32_t *I2C_Error_Code = (uint32_t*)&I2C_Error_Flag;
+
 	for(int i =0 ; i < 32; i++)
 	{
 		if((*I2C_Error_Code & 0x80000000))

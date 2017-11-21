@@ -149,7 +149,7 @@
 #define DELAY_TIMEOUT_SECONDS						0x08
 #define DELAY_TIMEOUT_MINUTES						0x0C
 
-#define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x01
+#define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x02
 #define OPEN_WIRING_DELAY_TIMEOUT_MICROS			0x00
 
 #define OV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
@@ -319,7 +319,7 @@ void BMS_Configure_Parameters(void);
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
 void BMS_Force_Sleep();
-uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting);
+void BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);

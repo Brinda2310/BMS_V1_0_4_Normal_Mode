@@ -63,11 +63,13 @@ void BMS_ASIC_Init(void)
 {
 	BMS_Com_Restart = false;
 
-	int8_t Max_Tries = 5;
-	I2C_Error_Flag.I2C_Init_Flag = I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER);
-	/* If there is any problem in the I2C initialization then I2C re-initialization is required */
-	while (I2C_Error_Flag.I2C_Init_Flag != RESULT_OK && Max_Tries-- > 1)
+	if(I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER) ==  RESULT_OK)
 	{
+		I2C_Error_Flag.I2C_Init_Flag = 0;
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Init_Flag = 1;
 		BMS_Com_Restart = true;
 	}
 }
@@ -183,11 +185,14 @@ static void Convert_Float_Voltage_to_Hex(float Voltage_Value,uint8_t* Data_Buffe
 
 static void Convert_Degrees_Voltage_to_Hex(float Temperature_Degrees,uint8_t* Data_Buffer,uint8_t *Index)
 {
-	uint16_t Temperature_in_Volt = 0.0;
+	uint16_t  Temperature_in_Hex= 0.0;
+	float Temperature_in_Volt = 0.0;
 	Temperature_in_Volt = (Temperature_Degrees + 273.15) * 0.0018527;
 
-	Data_Buffer[(*Index)++] = (Temperature_in_Volt);
-	Data_Buffer[(*Index)++] = ((Temperature_in_Volt >> 8) & 0xFF);
+	Temperature_in_Hex = (uint16_t)(2275 * Temperature_in_Volt);
+
+	Data_Buffer[(*Index)++] = (Temperature_in_Hex);
+	Data_Buffer[(*Index)++] = ((Temperature_in_Hex >> 8) & 0xFF);
 }
 
 /**
@@ -812,6 +817,12 @@ void BMS_Configure_Parameters(void)
 	BMS_Set_Internal_OT_Threshold();
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
+
+	uint8_t Temp_Buffer[50],Length = 0;
+	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
+	Length = sprintf(Temp_Buffer, "%x\r",*Temp_Data);
+
+	BMS_Debug_COM_Write_Data(Temp_Buffer,Length);
 }
 
 /**
@@ -820,18 +831,17 @@ void BMS_Configure_Parameters(void)
  * @retval WRITE_OK		: I2C write is successful
  * 		   WRITE_ERROR	: I2C write is failed
  */
-uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
+void BMS_Set_Current_Gain(uint16_t Gain_Setting)
 {
-	uint8_t Gain_Value, Result;
+	uint8_t Gain_Value;
 	uint8_t Register_Address = 0, Send_Data_Values[2];
-	int8_t Max_Tries = 5;
 	Current_Gain = Gain_Setting;
 
 	/* Before writing any value,make sure that other settings in the 0x85 register are not disturbed
 	 * So read the value first and then just change the 4th and 5th bit value in the register */
 	Register_Address = CURRENT_GAIN_SETTING_ADDR;
-	I2C_Error_Flag.I2C_Set_Current_Gain_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS, &Register_Address, 1);
-	I2C_Error_Flag.I2C_Set_Current_Gain_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, &Gain_Value, 1);
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, &Register_Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, &Gain_Value, 1);
 
 	if (Status_Flag.Internal_Scan_Progress == NO)
 	{
@@ -855,22 +865,22 @@ uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting)
 		Send_Data_Values[0] = CURRENT_GAIN_SETTING_ADDR;
 		Send_Data_Values[1] = Gain_Value;
 		/* Write the current gain value(5X,50X,500X) to 0x85 register */
-		if (I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,sizeof(Send_Data_Values)) == RESULT_OK)
-		{
-			Result = WRITE_OK;
-			I2C_Error_Flag.I2C_Set_Current_Gain_Flag = RESULT_OK;
-		}
-		else
-		{
-			Result = WRITE_ERROR;
-			I2C_Error_Flag.I2C_Set_Current_Gain_Flag = RESULT_ERROR;
-		}
+		I2C_WriteData(BMS_I2C, BMS_ADDRESS, Send_Data_Values,sizeof(Send_Data_Values));
 	}
-	while(I2C_Error_Flag.I2C_Set_Current_Gain_Flag != RESULT_OK && Max_Tries-- > 1)
+
+	/* Re-confirm the value written to the register by reading it once */
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, &Register_Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, &Gain_Value, 1);
+
+	if(Gain_Value == Gain_Setting)
 	{
-		BMS_Com_Restart = true;;
+		I2C_Error_Flag.I2C_Set_Current_Gain_Flag = 0;
 	}
-	return Result;
+	else
+	{
+		I2C_Error_Flag.I2C_Set_Current_Gain_Flag = 1;
+		BMS_Com_Restart = true;
+	}
 }
 
 /**
@@ -897,7 +907,6 @@ void BMS_Update_Pack_Cycles()
  */
 void BMS_Read_RAM_Status_Register()
 {
-	int8_t Max_Tries = 5;
 	typedef union
 	{
 		uint8_t Data[4];
@@ -907,15 +916,28 @@ void BMS_Read_RAM_Status_Register()
 	Bytes_to_integer RAM_Flags;
 
 	uint8_t Register_Address = RAM_STATUS_REG_ADDR;
-	I2C_Error_Flag.I2C_Read_Status_Flag = I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
-	I2C_Error_Flag.I2C_Read_Status_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4);
-	Error_Check_Data = RAM_Flags.Stat_Flags;
-	BMS_Set_Status_Flags(RAM_Flags.Stat_Flags);
-
-	while(I2C_Error_Flag.I2C_Read_Status_Flag != RESULT_OK && Max_Tries-- > 1)
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1) == RESULT_OK)
 	{
-		BMS_Com_Restart = true;;
+		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4) == RESULT_OK)
+		{
+			I2C_Error_Flag.I2C_Read_Status_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Read_Status_Flag = 1;
+			BMS_Com_Restart = true;
+		}
 	}
+	else
+	{
+		I2C_Error_Flag.I2C_Read_Status_Flag = 1;
+		BMS_Com_Restart = true;
+	}
+
+	/* Save the copy of error flags read from the ISL94203 so that same can be logged on SD card */
+	Error_Check_Data = RAM_Flags.Stat_Flags;
+
+	BMS_Set_Status_Flags(RAM_Flags.Stat_Flags);
 }
 
 /**
@@ -925,21 +947,32 @@ void BMS_Read_RAM_Status_Register()
  */
 void BMS_Read_Cell_Voltages()
 {
-	int8_t Max_Tries = 5;
 	uint8_t Cell_Voltages[CELL_VOLTAGES_DATA_SIZE];
 
 	uint8_t Register_Address = CELL_VOLTAGE_ADDR;
-	I2C_Error_Flag.I2C_Read_Cells_Flag = I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1);
+
 	/* Sequential read method of ISL is used to read all the cell voltages as they are in sequence in EEPROM */
-	I2C_Error_Flag.I2C_Read_Cells_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,CELL_VOLTAGES_DATA_SIZE);
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Register_Address,1) == RESULT_OK)
+	{
+		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,CELL_VOLTAGES_DATA_SIZE) == RESULT_OK)
+		{
+			I2C_Error_Flag.I2C_Read_Cells_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Read_Cells_Flag = 1;
+			BMS_Com_Restart = true;;
+		}
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Read_Cells_Flag = 1;
+		BMS_Com_Restart = true;;
+	}
+
 	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
 	 * to find the actual cell voltage */
 	Convert_To_Cell_Voltages(Cell_Voltages);
-
-	while(I2C_Error_Flag.I2C_Read_Cells_Flag != RESULT_OK && Max_Tries-- > 1)
-	{
-		BMS_Com_Restart = true;;
-	}
 }
 
 /**
@@ -1051,16 +1084,26 @@ void BMS_Read_Pack_Voltage()
 	uint8_t Address = PACK_VOLTAGE_ADDR;
 	int8_t Max_Tries = 5;
 
-	I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
-	I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1) == RESULT_OK)
+	{
+		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2) == RESULT_OK)
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = 1;
+			BMS_Com_Restart = true;
+		}
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = 1;
+		BMS_Com_Restart = true;
+	}
 
 	/* Hard coded formula defined by the ASIC manufacturer */
 	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Data) * 1.8 * 32)/(4095);
-
-	while(I2C_Error_Flag.I2C_Read_Pack_Volt_Flag != RESULT_OK && Max_Tries-- > 1)
-	{
-		BMS_Com_Restart = true;;
-	}
 }
 
 /**
@@ -1072,18 +1115,27 @@ void BMS_Read_Pack_Current()
 {
 	uint16_t Pack_Data;
 	uint8_t Address = PACK_CURRENT_ADDR;
-	int8_t Max_Tries = 5;
 
-	I2C_Error_Flag.I2C_Read_Pack_Current_Flag = I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_Error_Flag.I2C_Read_Pack_Current_Flag = I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2);
+	if(I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1) == RESULT_OK)
+	{
+		if(I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2) == RESULT_OK)
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Current_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Current_Flag = 1;
+			BMS_Com_Restart = true;
+		}
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Read_Pack_Current_Flag = 1;
+		BMS_Com_Restart = true;
+	}
 
 	/* Hard coded formula defined by ASIC manufacturer */
 	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
-
-	while(I2C_Error_Flag.I2C_Read_Pack_Current_Flag != RESULT_OK && Max_Tries-- > 1)
-	{
-		BMS_Com_Restart = true;;
-	}
 }
 
 /**
@@ -1095,21 +1147,30 @@ void BMS_Read_Pack_Temperature()
 {
 	uint16_t Pack_Data;
 	float Lcl_Temperature_Volts = 0.0;
-	int8_t Max_Tries = 5;
 
 	uint8_t Address = PACK_TEMPERATURE_ADDR;
 
-	I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1);
-	I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2);
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1) == RESULT_OK)
+	{
+		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2) == RESULT_OK)
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = 1;
+			BMS_Com_Restart = true;
+		}
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = 1;
+		BMS_Com_Restart = true;
+	}
 
 	/* Hard coded formula defined by ASIC manufacturer */
 	Lcl_Temperature_Volts = ((float)(Pack_Data) * 1.8)/(4095);
 	BMS_Data.Pack_Temperature_Degress = (((Lcl_Temperature_Volts*1000)/(1.8527)) - 273.15);
-
-	while(I2C_Error_Flag.I2C_Read_Pack_Temp_Flag != RESULT_OK && Max_Tries-- > 1)
-	{
-		BMS_Com_Restart = true;;
-	}
 }
 
 /**

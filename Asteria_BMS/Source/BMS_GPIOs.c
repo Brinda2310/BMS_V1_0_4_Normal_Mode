@@ -76,13 +76,13 @@ void BMS_Status_LEDs_Init()
  */
 void BMS_Status_LED_Toggle()
 {
-	GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
 	if(Debug_COM_Enable == false)
 	{
+		GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
 		GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
 		GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
+		GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
 	}
-	GPIO_Write(LED4_PORT,LED_4,PIN_TOGGLE);
 	GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
 }
 

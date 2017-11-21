@@ -456,6 +456,7 @@ int main(void)
 
 			/* Variable to log the loop rate */
 			Loop_Rate_Counter++;
+
 			/* Debug LED to see whether the code is running or stuck */
 			BMS_Status_LED_Toggle();
 
