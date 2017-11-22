@@ -61,6 +61,9 @@ bool Display_SOH = false,Display_SOC = false;
  * otherwise check load presence for 1 minute(normal operation) */
 uint16_t Timer_Value = 0,Time_Count = 0;
 
+/* This flag is used for re-initialization of SD card in case of it's non presence in the slot */
+bool SD_Card_ReInit = false;
+
 int main(void)
 {
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
@@ -434,31 +437,38 @@ int main(void)
 			 * code stuck due to insertion of SD card while running the code */
 			if(SdStatus == SD_PRESENT)
 			{
-				/* Log all the variable in the SD card */
-				if (Log_All_Data() != RESULT_OK)
+				/* If SD card is not removed from the slot then only start the logging */
+				if(SD_Card_ReInit == false)
 				{
-					/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
-					 * the SD card functionality */
-					Log_Init_Counter++;
-					if (Log_Init_Counter >= 20)
+					/* Log all the variable in the SD card */
+					if (Log_All_Data() != RESULT_OK)
 					{
-						Log_Init_Counter = 0;
-						BMS_Debug_COM_Write_Data("SD re-init0\r",11);
+						/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+						 * the SD card functionality */
+						Log_Init_Counter++;
+						if (Log_Init_Counter >= 5)
+						{
+							Log_Init_Counter = 0;
+							BMS_Log_Init();
+						}
+					}
+				}
+				else
+				{
+					/* As soon as SD card is present in the slot, we should initialize the SD card and then start logging the data; After initializing the
+					 * SD card wait for 1000 milliseconds then start logging otherwise there are chances of stucking the code */
+					static uint8_t Counter = 0;
+					if(Counter++ >= 40)
+					{
 						BMS_Log_Init();
+						SD_Card_ReInit = false;
+						Counter = 0;
 					}
 				}
 			}
 			else if(SdStatus == SD_NOT_PRESENT)
 			{
-				static uint8_t Counter = 0;
-
-				if(Counter++ >= 40)
-				{
-					BMS_Log_Init();
-					BMS_Debug_COM_Write_Data("SD re-init1\r",11);
-					Counter = 0;
-				}
-
+				SD_Card_ReInit = true;
 			}
 
 			/* If any time there is problem in querying the data from ISL94203 then restart the
@@ -473,7 +483,7 @@ int main(void)
 			Loop_Rate_Counter++;
 
 			/* Debug LED to see whether the code is running or stuck */
-			BMS_Status_LED_Toggle();
+//			BMS_Status_LED_Toggle();
 
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
@@ -488,17 +498,15 @@ int main(void)
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
-//			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
-//			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
-//			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
 //			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
-			Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
-			Length += sprintf(&Buffer[Length],"File Num :%d\r\r",SdStatus);
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;

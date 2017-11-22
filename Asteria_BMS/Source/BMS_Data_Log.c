@@ -59,14 +59,26 @@ uint32_t ASIC_Restart_Count = 0;
 uint8_t BMS_Log_Init()
 {
 	uint8_t Result = RESULT_OK;
-	/* Create the log summary file in SD card. If it already exists then get the counts for total number of
-	 * files and power up number and create the new log file by incrementing the total file number */
-	if(Create_Log_Summary_File() == RESULT_OK)
+	/* We want to create only one log file during each power up. This flag does that job. It becomes false
+	 * as soon as file is created */
+	if(Power_Up_BMS == false)
 	{
-		Result = Create_BMS_Log_File();
+		Power_Up_BMS = true;
 	}
-	else
-		Result = RESULT_ERROR;
+
+	if(Power_Up_BMS == true)
+	{
+		/* Create the log summary file in SD card. If it already exists then get the counts for total number of
+		 * files and power up number and create the new log file by incrementing the total file number */
+		if(Create_Log_Summary_File() == RESULT_OK)
+		{
+			Result = Create_BMS_Log_File();
+		}
+		else
+		{
+			Result = RESULT_ERROR;
+		}
+	}
 
 	return Result;
 }
@@ -80,11 +92,6 @@ uint8_t BMS_Log_Init()
 uint8_t Create_Log_Summary_File()
 {
 	FRESULT Result;
-
-	/* We want to create only one log file during each power up. This flag does that job. It becomes false
-	 * as soon as file is created */
-	if(Power_Up_BMS == false)
-		Power_Up_BMS = true;
 
 	/* Very first thing that should happen is checking the log summary file and initialize the variables
 	 * used for indexing */
@@ -135,9 +142,11 @@ uint8_t Create_Log_Summary_File()
 		return RESULT_OK;
 	}
 
+	uint8_t SD_Result = RESULT_OK;
+
 	/* Retrieve all the counts from Log_Summary_File */
-	Get_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX, &SD_Summary_Data.Power_Up_Number);
-	Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
+	SD_Result = Get_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX, &SD_Summary_Data.Power_Up_Number);
+	SD_Result = Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
 
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
 	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false && File_Size_Exceed == false)
@@ -146,7 +155,7 @@ uint8_t Create_Log_Summary_File()
 		SD_Summary_Data.Power_Up_Number++;
 
 		/* Store the total character counts that are there in the file which is useful to write at the respective cursor position */
-		Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
+		SD_Result = Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
 	}
 
 	/* Clear the buffer indices so that buffers can be filled with new data from start */
@@ -156,7 +165,7 @@ uint8_t Create_Log_Summary_File()
 //	char Buffer[10],Len;
 //	Len = sprintf(Buffer,"%d\r",SD_Summary_Data.Power_Up_Number);
 //	BMS_Debug_COM_Write_Data(Buffer,Len);
-	return RESULT_OK;
+	return SD_Result;
 }
 
 /**
@@ -175,11 +184,15 @@ uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable)
 	f_lseek(&Summary_File,Offset);
 
 	/* Read the required count from the Log_Summary_File */
-	f_read(&Summary_File, Rx_Data, MAX_DIGITS_IN_COUNT, &BytesWritten);
-
-	*Variable = atoi(Rx_Data);
-
-return RESULT_OK;
+	if(f_read(&Summary_File, Rx_Data, MAX_DIGITS_IN_COUNT, &BytesWritten) == FR_OK)
+	{
+		*Variable = atoi(Rx_Data);
+		return RESULT_OK;
+	}
+	else
+	{
+		return RESULT_ERROR;
+	}
 }
 
 /**
@@ -210,9 +223,6 @@ uint8_t Create_BMS_Log_File()
 	/* Make sure that only one is file created on each power up */
 	if (Power_Up_BMS == true && New_File_Created == false)
 	{
-//		/* Set this variable to false to avoid creating the new file */
-//		Power_Up_BMS = false;
-
 		/* File name for log file inside the directory */
 		File_Name[Lcl_Counter++] = '0';
 		File_Name[Lcl_Counter++] = ':';
