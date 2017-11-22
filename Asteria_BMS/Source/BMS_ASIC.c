@@ -35,7 +35,7 @@ BMS_Status_Flags Status_Flag;
 I2C_Errors I2C_Error_Flag;
 
 /* Variable to decide whether last pack operation was charging or discharging or low power mode */
-bool Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
+uint8_t Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
 
 /* Variable to set the current gain value which code sets during power up. The same value is used in the current
  * calculation in various BMS functions defined in the code */
@@ -135,7 +135,6 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	}
 	else
 	{
-		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
 	}
 
@@ -143,6 +142,10 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	{
 		BMS_Data.Charging_Discharging_Status = CHARGING;
 		Status_Flag.Pack_Charging = YES;
+	}
+	else
+	{
+		Status_Flag.Pack_Charging = NO;
 	}
 	if(Flags & IS_INTERNAL_SCAN)
 	{
@@ -818,9 +821,9 @@ void BMS_Configure_Parameters(void)
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
 
-	uint8_t Temp_Buffer[50],Length = 0;
+	char Temp_Buffer[50],Length = 0;
 	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
-	Length = sprintf(Temp_Buffer, "%x\r",*Temp_Data);
+	Length = sprintf(Temp_Buffer, "%x\r",(unsigned int)*Temp_Data);
 
 	BMS_Debug_COM_Write_Data(Temp_Buffer,Length);
 }
@@ -1025,7 +1028,7 @@ void BMS_Estimate_Initial_Capacity(void)
 	BMS_Data.Pack_Capacity_Remaining = Battery_Estimate;//(float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
 	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 
-	uint8_t Buffer[80];
+	char Buffer[80];
 	uint8_t Length = sprintf(Buffer,"Batt Rem = %0.3fmA\r",BMS_Data.Pack_Capacity_Remaining);
 	Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmA\r",BMS_Data.Pack_Capacity_Used);
 	BMS_Debug_COM_Write_Data(Buffer,Length);
@@ -1082,7 +1085,6 @@ void BMS_Read_Pack_Voltage()
 {
 	uint16_t Pack_Data;
 	uint8_t Address = PACK_VOLTAGE_ADDR;
-	int8_t Max_Tries = 5;
 
 	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1) == RESULT_OK)
 	{

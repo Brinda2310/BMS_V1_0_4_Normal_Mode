@@ -300,7 +300,7 @@ extern BMS_Status_Flags Status_Flag;
 
 extern I2C_Errors I2C_Error_Flag;
 
-extern bool Last_Charge_Disharge_Status;
+extern uint8_t Last_Charge_Disharge_Status;
 
 extern uint16_t Current_Gain;
 

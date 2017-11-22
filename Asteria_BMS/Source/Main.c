@@ -388,12 +388,19 @@ int main(void)
 					/* If current coming into the pack is more than 1amperes for more than 5mins(CHARGE_TIME_DELAY),
 					 * then increment the charge cycles count and make the status to of variable to true so as to
 					 * keep track of last state of the pack i.e. charging/discharging  */
-					if(Charge_Time_Count >= CHARGE_TIME_DELAY && Last_Charge_Disharge_Status == DISCHARGING)
+					if(Charge_Time_Count >= CHARGE_TIME_DELAY)
 					{
-						BMS_Data.Pack_Charge_Cycles++;
-						Update_Pack_Cycles = true;
-						Last_Charge_Disharge_Status = CHARGING;
-						BMS_Update_Pack_Cycles();
+						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
+						{
+							Last_Charge_Disharge_Status = CHARGING;
+						}
+						else if(Last_Charge_Disharge_Status == DISCHARGING)
+						{
+							BMS_Data.Pack_Charge_Cycles++;
+							Update_Pack_Cycles = true;
+							Last_Charge_Disharge_Status = CHARGING;
+							BMS_Update_Pack_Cycles();
+						}
 					}
 				}
 				/* If status of the BMS is discharging then keep continuous track of it */
@@ -415,12 +422,19 @@ int main(void)
 					/* If discharge current is more than 1 amperes for more than 5 minutes then increment
 					 * the discharge cycles count by ensuring that the previous state of the pack was
 					 * not discharging */
-					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY && Last_Charge_Disharge_Status == CHARGING)
+					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY)
 					{
-						BMS_Data.Pack_Discharge_Cycles++;
-						Update_Pack_Cycles = true;
-						Last_Charge_Disharge_Status = DISCHARGING;
-						BMS_Update_Pack_Cycles();
+						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
+						{
+							Last_Charge_Disharge_Status = DISCHARGING;
+						}
+						else if (Last_Charge_Disharge_Status == CHARGING)
+						{
+							BMS_Data.Pack_Discharge_Cycles++;
+							Update_Pack_Cycles = true;
+							Last_Charge_Disharge_Status = DISCHARGING;
+							BMS_Update_Pack_Cycles();
+						}
 					}
 				}
 				else
@@ -437,7 +451,7 @@ int main(void)
 			 * code stuck due to insertion of SD card while running the code */
 			if(SdStatus == SD_PRESENT)
 			{
-				/* If SD card is not removed from the slot then only start the logging */
+				/* If SD card is not removed from the slot then only start immediate logging */
 				if(SD_Card_ReInit == false)
 				{
 					/* Log all the variable in the SD card */
@@ -483,7 +497,7 @@ int main(void)
 			Loop_Rate_Counter++;
 
 			/* Debug LED to see whether the code is running or stuck */
-//			BMS_Status_LED_Toggle();
+			BMS_Status_LED_Toggle();
 
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
