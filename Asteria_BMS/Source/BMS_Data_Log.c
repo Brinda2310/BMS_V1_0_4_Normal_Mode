@@ -80,6 +80,7 @@ uint8_t BMS_Log_Init()
 uint8_t Create_Log_Summary_File()
 {
 	FRESULT Result;
+
 	/* We want to create only one log file during each power up. This flag does that job. It becomes false
 	 * as soon as file is created */
 	if(Power_Up_BMS == false)
@@ -102,7 +103,7 @@ uint8_t Create_Log_Summary_File()
 	 * once in lifetime unless someone delete the Log_Summary_File */
 	Result = f_open(&Summary_File, "0:/Log_Summary_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ);
 
-	if ( Result == FR_NO_FILE)
+	if(Result == FR_NO_FILE)
 	{
 		uint8_t Total_Num_Files_String[] = "Total_Number_of_Files:0     *";
 		uint8_t Power_Up_Num_String[] = "Power Up Number:0     *";
@@ -202,15 +203,15 @@ uint8_t Create_BMS_Log_File()
 
 	/* The gps fix flag has to be used in place of 1 */
 	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 26,10,2017,18,42,05);
+		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 22,11,2017,15,00,05);
 	else
 		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
 	/* Make sure that only one is file created on each power up */
 	if (Power_Up_BMS == true && New_File_Created == false)
 	{
-		/* Set this variable to false to avoid creating the new file */
-		Power_Up_BMS = false;
+//		/* Set this variable to false to avoid creating the new file */
+//		Power_Up_BMS = false;
 
 		/* File name for log file inside the directory */
 		File_Name[Lcl_Counter++] = '0';

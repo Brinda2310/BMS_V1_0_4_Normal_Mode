@@ -194,6 +194,8 @@ int main(void)
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
+			SD_Status();
+
 			/* If switch is pressed then start counting the time */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
@@ -438,12 +440,25 @@ int main(void)
 					/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
 					 * the SD card functionality */
 					Log_Init_Counter++;
-					if (Log_Init_Counter >= 5)
+					if (Log_Init_Counter >= 20)
 					{
 						Log_Init_Counter = 0;
+						BMS_Debug_COM_Write_Data("SD re-init0\r",11);
 						BMS_Log_Init();
 					}
 				}
+			}
+			else if(SdStatus == SD_NOT_PRESENT)
+			{
+				static uint8_t Counter = 0;
+
+				if(Counter++ >= 40)
+				{
+					BMS_Log_Init();
+					BMS_Debug_COM_Write_Data("SD re-init1\r",11);
+					Counter = 0;
+				}
+
 			}
 
 			/* If any time there is problem in querying the data from ISL94203 then restart the
@@ -473,15 +488,17 @@ int main(void)
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
-			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
-			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+//			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+//			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
 //			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
 //			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
 //			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
 //			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
 //			Buffer[Length++] = '\r';
+			Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
+			Length += sprintf(&Buffer[Length],"File Num :%d\r\r",SdStatus);
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;

@@ -839,6 +839,6 @@ void SD_Status()
 {
 	SdStatus = SD_NOT_PRESENT;
 
-	if(GPIO_Read(GPIO_A,SD_CARD_DETECT) == PIN_LOW)
+	if(GPIO_Read(GPIO_B,SD_CARD_DETECT) == PIN_LOW)
 		SdStatus = SD_PRESENT;
 }
