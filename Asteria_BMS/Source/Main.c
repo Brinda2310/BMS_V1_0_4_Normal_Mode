@@ -390,6 +390,8 @@ int main(void)
 					 * keep track of last state of the pack i.e. charging/discharging  */
 					if(Charge_Time_Count >= CHARGE_TIME_DELAY)
 					{
+						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
+						 * So change the status to charging if current is more than 1A for continuous 5 minutes */
 						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
 						{
 							Last_Charge_Disharge_Status = CHARGING;
@@ -424,6 +426,8 @@ int main(void)
 					 * not discharging */
 					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY)
 					{
+						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
+						 * So change the status to discharging if current is more than 1A for continuous 5 minutes */
 						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
 						{
 							Last_Charge_Disharge_Status = DISCHARGING;
