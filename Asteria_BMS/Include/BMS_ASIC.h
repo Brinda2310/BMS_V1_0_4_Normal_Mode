@@ -15,7 +15,7 @@
 #define I2C_OWN_ADDRESS								0x0F	/* This is the MCU's own address */
 #define EEPROM_PAGE_SIZE							4		/* Max size of EEPROM page in ISL */
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
-
+#define READ_WRITE_DELAY							5
 
 #define SLOPE_5X									0.07713	/* Equation(slope M)coefficients derived from log analysis */
 #define SLOPE_50X									0.0831
@@ -61,6 +61,9 @@
 #define OV_LOCKOUT_THRESHOLD_ADDR					0x08
 #define UV_LOCKOUT_THRESHOLD_ADDR					0x0A
 #define EOC_THRESHOLD_ADDR							0x0C
+#define OV_DELAY_TIMEOUT_ADDR						0x10
+#define UV_DELAY_TIMEOUT_ADDR						0x12
+#define OPEN_WIRING_TIMEOUT_ADDR					0x14
 
 #define INTERNAL_OT_THRESHOLD_ADDR					0x40
 #define INTERNAL_OT_RECOVERY_ADDR					0x42
@@ -126,6 +129,32 @@
 #define BATT_CELL_VOLT_MIN							3.60
 #define BATTERY_TYPE								LI_POLYMER
 #define BATT_MAX_PACK_CYCLES						200
+
+
+/* Battery Configuration Parameters to be stored in ISL EEPROM */
+#define CELL_OVER_VOLTAGE_THR_VALUE					4.25			// In Volt
+#define CELL_OV_RECOVERY_VALUE						4.15			// In Volt
+#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50			// In Volt
+#define CELL_UV_RECOVERY_VALUE						3.60			// In Volt
+#define CELL_OV_LOCKOUT_THR_VALUE					4.30			// In Volt
+#define CELL_UV_LOCKOUT_THR_VALUE					2.50			// In Volt
+#define CELL_EOC_THR_VALUE							4.20			// In Volt
+#define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
+#define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
+#define OV_DELAY_TIMEOUT_VALUE						1				// In seconds
+#define	UV_DELAY_TIMEOUT_VALUE						1				// In seconds
+#define OPEN_WIRING_TIMEOUT_VALUE					20				// In Millis
+
+#define DELAY_TIMEOUT_MILLIS						0x04
+#define DELAY_TIMEOUT_SECONDS						0x08
+#define DELAY_TIMEOUT_MINUTES						0x0C
+
+#define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x02
+#define OPEN_WIRING_DELAY_TIMEOUT_MICROS			0x00
+
+#define OV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
+#define UV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
+#define OPEN_WIRING_TIMEOUT_RESOLUTION				OPEN_WIRING_DELAY_TIMEOUT_MILLIS
 
 /* Enums to define the write results */
 enum Write_Result
@@ -227,6 +256,7 @@ typedef struct
 	uint8_t I2C_Set_EOC_Thresh_Flag:1;
 	uint8_t I2C_Set_IOT_Thresh_Flag:1;
 
+	uint8_t I2C_Set_IOT_Recovery_Flag:1;
 	uint8_t I2C_Disable_Cell_Balancing_Flag:1;
 	uint8_t I2C_Set_OV_Delay_Timeout_Flag:1;
 	uint8_t I2C_Set_UV_Delay_Timeout_Flag:1;
@@ -278,8 +308,6 @@ extern double C_D_Rate_Seconds;
 
 extern uint32_t Error_Check_Data;
 
-extern bool BMS_Com_Restart;
-
 /* Constant battery parameters */
 extern const uint8_t Battery_ID[];
 extern const uint8_t BMS_Board_Serial_Number[];
@@ -291,7 +319,7 @@ void BMS_Configure_Parameters(void);
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
 void BMS_Force_Sleep();
-uint8_t BMS_Set_Current_Gain(uint16_t Gain_Setting);
+void BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);

@@ -22,7 +22,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		1			// Beta code release--modified when code is being merged to test_develop branch.
+		2			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
@@ -452,11 +452,11 @@ int main(void)
 			{
 				BMS_ASIC_Init();
 				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
-				BMS_Com_Restart = false;
 			}
 
 			/* Variable to log the loop rate */
 			Loop_Rate_Counter++;
+
 			/* Debug LED to see whether the code is running or stuck */
 			BMS_Status_LED_Toggle();
 
