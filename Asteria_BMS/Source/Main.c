@@ -124,11 +124,11 @@ int main(void)
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	if(BMS_Log_Init() == RESULT_OK)
 	{
-		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
+//		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
 	}
 	else
 	{
-		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
+//		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
 	}
 
 	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
@@ -139,6 +139,21 @@ int main(void)
 	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY;
+
+	if(Get_Reset_Source() == SOFTWARE)
+	{
+		BMS_Debug_COM_Write_Data("Software Reset\r",15);
+	}
+
+	if (Get_Reset_Source() == WATCHDOG)
+	{
+		BMS_Debug_COM_Write_Data("Watchdog Reset\r",15);
+	}
+
+	if(Get_Reset_Source() == HARDWARE)
+	{
+		BMS_Debug_COM_Write_Data("Hardware Reset\r",15);
+	}
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
@@ -491,7 +506,7 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
-				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
+//				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 			}
 
 			/* Variable to log the loop rate */
@@ -540,44 +555,43 @@ int main(void)
 
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
-					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%fmA",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%fA",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
+					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fA\r\r",C_D_Rate_Seconds);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL
 				case 'E':
-					Length += sprintf(&Buffer[Length],"Total Capacity :%fmA",(float)BATTERY_CAPACITY);
-					Length += sprintf(&Buffer[Length],"Capacity Used :%fmAH",Get_BMS_Capacity_Used());
-					Length += sprintf(&Buffer[Length],"Capacity Remaining :%f%c",Get_BMS_Capacity_Remaining(),0x25);
+					Length += sprintf(&Buffer[Length],"Total Capacity :%0.2fmA\r",(float)BATTERY_CAPACITY);
+					Length += sprintf(&Buffer[Length],"Capacity Used :%0.2fmAH\r",Get_BMS_Capacity_Used());
+					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.2f%c\r\r",Get_BMS_Capacity_Remaining(),0x25);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_C_D_TOTAL_PACK_CYLES
 				case 'F':
-					Length += sprintf(&Buffer[Length],"Charge Cycles :%d",(int)BMS_Data.Pack_Charge_Cycles);
-					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d",(int)BMS_Data.Pack_Discharge_Cycles);
-					Length += sprintf(&Buffer[Length],"Total Cycles :%d",(int)Get_BMS_Total_Pack_Cycles());
+					Length += sprintf(&Buffer[Length],"Charge Cycles :%d\r",(int)BMS_Data.Pack_Charge_Cycles);
+					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d\r",(int)BMS_Data.Pack_Discharge_Cycles);
+					Length += sprintf(&Buffer[Length],"Total Cycles :%d\r\r",(int)Get_BMS_Total_Pack_Cycles());
 					break;
 #endif
 
 #ifdef TEST_DEBUG_HEALTH_I2C_ERROR
 				case 'G':
-					Length += sprintf(&Buffer[Length],"Health Info :%s",BMS_Data.Health_Status_Info);
-					Length += sprintf(&Buffer[Length],"Health Info :%s",BMS_Data.I2C_Error_Info);
+					Length += sprintf(&Buffer[Length],"Health Info :%s\r",BMS_Data.Health_Status_Info);
+					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r\r",BMS_Data.I2C_Error_Info);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_TEMPERATURE
 				case 'H':
-					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees",BMS_Data.Pack_Temperature_Degrees);
+					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r\r",BMS_Data.Pack_Temperature_Degrees);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_WATCHDOG_TEST
 				case 'I':
-					uint32_t Temp_Time = Get_System_Time_Millis();
-					while((Get_System_Time_Millis() - Temp_Time) > WATCHDOG_RESET_TIME);
+					Delay_Millis(2100);
 					break;
 #endif
 
@@ -586,7 +600,6 @@ int main(void)
 					NVIC_SystemReset();
 					break;
 #endif
-
 			}
 
 			BMS_Debug_COM_Write_Data(Buffer, Length);

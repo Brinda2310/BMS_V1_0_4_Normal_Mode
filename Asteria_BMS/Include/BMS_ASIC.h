@@ -289,8 +289,8 @@ typedef struct
 	uint32_t Pack_Charge_Cycles;
 	uint32_t Pack_Discharge_Cycles;
 	uint32_t Pack_Total_Cycles;
-	uint8_t Health_Status_Info[32];
-	uint8_t I2C_Error_Info[32];
+	uint8_t Health_Status_Info[40];
+	uint8_t I2C_Error_Info[40];
 
 	uint8_t Charging_Discharging_Status;
 

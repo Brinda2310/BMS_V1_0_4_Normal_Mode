@@ -9,6 +9,7 @@
 /* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or
  * from external switch press */
 volatile bool Wakeup_From_Sleep = false,Sleep_Mode = false;
+uint8_t Reset_Source = 0xFF;
 
 void MCU_Enter_Sleep_Mode()
 {
@@ -139,6 +140,30 @@ void Set_System_Clock_Frequency(void)
 #endif
 }
 
+uint8_t Get_Reset_Source()
+{
+#ifdef BMS_VERSION
+	if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST) == SET)
+	{
+		Reset_Source = WATCHDOG;
+	}
+
+	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST) == SET)
+	{
+		Reset_Source = SOFTWARE;
+	}
+
+//	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) == SET)
+//	{
+//		Reset_Source = HARDWARE;
+//		BMS_Debug_COM_Write_Data("H\r",2);
+//	}
+
+	__HAL_RCC_CLEAR_RESET_FLAGS();
+
+#endif
+	return Reset_Source;
+}
 /* ISR which handles the wake up of MCU from sleep mode and resumes the operation from where it
  * had left off */
 //void EXTI9_5_IRQHandler(void)

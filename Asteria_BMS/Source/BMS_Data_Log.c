@@ -330,7 +330,8 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,Watchdog Flag,AP Status\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source\r\n");
 
 //		while((*String_Index) != 1021)
 //		{
@@ -443,7 +444,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	uint32_t Error_Code = Error_Check_Data;
-	uint8_t Health_Data_Start_Index = *String_Index;
+	uint16_t Health_Data_Start_Index = *String_Index;
 
 	/* Logic to convert the decimal value to binary and storing the same in buffer */
 	for(int i =0 ; i < 32; i++)
@@ -457,13 +458,13 @@ uint8_t Log_All_Data()
 		Error_Code <<= 1;
 	}
 
-	memcpy(BMS_Data.Health_Status_Info,&String_Buffer[Health_Data_Start_Index],32);
+	memcpy(&BMS_Data.Health_Status_Info[0],&String_Buffer[Health_Data_Start_Index],32);
 	String_Buffer[(*String_Index)++] = ',';
 
 	/* These are the flags which are set and reset based on I2C operations */
 	uint32_t *I2C_Error_Code = (uint32_t*)&I2C_Error_Flag;
 
-	Health_Data_Start_Index = *String_Index;
+	uint16_t I2C_Error_Start_Index = *String_Index;
 
 	for(int i =0 ; i < 32; i++)
 	{
@@ -476,7 +477,7 @@ uint8_t Log_All_Data()
 		*I2C_Error_Code <<= 1;
 	}
 
-	memcpy(BMS_Data.I2C_Error_Info,&String_Buffer[Health_Data_Start_Index],32);
+	memcpy(BMS_Data.I2C_Error_Info,&String_Buffer[I2C_Error_Start_Index],32);
 	String_Buffer[(*String_Index)++] = ',';
 
 	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;
@@ -487,6 +488,7 @@ uint8_t Log_All_Data()
 
 	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
 	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];
+	Char_Values[(*Index_Counter)++] = Get_Reset_Source();
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 //	while(*String_Index != 1021)
