@@ -551,9 +551,7 @@ int main(void)
 
 			_25Hz_Flag = false;
 		}
-		/* Log the BMS variables on SD card at 1Hz;Make sure that MCU has initialized all the peripherals
-		 * before using it.After wake up this flag will be true and will become false once all peripherals
-		 * are initialized properly */
+		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
 			memset(Buffer,0,sizeof(Buffer));
