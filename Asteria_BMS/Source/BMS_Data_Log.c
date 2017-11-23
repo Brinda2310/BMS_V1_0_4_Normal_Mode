@@ -443,6 +443,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	uint32_t Error_Code = Error_Check_Data;
+	uint8_t Health_Data_Start_Index = *String_Index;
 
 	/* Logic to convert the decimal value to binary and storing the same in buffer */
 	for(int i =0 ; i < 32; i++)
@@ -456,10 +457,13 @@ uint8_t Log_All_Data()
 		Error_Code <<= 1;
 	}
 
+	memcpy(BMS_Data.Health_Status_Info,&String_Buffer[Health_Data_Start_Index],32);
 	String_Buffer[(*String_Index)++] = ',';
 
 	/* These are the flags which are set and reset based on I2C operations */
 	uint32_t *I2C_Error_Code = (uint32_t*)&I2C_Error_Flag;
+
+	Health_Data_Start_Index = *String_Index;
 
 	for(int i =0 ; i < 32; i++)
 	{
@@ -472,6 +476,7 @@ uint8_t Log_All_Data()
 		*I2C_Error_Code <<= 1;
 	}
 
+	memcpy(BMS_Data.I2C_Error_Info,&String_Buffer[Health_Data_Start_Index],32);
 	String_Buffer[(*String_Index)++] = ',';
 
 	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;

@@ -124,7 +124,7 @@
 #define LI_POLYMER									2
 
 #define BATT_NUMBER_OF_CELLS						6
-#define BATT_MAH									11000
+#define BATT_MAH									BATTERY_CAPACITY
 #define BATT_CELL_VOLT_MAX							4.20
 #define BATT_CELL_VOLT_MIN							3.60
 #define BATTERY_TYPE								LI_POLYMER
@@ -280,7 +280,7 @@ typedef struct
 	float Pack_Voltage;
 	float Pack_Current;
 	float Pack_Current_Adjusted;
-	float Pack_Temperature_Degress;
+	float Pack_Temperature_Degrees;
 
 	float Pack_Capacity_Remaining;
 	float Pack_Capacity_Used;
@@ -289,6 +289,8 @@ typedef struct
 	uint32_t Pack_Charge_Cycles;
 	uint32_t Pack_Discharge_Cycles;
 	uint32_t Pack_Total_Cycles;
+	uint8_t Health_Status_Info[32];
+	uint8_t I2C_Error_Info[32];
 
 	uint8_t Charging_Discharging_Status;
 

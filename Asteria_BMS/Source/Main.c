@@ -16,6 +16,19 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
+#define TEST_DEBUG_GPS_INFO									/* Character A*/
+#define TEST_DEBUG_START_TIME								/* Character B*/
+#define TEST_DEBUG_ALL_PACK_DATA							/* Character C*/
+#define TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE					/* Character D*/
+#define TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL			/* Character E*/
+#define TEST_DEBUG_C_D_TOTAL_PACK_CYLES						/* Character F*/
+#define TEST_DEBUG_HEALTH_I2C_ERROR							/* Character G*/
+#define TEST_DEBUG_TEMPERATURE								/* Character H*/
+#define TEST_DEBUG_WATCHDOG_TEST							/* Character I*/
+#define TEST_DEBUG_CODE_RESET								/* Character J*/
+
+#define WATCHDOG_RESET_TIME									2100
+
 #define _2_SECONDS_TIME				50		/* Time for which SOC to be shown (50 * 40ms) */
 
 const uint8_t BMS_Firmware_Version[3] =
@@ -177,22 +190,6 @@ int main(void)
 
 		/* Debug code to be removed after testing */
 		BMS_Debug_COM_Read_Data(&RecData,1);
-
-		/* Debug code to be removed after testing */
-		switch(RecData)
-		{
-			case 'A':
-				/* Debug code to set the last charge/discharge status to charging to see whether discharge
-				 * pack cycles are getting updated properly or not;Because discharging cycles will be updated
-				 * only if last state was charging */
-				NVIC_SystemReset();
-				break;
-			case 'B':
-				/* Debug code to test the SMBUS function with AP */
-				AP_COM_Init(AP_COM_SMBUS_MODE);
-				break;
-		}
-		RecData = 0;
 
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
@@ -516,15 +513,82 @@ int main(void)
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
-			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
-			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
-//			Length += sprintf(&Buffer[Length],"Current Adj. = %0.3fmA\r",Get_BMS_Pack_Current_Adj());
-//			Length += sprintf(&Buffer[Length],"Temp = %0.3f Degrees\r",Get_BMS_Pack_Temperature());
-//			Length += sprintf(&Buffer[Length],"Batt Used = %0.3fmAH\r",Get_BMS_Capacity_Used());
-//			Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-//			Buffer[Length++] = '\r';
+			/* Debug code to be removed after testing */
+			switch(RecData)
+			{
+#ifdef TEST_DEBUG_GPS_INFO
+				case 'A':
+					Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+					Buffer[Length++] = '\r';
+					break;
+#endif
+
+#ifdef TEST_DEBUG_START_TIME
+				case 'B':
+					Length += sprintf(&Buffer[Length],"MCU Time:%d\r\r",(int)Get_System_Time_Millis());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_ALL_PACK_DATA
+				case 'C':
+					Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+					Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+					Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+					Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
+				case 'D':
+					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%fmA",Get_BMS_Pack_Current_Adj());
+					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%fA",C_D_Rate_Seconds);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL
+				case 'E':
+					Length += sprintf(&Buffer[Length],"Total Capacity :%fmA",(float)BATTERY_CAPACITY);
+					Length += sprintf(&Buffer[Length],"Capacity Used :%fmAH",Get_BMS_Capacity_Used());
+					Length += sprintf(&Buffer[Length],"Capacity Remaining :%f%c",Get_BMS_Capacity_Remaining(),0x25);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_C_D_TOTAL_PACK_CYLES
+				case 'F':
+					Length += sprintf(&Buffer[Length],"Charge Cycles :%d",(int)BMS_Data.Pack_Charge_Cycles);
+					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d",(int)BMS_Data.Pack_Discharge_Cycles);
+					Length += sprintf(&Buffer[Length],"Total Cycles :%d",(int)Get_BMS_Total_Pack_Cycles());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_HEALTH_I2C_ERROR
+				case 'G':
+					Length += sprintf(&Buffer[Length],"Health Info :%s",BMS_Data.Health_Status_Info);
+					Length += sprintf(&Buffer[Length],"Health Info :%s",BMS_Data.I2C_Error_Info);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_TEMPERATURE
+				case 'H':
+					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees",BMS_Data.Pack_Temperature_Degrees);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_WATCHDOG_TEST
+				case 'I':
+					uint32_t Temp_Time = Get_System_Time_Millis();
+					while((Get_System_Time_Millis() - Temp_Time) > WATCHDOG_RESET_TIME);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_CODE_RESET
+				case 'J':
+					NVIC_SystemReset();
+					break;
+#endif
+
+			}
+
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;
