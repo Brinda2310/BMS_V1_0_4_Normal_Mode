@@ -26,10 +26,11 @@
 #define TEST_DEBUG_TEMPERATURE								/* Character H*/
 #define TEST_DEBUG_WATCHDOG_TEST							/* Character I*/
 #define TEST_DEBUG_CODE_RESET								/* Character J*/
+//#define TEST_CHARGE_DISCHARGE_SOFTWARE						/* Character K */
 
-#define WATCHDOG_RESET_TIME									2100
+#define TEST_DEBUG_WATCHDOG_RESET_TIME									2100
 
-#define _2_SECONDS_TIME				50		/* Time for which SOC to be shown (50 * 40ms) */
+#define _2_SECONDS_TIME										50		/* Time for which SOC to be shown (50 * 40ms) */
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -77,6 +78,16 @@ uint16_t Timer_Value = 0,Time_Count = 0;
 /* This flag is used for re-initialization of SD card in case of it's non presence in the slot */
 bool SD_Card_ReInit = false;
 
+/* This variable monitors the logging is happening on SD card or not. If it is true then there is no any problem for logging otherwise
+ * there is some problem in the logging which will be displayed over USART */
+bool Log_Status = false;
+
+/* These flags are used to test the software logic for charging and discharging pack cycles. These flags will be true only if user sends 'K'
+ * or 'L' character over USART. Once it is sent, charge/discharge timers will start counting till the max time, after which it will considered as cycle */
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+	bool Start_Charging = false,Start_Discharging = false;
+#endif
+
 int main(void)
 {
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
@@ -122,14 +133,7 @@ int main(void)
 	BMS_Read_Pack_Voltage();
 
 	/* Create the LOG file on SD card by reading the count from log summary file */
-	if(BMS_Log_Init() == RESULT_OK)
-	{
-//		BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
-	}
-	else
-	{
-//		BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
-	}
+	BMS_Log_Init();
 
 	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
 	 * next values */
@@ -142,22 +146,19 @@ int main(void)
 
 	if(Get_Reset_Source() == SOFTWARE)
 	{
-		BMS_Debug_COM_Write_Data("Software Reset\r",15);
+		BMS_Debug_COM_Write_Data("It is Software Reset...!!!\r",27);
 	}
 
 	if (Get_Reset_Source() == WATCHDOG)
 	{
-		BMS_Debug_COM_Write_Data("Watchdog Reset\r",15);
-	}
-
-	if(Get_Reset_Source() == HARDWARE)
-	{
-		BMS_Debug_COM_Write_Data("Hardware Reset\r",15);
+		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
 	}
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
 	BMS_watchdog_Init();
+
+	BMS_Debug_COM_Write_Data("BMS Initialization Done...!!!\r\r",30);
 
 	while(1)
 	{
@@ -267,42 +268,38 @@ int main(void)
 					Display_SOC = false;
 					Display_SOH = false;
 					Debug_Mode_Function = false;
-//					BMS_Debug_COM_Write_Data("Debug\r",6);
 					Debug_COM_Enable = !Debug_COM_Enable;
 				}
 			}
 
-			/* If switch is pressed for more than 500ms then show the SOC status on LEDs*/
+			/* If switch is pressed for more than 500ms and less than 2 seconds then show the SOC status on LEDs*/
 			if(Display_SOC == true)
 			{
 				if(Time_Count <= _2_SECONDS_TIME)
 				{
 					Time_Count++;
 					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
-//					BMS_Debug_COM_Write_Data("SOC Shown\r",10);
 				}
 				else
 				{
 					Display_SOC = false;
 					Time_Count = 0;
 					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
-//					BMS_Debug_COM_Write_Data("Released\r",9);
 				}
 			}
+			/* If switch is pressed for more than 2 seconds then show the SOH status on LEDs*/
 			else if (Display_SOH == true)
 			{
 				if (Time_Count <= _2_SECONDS_TIME)
 				{
 					Time_Count++;
 					BMS_Show_LED_Pattern(SOH, SHOW_STATUS);
-//					BMS_Debug_COM_Write_Data("SOH Shown\r", 10);
 				}
 				else
 				{
 					Display_SOH = false;
 					Time_Count = 0;
 					BMS_Show_LED_Pattern(SOH, HIDE_STATUS);
-//					BMS_Debug_COM_Write_Data("Released\r", 9);
 				}
 			}
 
@@ -379,12 +376,20 @@ int main(void)
 			 * to check whether MCU started from sleep mode or executing it normal way */
 			if(Wakeup_From_Sleep == false)
 			{
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
 				/* If external charger is connected to the BMS then keep continuous track of it*/
+				if(Get_BMS_Charge_Discharge_Status() == CHARGING || Start_Charging == true)
+#else
 				if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+#endif
 				{
 					/* Make the count used for charging to zero to get the exact duration of 5mins while
 					 * executing the discharge section of the code */
 					Discharge_Time_Count = 0;
+
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+					Charge_Time_Count++;
+#else
 					/* If current coming into the pack is more than 1amperes then start counting the time */
 					if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
@@ -396,7 +401,7 @@ int main(void)
 						 * count to zero */
 						Charge_Time_Count = 0;
 					}
-
+#endif
 					/* If current coming into the pack is more than 1amperes for more than 5mins(CHARGE_TIME_DELAY),
 					 * then increment the charge cycles count and make the status to of variable to true so as to
 					 * keep track of last state of the pack i.e. charging/discharging  */
@@ -415,14 +420,25 @@ int main(void)
 							Last_Charge_Disharge_Status = CHARGING;
 							BMS_Update_Pack_Cycles();
 						}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+						Charge_Time_Count = 0;
+#endif
 					}
 				}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
 				/* If status of the BMS is discharging then keep continuous track of it */
+				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING || Start_Discharging == true)
+#else
 				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
-				{
+
+#endif
+					{
 					/* Make the count used for charging to zero to get the exact duration of 5mins while
 					 * executing the charging section of the code */
 					Charge_Time_Count = 0;
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+					Discharge_Time_Count++;
+#else
 					/* If current going out of the pack is more than 1 amperes then start counting the time */
 					if(Get_BMS_Pack_Current() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
@@ -432,7 +448,7 @@ int main(void)
 					{
 						Discharge_Time_Count = 0;
 					}
-
+#endif
 					/* If discharge current is more than 1 amperes for more than 5 minutes then increment
 					 * the discharge cycles count by ensuring that the previous state of the pack was
 					 * not discharging */
@@ -451,7 +467,11 @@ int main(void)
 							Last_Charge_Disharge_Status = DISCHARGING;
 							BMS_Update_Pack_Cycles();
 						}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+						Discharge_Time_Count = 0;
+#endif
 					}
+
 				}
 				else
 				{
@@ -471,16 +491,21 @@ int main(void)
 				if(SD_Card_ReInit == false)
 				{
 					/* Log all the variable in the SD card */
-					if (Log_All_Data() != RESULT_OK)
+					if(Log_All_Data() != RESULT_OK)
 					{
 						/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
 						 * the SD card functionality */
 						Log_Init_Counter++;
+						Log_Status = false;
 						if (Log_Init_Counter >= 5)
 						{
 							Log_Init_Counter = 0;
 							BMS_Log_Init();
 						}
+					}
+					else
+					{
+						Log_Status = true;
 					}
 				}
 				else
@@ -498,6 +523,7 @@ int main(void)
 			}
 			else if(SdStatus == SD_NOT_PRESENT)
 			{
+				Log_Status = false;
 				SD_Card_ReInit = true;
 			}
 
@@ -534,13 +560,12 @@ int main(void)
 #ifdef TEST_DEBUG_GPS_INFO
 				case 'A':
 					Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
-					Buffer[Length++] = '\r';
 					break;
 #endif
 
 #ifdef TEST_DEBUG_START_TIME
 				case 'B':
-					Length += sprintf(&Buffer[Length],"MCU Time:%d\r\r",(int)Get_System_Time_Millis());
+					Length += sprintf(&Buffer[Length],"MCU Time:%d\r",(int)Get_System_Time_Millis());
 					break;
 #endif
 
@@ -549,14 +574,14 @@ int main(void)
 					Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
 					Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
 					Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-					Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r\r",Get_BMS_Pack_Current());
+					Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
 					break;
 #endif
 
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fA\r\r",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fA\r",C_D_Rate_Seconds);
 					break;
 #endif
 
@@ -564,7 +589,7 @@ int main(void)
 				case 'E':
 					Length += sprintf(&Buffer[Length],"Total Capacity :%0.2fmA\r",(float)BATTERY_CAPACITY);
 					Length += sprintf(&Buffer[Length],"Capacity Used :%0.2fmAH\r",Get_BMS_Capacity_Used());
-					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.2f%c\r\r",Get_BMS_Capacity_Remaining(),0x25);
+					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.2f%c\r",Get_BMS_Capacity_Remaining(),0x25);
 					break;
 #endif
 
@@ -572,26 +597,26 @@ int main(void)
 				case 'F':
 					Length += sprintf(&Buffer[Length],"Charge Cycles :%d\r",(int)BMS_Data.Pack_Charge_Cycles);
 					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d\r",(int)BMS_Data.Pack_Discharge_Cycles);
-					Length += sprintf(&Buffer[Length],"Total Cycles :%d\r\r",(int)Get_BMS_Total_Pack_Cycles());
+					Length += sprintf(&Buffer[Length],"Total Cycles :%d\r",(int)Get_BMS_Total_Pack_Cycles());
 					break;
 #endif
 
 #ifdef TEST_DEBUG_HEALTH_I2C_ERROR
 				case 'G':
 					Length += sprintf(&Buffer[Length],"Health Info :%s\r",BMS_Data.Health_Status_Info);
-					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r\r",BMS_Data.I2C_Error_Info);
+					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r",BMS_Data.I2C_Error_Info);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_TEMPERATURE
 				case 'H':
-					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r\r",BMS_Data.Pack_Temperature_Degrees);
+					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r",BMS_Data.Pack_Temperature_Degrees);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_WATCHDOG_TEST
 				case 'I':
-					Delay_Millis(2100);
+					Delay_Millis(TEST_DEBUG_WATCHDOG_RESET_TIME);
 					break;
 #endif
 
@@ -600,8 +625,32 @@ int main(void)
 					NVIC_SystemReset();
 					break;
 #endif
+
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+				case 'K':
+					Start_Charging = true;
+					Start_Discharging = false;
+					break;
+
+				case 'L':
+					Start_Charging = false;
+					Start_Discharging = true;
+					break;
+				case 'M':
+					Start_Charging = false;
+					Start_Discharging = false;
+					break;
+#endif
 			}
 
+			if(Log_Status == true)
+			{
+				Length += sprintf(&Buffer[Length],"SD OK\r\r");
+			}
+			else
+			{
+				Length += sprintf(&Buffer[Length],"SD ERROR\r\r");
+			}
 			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;

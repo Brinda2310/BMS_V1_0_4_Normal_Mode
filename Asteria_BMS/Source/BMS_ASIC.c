@@ -66,6 +66,7 @@ void BMS_ASIC_Init(void)
 	if(I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER) ==  RESULT_OK)
 	{
 		I2C_Error_Flag.I2C_Init_Flag = 0;
+		BMS_Com_Restart = false;
 	}
 	else
 	{
@@ -135,6 +136,7 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	}
 	else
 	{
+		BMS_Data.Charging_Discharging_Status = LOW_POWER_CONSUMPTION;
 		Status_Flag.Pack_Discharging = NO;
 	}
 
@@ -267,12 +269,13 @@ void BMS_User_EEPROM_Read(uint8_t Memory_Address,uint8_t *Buffer,uint8_t Data_Si
  */
 void BMS_Force_Sleep()
 {
-	int8_t Max_Tries = 5;
-	I2C_Error_Flag.I2C_Force_Sleep = I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA));
-	/* If there is any problem in the I2C write operation then I2C re-initialization is required */
-	while (I2C_Error_Flag.I2C_Force_Sleep != RESULT_OK && Max_Tries-- > 1)
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_SLEEP_DATA,sizeof(ISL_SLEEP_DATA)) == RESULT_OK)
 	{
-		BMS_Com_Restart = true;
+		I2C_Error_Flag.I2C_Force_Sleep = 0;
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Force_Sleep = 0;
 	}
 }
 
@@ -877,6 +880,7 @@ void BMS_Set_Current_Gain(uint16_t Gain_Setting)
 	if(Gain_Value == Gain_Setting)
 	{
 		I2C_Error_Flag.I2C_Set_Current_Gain_Flag = 0;
+		BMS_Com_Restart = false;
 	}
 	else
 	{
@@ -923,6 +927,7 @@ void BMS_Read_RAM_Status_Register()
 		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,RAM_Flags.Data,4) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Status_Flag = 0;
+			BMS_Com_Restart = false;
 		}
 		else
 		{
@@ -959,6 +964,7 @@ void BMS_Read_Cell_Voltages()
 		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,Cell_Voltages,CELL_VOLTAGES_DATA_SIZE) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Cells_Flag = 0;
+			BMS_Com_Restart = false;
 		}
 		else
 		{
@@ -1090,6 +1096,7 @@ void BMS_Read_Pack_Voltage()
 		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = 0;
+			BMS_Com_Restart = false;
 		}
 		else
 		{
@@ -1122,6 +1129,7 @@ void BMS_Read_Pack_Current()
 		if(I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Pack_Current_Flag = 0;
+			BMS_Com_Restart = false;
 		}
 		else
 		{
@@ -1156,6 +1164,7 @@ void BMS_Read_Pack_Temperature()
 		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Pack_Temp_Flag = 0;
+			BMS_Com_Restart = false;
 		}
 		else
 		{

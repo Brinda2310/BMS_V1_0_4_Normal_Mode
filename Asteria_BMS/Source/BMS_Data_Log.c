@@ -59,6 +59,11 @@ uint32_t ASIC_Restart_Count = 0;
 uint8_t BMS_Log_Init()
 {
 	uint8_t Result = RESULT_OK;
+
+	/* Closing of the file handles is necessary as code may return error in case it is not able to open the files */
+	f_close(&BMS_Log_File);
+	f_close(&Summary_File);
+
 	/* We want to create only one log file during each power up. This flag does that job. It becomes false
 	 * as soon as file is created */
 	if(Power_Up_BMS == false)
