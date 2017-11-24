@@ -151,6 +151,10 @@ uint8_t Get_Reset_Source()
 	{
 		Reset_Source = SOFTWARE;
 	}
+	else
+	{
+		Reset_Source = HARDWARE;
+	}
 
 //	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) == SET)
 //	{

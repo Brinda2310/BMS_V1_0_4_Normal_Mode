@@ -1102,6 +1102,8 @@ void BMS_Estimate_Initial_Capacity(void)
  */
 void BMS_Estimate_Capacity_Used()
 {
+	static uint8_t Previous_State = LOW_POWER_CONSUMPTION;
+
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
@@ -1109,6 +1111,16 @@ void BMS_Estimate_Capacity_Used()
 
 	if(Status_Flag.Pack_Charging == YES)
 	{
+		if(Previous_State == DISCHARGING)
+		{
+			C_D_Rate_Seconds = 0.0;
+			Previous_State = CHARGING;
+		}
+		else if (Previous_State == LOW_POWER_CONSUMPTION)
+		{
+			Previous_State = CHARGING;
+		}
+
 		BMS_Data.Pack_Capacity_Used -= BMS_Data.Pack_Charge_Discharge_Rate;
 		if(BMS_Data.Pack_Capacity_Used < 0)
 		{
@@ -1121,6 +1133,16 @@ void BMS_Estimate_Capacity_Used()
 	}
 	else
 	{
+		if(Previous_State == CHARGING)
+		{
+			C_D_Rate_Seconds = 0.0;
+			Previous_State = DISCHARGING;
+		}
+		else if (Previous_State == LOW_POWER_CONSUMPTION)
+		{
+			Previous_State = DISCHARGING;
+		}
+
 		BMS_Data.Pack_Capacity_Used += BMS_Data.Pack_Charge_Discharge_Rate;
 		if(BMS_Data.Pack_Capacity_Used > BATTERY_CAPACITY)
 		{

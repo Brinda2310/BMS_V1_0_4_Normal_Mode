@@ -586,7 +586,16 @@ int main(void)
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Rate :%0.4fmA/second\r",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Rate_Seconds);
+					if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+					{
+						Length += sprintf(&Buffer[Length]," IN\r");
+					}
+					else
+					{
+						Length += sprintf(&Buffer[Length]," OUT\r");
+					}
+
 					break;
 #endif
 
