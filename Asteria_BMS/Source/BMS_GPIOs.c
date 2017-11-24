@@ -45,7 +45,6 @@ uint8_t BMS_Read_Switch_Status()
  */
 void BMS_Status_LEDs_Init()
 {
-
 	if(Debug_COM_Enable == false)
 	{
 		GPIO_Init(LED1_PORT,LED_1,GPIO_OUTPUT,NOPULL);
@@ -76,8 +75,14 @@ void BMS_Status_LEDs_Init()
  */
 void BMS_Status_LED_Toggle()
 {
+	static bool Once = false;
 	if(Debug_COM_Enable == false)
 	{
+		if(Once == false)
+		{
+			Once = true;
+			BMS_Status_LEDs_Init();
+		}
 		GPIO_Write(LED1_PORT,LED_1,PIN_TOGGLE);
 		GPIO_Write(LED2_PORT,LED_2,PIN_TOGGLE);
 		GPIO_Write(LED3_PORT,LED_3,PIN_TOGGLE);
@@ -97,6 +102,14 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 {
 	float Battery_Health = 0.0;
 
+	static bool Once = false;
+
+	if(Once == false)
+	{
+		BMS_Status_LEDs_Init();
+		Once = true;
+	}
+
 	if(Pattern_Type == SOC)
 	{
 		Battery_Health = Get_BMS_Capacity_Remaining();
@@ -107,7 +120,7 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 		else if (Battery_Health > 40.00f && Battery_Health <= 80.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
-			if(Debug_COM_Enable == true)
+			if(Debug_COM_Enable == false)
 			{
 				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
 			}
@@ -115,7 +128,7 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 		else if (Battery_Health > 80.00f && Battery_Health <= 95.00f)
 		{
 			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
-			if(Debug_COM_Enable == true)
+			if(Debug_COM_Enable == false)
 			{
 				GPIO_Write(LED2_PORT,LED_2,PIN_LOW);
 				GPIO_Write(LED3_PORT,LED_3,PIN_LOW);
@@ -124,7 +137,7 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 		else
 		{
 			GPIO_Write(LED1_PORT, LED_1, PIN_LOW);
-			if(Debug_COM_Enable == true)
+			if(Debug_COM_Enable == false)
 			{
 				GPIO_Write(LED2_PORT, LED_2, PIN_LOW);
 				GPIO_Write(LED3_PORT, LED_3, PIN_LOW);
@@ -134,17 +147,37 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 	}
 	else if (Pattern_Type == SOH)
 	{
-//		BMS_Debug_COM_Write_Data("Long Press\r",11);
+		uint8_t Num_Cycles = Get_BMS_Total_Pack_Cycles();
+
+		if( Num_Cycles > 0 && Num_Cycles <= 15)
+		{
+				GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+		}
+		else if (Num_Cycles > 15 && Num_Cycles <= 30)
+		{
+				GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+				GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
+		}
+		else if (Num_Cycles > 30 && Num_Cycles <= 45)
+		{
+				GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+				GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
+				GPIO_Write(LED3_PORT, LED_3, PIN_TOGGLE);
+		}
+		else
+		{
+				GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+				GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
+				GPIO_Write(LED3_PORT, LED_3, PIN_TOGGLE);
+				GPIO_Write(LED4_PORT, LED_4, PIN_TOGGLE);
+		}
 	}
 
 	if(Status == HIDE_STATUS)
 	{
 		GPIO_Write(LED1_PORT, LED_1, PIN_HIGH);
-		if(Debug_COM_Enable == true)
-		{
-			GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
-			GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
-		}
+		GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
+		GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
 		GPIO_Write(LED4_PORT, LED_4, PIN_HIGH);
 	}
 }

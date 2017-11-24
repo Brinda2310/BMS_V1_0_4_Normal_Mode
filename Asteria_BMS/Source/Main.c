@@ -30,9 +30,9 @@
 #define TEST_DEBUG_LOG_FILE_INFO							/* Character N*/
 #define TEST_DEBUG_STOP_LOG									/* Character O*/
 
-#define TEST_DEBUG_WATCHDOG_RESET_TIME									2100
+#define TEST_DEBUG_WATCHDOG_RESET_TIME						2100
 
-#define _2_SECONDS_TIME										50		/* Time for which SOC to be shown (50 * 40ms) */
+#define _2_SECONDS_TIME										75		/* Time for which SOC to be shown (50 * 40ms) */
 #define _1_SECONDS_TIME										(_2_SECONDS_TIME/2)
 
 const uint8_t BMS_Firmware_Version[3] =
