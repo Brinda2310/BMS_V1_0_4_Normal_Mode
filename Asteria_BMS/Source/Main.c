@@ -106,11 +106,15 @@ int main(void)
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
-	/* Initialize the USART to 115200 baud rate to debug the code */
-	BMS_Debug_COM_Init();
-
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-	BMS_Status_LEDs_Init();
+	if(Debug_COM_Enable == false)
+	{
+		BMS_Status_LEDs_Init();
+	}
+	{
+		/* Initialize the USART to 115200 baud rate to debug the code */
+		BMS_Debug_COM_Init();
+	}
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/
@@ -275,7 +279,16 @@ int main(void)
 					Display_SOC = false;
 					Display_SOH = false;
 					Debug_Mode_Function = false;
-					Debug_COM_Enable = !Debug_COM_Enable;
+					if(Debug_COM_Enable == true)
+					{
+						Debug_COM_Enable = false;
+						BMS_Status_LEDs_Init();
+					}
+					else
+					{
+						Debug_COM_Enable = true;
+						BMS_Debug_COM_Init();
+					}
 				}
 			}
 
