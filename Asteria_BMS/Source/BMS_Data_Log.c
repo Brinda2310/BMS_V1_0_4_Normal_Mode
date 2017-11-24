@@ -334,7 +334,7 @@ uint8_t Create_BMS_Log_File()
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C/D_Rate,C/D_Status,Temperature,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C_D_Rate,mAH_IN_OUT,C_D_Status,Temperature,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source\r\n");
 
@@ -435,7 +435,8 @@ uint8_t Log_All_Data()
 	Int_Values[(*Index_Counter)++] = Current_Gain;
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH										// Charge/Discharge Rate
+	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH
+	Float_Values[(*Index_Counter)++] = C_D_Rate_Seconds;									// Charge/Discharge Rate
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status

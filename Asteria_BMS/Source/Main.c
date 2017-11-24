@@ -33,6 +33,7 @@
 #define TEST_DEBUG_WATCHDOG_RESET_TIME									2100
 
 #define _2_SECONDS_TIME										50		/* Time for which SOC to be shown (50 * 40ms) */
+#define _1_SECONDS_TIME										(_2_SECONDS_TIME/2)
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -503,7 +504,7 @@ int main(void)
 						 * the SD card functionality */
 						Log_Init_Counter++;
 						Log_Status = false;
-						if (Log_Init_Counter >= 5)
+						if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
 						{
 							Log_Init_Counter = 0;
 							BMS_Log_Init();
@@ -519,7 +520,7 @@ int main(void)
 					/* As soon as SD card is present in the slot, we should initialize the SD card and then start logging the data; After initializing the
 					 * SD card wait for 1000 milliseconds then start logging otherwise there are chances of stucking the code */
 					static uint8_t Counter = 0;
-					if(Counter++ >= 40)
+					if(Counter++ >= _1_SECONDS_TIME)
 					{
 						BMS_Log_Init();
 						SD_Card_ReInit = false;
@@ -585,7 +586,7 @@ int main(void)
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fmA\r",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"C_D_Rate :%0.4fmA/second\r",C_D_Rate_Seconds);
 					break;
 #endif
 

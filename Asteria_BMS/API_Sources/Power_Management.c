@@ -147,8 +147,7 @@ uint8_t Get_Reset_Source()
 	{
 		Reset_Source = WATCHDOG;
 	}
-
-	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST) == SET)
+	else if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST) == SET)
 	{
 		Reset_Source = SOFTWARE;
 	}
