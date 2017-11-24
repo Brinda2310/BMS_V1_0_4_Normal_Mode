@@ -26,7 +26,8 @@
 #define TEST_DEBUG_TEMPERATURE								/* Character H*/
 #define TEST_DEBUG_WATCHDOG_TEST							/* Character I*/
 #define TEST_DEBUG_CODE_RESET								/* Character J*/
-//#define TEST_CHARGE_DISCHARGE_SOFTWARE						/* Character K */
+//#define TEST_CHARGE_DISCHARGE_SOFTWARE					/* Character K */
+#define TEST_DEBUG_LOG_FILE_INFO							/* Character N*/
 
 #define TEST_DEBUG_WATCHDOG_RESET_TIME									2100
 
@@ -122,6 +123,17 @@ int main(void)
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
 
+	/* Get the source for the previous reset of MCU */
+	if(Get_Reset_Source() == SOFTWARE)
+	{
+		BMS_Debug_COM_Write_Data("It is Software Reset...!!!\r",27);
+	}
+
+	if (Get_Reset_Source() == WATCHDOG)
+	{
+		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
+	}
+
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
 	BMS_Configure_Parameters();
 
@@ -144,21 +156,9 @@ int main(void)
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY;
 
-	if(Get_Reset_Source() == SOFTWARE)
-	{
-		BMS_Debug_COM_Write_Data("It is Software Reset...!!!\r",27);
-	}
-
-	if (Get_Reset_Source() == WATCHDOG)
-	{
-		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
-	}
-
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
 	BMS_watchdog_Init();
-
-	BMS_Debug_COM_Write_Data("BMS Initialization Done...!!!\r\r",30);
 
 	while(1)
 	{
@@ -642,6 +642,13 @@ int main(void)
 				case 'M':
 					Start_Charging = false;
 					Start_Discharging = false;
+					break;
+#endif
+
+#ifdef TEST_DEBUG_LOG_FILE_INFO
+				case 'M':
+					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
+					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
 					break;
 #endif
 			}

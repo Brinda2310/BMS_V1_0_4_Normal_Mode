@@ -791,7 +791,7 @@ static void BMS_Disable_Cell_Balancing(void)
 	 * then configuration settings are OK other wise code should write the values to the register again */
 	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 1) == RESULT_OK)
 	{
-		uint16_t * Temp_Data = (uint16_t*) &Data_Value[1];
+		uint8_t *Temp_Data = &Data_Value[1];
 		if (Pack_Data == *Temp_Data)
 		{
 			I2C_Error_Flag.I2C_Disable_Cell_Balancing_Flag = 0;
@@ -824,10 +824,15 @@ void BMS_Configure_Parameters(void)
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
 
-//	char Temp_Buffer[50],Length = 0;
-//	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
-//	Length = sprintf(Temp_Buffer, "%x\r",(unsigned int)*Temp_Data);
-//	BMS_Debug_COM_Write_Data(Temp_Buffer,Length);
+	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
+	if(*Temp_Data == 0x00)
+	{
+		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",40);
+	}
+	else
+	{
+		BMS_Debug_COM_Write_Data("BMS Configuration Setting Failed...!!!\r",40);
+	}
 }
 
 /**
