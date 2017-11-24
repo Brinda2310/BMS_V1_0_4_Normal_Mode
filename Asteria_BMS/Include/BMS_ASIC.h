@@ -67,6 +67,8 @@
 
 #define INTERNAL_OT_THRESHOLD_ADDR					0x40
 #define INTERNAL_OT_RECOVERY_ADDR					0x42
+#define NUMBER_OF_CELLS_ADDR						0x48
+
 #define DISABLE_CELL_BALANCE_ADDR					0x87
 
 #define USER_EEPROM_START_ADDR						0x50	/* ISL's user EEPROM start address */
@@ -261,6 +263,7 @@ typedef struct
 	uint8_t I2C_Set_OV_Delay_Timeout_Flag:1;
 	uint8_t I2C_Set_UV_Delay_Timeout_Flag:1;
 	uint8_t I2C_Set_Open_Wiring_Timeout_Flag:1;
+	uint8_t I2C_Config_Number_of_Cells_Flag:1;
 
 }I2C_Errors;
 

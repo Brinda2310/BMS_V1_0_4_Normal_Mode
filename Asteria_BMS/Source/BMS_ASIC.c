@@ -804,6 +804,56 @@ static void BMS_Disable_Cell_Balancing(void)
 }
 
 /**
+ * @brief  Function to disable the cell balancing by external micro controller (configuration parameter)
+ * @param  None
+ * @retval None
+ */
+static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
+{
+	uint8_t Data_Value[3],Index = 0;
+	uint16_t Cell_Info = 0;
+
+	/* Write the value to the register to disable the cell balancing; BMS ASIC does the cell balancing */
+	Data_Value[Index++] = NUMBER_OF_CELLS_ADDR;
+	Data_Value[Index++] = 0xFF;
+
+	if(Num_of_Cells == 8)
+	{
+		Data_Value[Index++] = 0xFF;
+	}
+	else if (Num_of_Cells == 6)
+	{
+		Data_Value[Index++] = 0xE7;
+	}
+	else if (Num_of_Cells == 4)
+	{
+		Data_Value[Index++] = 0xC3;
+	}
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
+
+	uint8_t Address = NUMBER_OF_CELLS_ADDR;
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	if (I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Cell_Info, 2) == RESULT_OK)
+	{
+		uint16_t *Temp_Data = (uint16_t*)&Data_Value[1];
+		if (Cell_Info == *Temp_Data)
+		{
+			I2C_Error_Flag.I2C_Config_Number_of_Cells_Flag = 0;
+		}
+		else
+		{
+			I2C_Error_Flag.I2C_Config_Number_of_Cells_Flag = 1;
+		}
+	}
+}
+
+/**
  * @brief  Function to set all the configuration parameters in the BMS ASIC
  * @param  None
  * @retval None
@@ -823,11 +873,12 @@ void BMS_Configure_Parameters(void)
 	BMS_Set_Internal_OT_Threshold();
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
+	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS);
 
 	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
 	if(*Temp_Data == 0x00)
 	{
-		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",40);
+		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",35);
 	}
 	else
 	{
