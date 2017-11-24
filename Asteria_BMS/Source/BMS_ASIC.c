@@ -1105,7 +1105,11 @@ void BMS_Estimate_Capacity_Used()
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
-	C_D_Rate_Seconds +=BMS_Data.Pack_Charge_Discharge_Rate;
+	C_D_Rate_Seconds += BMS_Data.Pack_Charge_Discharge_Rate;
+
+//	uint8_t Buff[30],Len = 0;
+//	Len += sprintf(Buff,"%f\r",BMS_Data.Pack_Capacity_Used);
+//	BMS_Debug_COM_Write_Data(Buff,Len);
 
 	if(Status_Flag.Pack_Charging == YES)
 	{
@@ -1114,9 +1118,9 @@ void BMS_Estimate_Capacity_Used()
 		{
 			BMS_Data.Pack_Capacity_Used = 0.0;
 		}
-		else if(BMS_Data.Pack_Capacity_Used > 100)
+		else if(BMS_Data.Pack_Capacity_Used > BATTERY_CAPACITY)
 		{
-			BMS_Data.Pack_Capacity_Used = 100.0;
+			BMS_Data.Pack_Capacity_Used = BATTERY_CAPACITY;
 		}
 	}
 	else

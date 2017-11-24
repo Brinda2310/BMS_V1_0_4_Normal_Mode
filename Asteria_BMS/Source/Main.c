@@ -585,15 +585,15 @@ int main(void)
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fA\r",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"C_D_Rate/Seconds :%0.4fmA\r",C_D_Rate_Seconds);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL
 				case 'E':
 					Length += sprintf(&Buffer[Length],"Total Capacity :%0.2fmA\r",(float)BATTERY_CAPACITY);
-					Length += sprintf(&Buffer[Length],"Capacity Used :%0.2fmAH\r",Get_BMS_Capacity_Used());
-					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.2f%c\r",Get_BMS_Capacity_Remaining(),0x25);
+					Length += sprintf(&Buffer[Length],"Capacity Used :%0.3fmAH\r",Get_BMS_Capacity_Used());
+					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.3f%c\r",Get_BMS_Capacity_Remaining(),0x25);
 					break;
 #endif
 
