@@ -26,8 +26,9 @@
 #define TEST_DEBUG_TEMPERATURE								/* Character H*/
 #define TEST_DEBUG_WATCHDOG_TEST							/* Character I*/
 #define TEST_DEBUG_CODE_RESET								/* Character J*/
-//#define TEST_CHARGE_DISCHARGE_SOFTWARE					/* Character K */
+//#define TEST_CHARGE_DISCHARGE_SOFTWARE					/* Character K*/
 #define TEST_DEBUG_LOG_FILE_INFO							/* Character N*/
+#define TEST_DEBUG_STOP_LOG									/* Character O*/
 
 #define TEST_DEBUG_WATCHDOG_RESET_TIME									2100
 
@@ -544,7 +545,7 @@ int main(void)
 			Loop_Rate_Counter++;
 
 			/* Debug LED to see whether the code is running or stuck */
-			BMS_Status_LED_Toggle();
+//			BMS_Status_LED_Toggle();
 
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
@@ -646,9 +647,14 @@ int main(void)
 #endif
 
 #ifdef TEST_DEBUG_LOG_FILE_INFO
-				case 'M':
+				case 'N':
 					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
 					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
+					break;
+#endif
+#ifdef TEST_DEBUG_STOP_LOG
+				case 'O':
+					Stop_Log();
 					break;
 #endif
 			}

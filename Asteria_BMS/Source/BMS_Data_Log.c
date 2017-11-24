@@ -388,7 +388,7 @@ uint8_t Log_All_Data()
 	int Int_Values[3];
 	float Float_Values[6];
 	long Long_Values[4];
-	uint8_t Char_Values[1];
+	uint8_t Char_Values[5];
 	uint8_t Result = RESULT_OK;
 
 	if((Get_BMS_Log_File_Size()/_1MB_FILE_SIZE) > _200MB_FILE_SIZE)
@@ -572,6 +572,7 @@ void Stop_Log()
 
 	f_write(&BMS_Log_File, GPS_Date_Time, (UINT)length, &BytesWritten);
 	f_close(&BMS_Log_File);
+	f_close(&Summary_File);
 }
 
 /**
