@@ -57,8 +57,11 @@ enum Switch_Status
 /* Function prototypes */
 void BMS_Switch_Init();
 uint8_t BMS_Read_Switch_Status();
-void BMS_Status_LEDs_Init();
-void BMS_Status_LED_Toggle();
+
+void BMS_SOH_SOC_LEDs_Init();
 void BMS_Show_LED_Pattern(uint8_t Battery_Capacity,uint8_t Status);
+
+void BMS_Status_Error_LED_Init();
+void BMS_Status_Error_LED_Toggle();
 
 #endif /* BMS_GPIOS_H_ */

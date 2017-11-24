@@ -43,7 +43,7 @@ uint8_t BMS_Read_Switch_Status()
  * @param  None
  * @retval None
  */
-void BMS_Status_LEDs_Init()
+void BMS_SOH_SOC_LEDs_Init()
 {
 	GPIO_Init(LED1_PORT, LED_1, GPIO_OUTPUT, NOPULL);
 	GPIO_Init(LED2_PORT, LED_2, GPIO_OUTPUT, NOPULL);
@@ -54,34 +54,35 @@ void BMS_Status_LEDs_Init()
 	GPIO_Write(LED2_PORT, LED_2, PIN_HIGH);
 	GPIO_Write(LED3_PORT, LED_3, PIN_HIGH);
 	GPIO_Write(LED4_PORT, LED_4, PIN_HIGH);
-
-//#if BOARD_STATUS_ERROR_LED == ENABLE
-//	GPIO_Init(LED5_PORT,LED_5,GPIO_OUTPUT,NOPULL);
-//	GPIO_Init(LED6_PORT,LED_6,GPIO_OUTPUT,NOPULL);
-//
-//	GPIO_Write(LED5_PORT,LED_5,PIN_HIGH);
-//	GPIO_Write(LED6_PORT,LED_6,PIN_HIGH);
-//#endif
-
 }
 
 /**
- * @brief  Function to toggle the status LEDs connected on board; Used only for debugging
+ * @brief  Function to initialize the status and Error LEDs connected on board
  * @param  None
  * @retval None
  */
-void BMS_Status_LED_Toggle()
+void BMS_Status_Error_LED_Init()
 {
-	static bool Once = false;
-	if (Once == false)
-	{
-		Once = true;
-		BMS_Status_LEDs_Init();
-	}
-	GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
-	GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
-	GPIO_Write(LED3_PORT, LED_3, PIN_TOGGLE);
-	GPIO_Write(LED4_PORT, LED_4, PIN_TOGGLE);
+#if BOARD_STATUS_ERROR_LED == ENABLE
+	GPIO_Init(LED5_PORT, LED_5, GPIO_OUTPUT, NOPULL);
+	GPIO_Init(LED6_PORT, LED_6, GPIO_OUTPUT, NOPULL);
+
+	GPIO_Write(LED5_PORT, LED_5, PIN_HIGH);
+	GPIO_Write(LED6_PORT, LED_6, PIN_HIGH);
+#endif
+}
+
+/**
+ * @brief  Function to toggle the status and Error LEDs connected on board
+ * @param  None
+ * @retval None
+ */
+void BMS_Status_Error_LED_Toggle()
+{
+#if BOARD_STATUS_ERROR_LED == ENABLE
+	GPIO_Write(LED5_PORT, LED_5, PIN_TOGGLE);
+	GPIO_Write(LED6_PORT, LED_6, PIN_TOGGLE);
+#endif
 }
 
 /**
@@ -94,14 +95,6 @@ void BMS_Status_LED_Toggle()
 void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 {
 	float Battery_Health = 0.0;
-
-	static bool Once = false;
-
-	if(Once == false)
-	{
-		BMS_Status_LEDs_Init();
-		Once = true;
-	}
 
 	if(Pattern_Type == SOC)
 	{
@@ -131,7 +124,7 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 	}
 	else if (Pattern_Type == SOH)
 	{
-		uint8_t Num_Cycles = 40;//Get_BMS_Total_Pack_Cycles();
+		uint8_t Num_Cycles = Get_BMS_Total_Pack_Cycles();
 
 		if( Num_Cycles > 0 && Num_Cycles <= 15)
 		{

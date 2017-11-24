@@ -106,10 +106,13 @@ int main(void)
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
+	/* Initialize the Status and Error LEDs connected on the BMS board */
+	BMS_Status_Error_LED_Init();
+
 	/* Initialize the status LEDs which indicates the SOC and SOH */
 	if(Debug_COM_Enable == false)
 	{
-		BMS_Status_LEDs_Init();
+		BMS_SOH_SOC_LEDs_Init();
 	}
 	{
 		/* Initialize the USART to 115200 baud rate to debug the code */
@@ -282,7 +285,7 @@ int main(void)
 					if(Debug_COM_Enable == true)
 					{
 						Debug_COM_Enable = false;
-						BMS_Status_LEDs_Init();
+						BMS_SOH_SOC_LEDs_Init();
 					}
 					else
 					{
@@ -559,7 +562,7 @@ int main(void)
 			Loop_Rate_Counter++;
 
 			/* Debug LED to see whether the code is running or stuck */
-//			BMS_Status_LED_Toggle();
+			BMS_Status_Error_LED_Toggle();
 
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
