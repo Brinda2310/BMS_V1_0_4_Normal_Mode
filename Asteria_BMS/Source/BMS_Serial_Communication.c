@@ -45,6 +45,7 @@ void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 	if(Debug_COM_Enable == true)
 	{
 		USART_Write(USART_1,TxBuffer,Size);
+		/* Delay is required to allow USART to send all the bytes from TxBuffer as it is configured in interrupt mode */
 		Delay_Millis(4);
 	}
 }

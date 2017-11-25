@@ -2,8 +2,8 @@
  ******************************************************************************
  * @file    Main.c
  * @author  Nikhil Ingale
- * @version V1.0.3
- * @date    12-Nov-2017
+ * @version V1.0.2
+ * @date    25-Nov-2017
  * @brief   Default main function.
  ******************************************************************************
 */
@@ -32,7 +32,7 @@
 
 #define TEST_DEBUG_WATCHDOG_RESET_TIME						2100
 
-#define _2_SECONDS_TIME										75		/* Time for which SOC to be shown (50 * 40ms) */
+#define _2_SECONDS_TIME										50		/* Time for which SOC to be shown (50 * 40ms) */
 #define _1_SECONDS_TIME										(_2_SECONDS_TIME/2)
 
 const uint8_t BMS_Firmware_Version[3] =
@@ -219,27 +219,29 @@ int main(void)
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
+			/* Monitor the SD card's existence in the slot */
 			SD_Status();
 
-			/* If switch is pressed then start counting the time */
+			/* If switch is pressed then start counting the time (40ms is the tick peroid) */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
-				/* As soon as switch is released, check for timer count value. If count is in between
-				 * 500ms and 1 seconds then show the SOC status on LEDs and if count is more than 2
-				 * seconds then show SOH status on LEDs */
+				/* If switch press count is more than 500ms and less than 2 seconds then make SOC_Flag true to display
+				 * the SOC status on LEDs as soon as switch is released */
 				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
 				{
 					SOC_Flag = true;
 				}
+				/* If switch press count is more than 2 seconds then make SOH_Flag variable true to display the
+				 * SOH status on LEDs as soos as switch is released */
 				if (Switch_Press_Time_Count >= LONG_PEROID)
 				{
 					SOH_Flag = true;
 					SOC_Flag = false;
 				}
 
-				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled
-				 * It will start displaying the data which is being sent over USART at 1Hz*/
+				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
+				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
 				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PEROID)
 				{
 					SOH_Flag = false;
@@ -261,7 +263,7 @@ int main(void)
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
 
-				/* If switch is pressed more than 2 seconds then display only SOH on LEDs and reset the time
+				/* If switch is pressed more than 2 seconds then display only SOH status on LEDs and reset the time
 				 * count which is used to keep LEDs ON for specified time */
 				if(SOH_Flag == true)
 				{
@@ -269,14 +271,15 @@ int main(void)
 					Display_SOH = true;
 					Time_Count = 0;
 				}
-				/* If switch is pressed more than 500ms and less than 580ms then display only SOC on LEDs and
-				 * reset the time count which is used to keep LEDs ON for specified time */
+				/* If switch is pressed more than 500ms and less than 2 seconds then display only SOC status on LEDs
+				 * and reset the time count which is used to keep LEDs ON for specified time */
 				if(SOC_Flag == true)
 				{
 					SOC_Flag = false;
 					Display_SOC = true;
 					Time_Count = 0;
 				}
+				/* Toggle the Debug USART and SOH_SOC functionality based on switch press for more than 5 seconds */
 				if(Debug_Mode_Function == true)
 				{
 					Display_SOC = false;
@@ -310,7 +313,7 @@ int main(void)
 					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
 				}
 			}
-			/* If switch is pressed for more than 2 seconds then show the SOH status on LEDs*/
+			/* If switch is pressed for more than 2 seconds and less than 5 seconds then show the SOH status on LEDs*/
 			else if (Display_SOH == true)
 			{
 				if (Time_Count <= _2_SECONDS_TIME)
@@ -400,9 +403,9 @@ int main(void)
 			if(Wakeup_From_Sleep == false)
 			{
 #ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
-				/* If external charger is connected to the BMS then keep continuous track of it*/
 				if(Get_BMS_Charge_Discharge_Status() == CHARGING || Start_Charging == true)
 #else
+				/* If external charger is connected to the BMS then keep continuous track of it */
 				if(Get_BMS_Charge_Discharge_Status() == CHARGING)
 #endif
 				{
@@ -413,21 +416,21 @@ int main(void)
 #ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
 					Charge_Time_Count++;
 #else
-					/* If current coming into the pack is more than 1amperes then start counting the time */
+					/* If current coming into the pack is more than 1A then start counting the time */
 					if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
 						Charge_Time_Count++;
 					}
 					else
 					{
-						/* BMS is charging but with value less than mentioned(1A)then reset the timer
+						/* BMS is charging but with value less than mentioned(1A) current then reset the charge timer
 						 * count to zero */
 						Charge_Time_Count = 0;
 					}
 #endif
-					/* If current coming into the pack is more than 1amperes for more than 5mins(CHARGE_TIME_DELAY),
-					 * then increment the charge cycles count and make the status to of variable to true so as to
-					 * keep track of last state of the pack i.e. charging/discharging  */
+					/* If current coming into the pack is more than 1A for more than 5mins(CHARGE_TIME_DELAY),then increment
+					 * the charge cycles count only if previous pack cycle was discharging and make the last_charge_discharge_status
+					 * variable to charging to keep track of last state of the pack i.e. charging/discharging */
 					if(Charge_Time_Count >= CHARGE_TIME_DELAY)
 					{
 						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
@@ -449,11 +452,10 @@ int main(void)
 					}
 				}
 #ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
-				/* If status of the BMS is discharging then keep continuous track of it */
 				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING || Start_Discharging == true)
 #else
+				/* If status of the BMS is discharging then keep continuous track of it */
 				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
-
 #endif
 					{
 					/* Make the count used for charging to zero to get the exact duration of 5mins while
@@ -472,9 +474,9 @@ int main(void)
 						Discharge_Time_Count = 0;
 					}
 #endif
-					/* If discharge current is more than 1 amperes for more than 5 minutes then increment
-					 * the discharge cycles count by ensuring that the previous state of the pack was
-					 * not discharging */
+					/* If discharge current is more than 1A for more than 5 minutes then increment the discharge
+					 * cycles count only if previous pack cycle was charging and make the last_charge_discharge_status
+					 * variable to discharging to keep track of last state of the pack i.e. charging/discharging */
 					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY)
 					{
 						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
@@ -533,8 +535,9 @@ int main(void)
 				}
 				else
 				{
-					/* As soon as SD card is present in the slot, we should initialize the SD card and then start logging the data; After initializing the
-					 * SD card wait for 1000 milliseconds then start logging otherwise there are chances of stucking the code */
+					/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
+					 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
+					 * logging to avoid problem in the logging */
 					static uint8_t Counter = 0;
 					if(Counter++ >= _1_SECONDS_TIME)
 					{
@@ -555,6 +558,8 @@ int main(void)
 			if(BMS_Check_COM_Health() != HEALTH_OK)
 			{
 				BMS_ASIC_Init();
+				/* Variable to log the number of time ISL restarted during its operation */
+				ASIC_Restart_Count++;
 //				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 			}
 
@@ -569,7 +574,8 @@ int main(void)
 
 			_25Hz_Flag = false;
 		}
-		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only (inputs are provided as per the test cases) */
+		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
+		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true && Wakeup_From_Sleep == false)
 		{
 			memset(Buffer,0,sizeof(Buffer));
@@ -602,7 +608,7 @@ int main(void)
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
-					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Rate_Seconds);
+					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Accumulated_mAH);
 					if(Get_BMS_Charge_Discharge_Status() == CHARGING)
 					{
 						Length += sprintf(&Buffer[Length]," IN\r");
@@ -685,6 +691,8 @@ int main(void)
 #endif
 			}
 
+			/* If logging is happening without any problem then display SD_OK string over debug port otherwise display
+			 * SD_ERROR string */
 			if(Log_Status == true)
 			{
 				Length += sprintf(&Buffer[Length],"SD OK\r\r");
@@ -698,6 +706,8 @@ int main(void)
 			_1Hz_Flag = false;
 		}
 
+		/* If MCU receives the proper data from Autopilot then this variable becomes true.
+		 * This section of code extracts the date and time information and set it to the RTC */
 		if(GPS_Data_Received == true)
 		{
 			uint8_t Index = 0;
@@ -738,6 +748,7 @@ int main(void)
 		 * is logged in SD card */
 		if(Flight_Stat_Received == true)
 		{
+			/* Debug info sent over USART to check the status sent by AP */
 			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
 			/* Make this flag false to get the updated status from AP */
 			Flight_Stat_Received = false;

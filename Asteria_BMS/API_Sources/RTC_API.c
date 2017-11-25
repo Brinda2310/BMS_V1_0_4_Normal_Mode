@@ -14,6 +14,12 @@
 
 RTC_Data RTC_Info;
 
+/**
+ * @brief  Function to initialize the real time clock of MCU
+ * @param  None
+ * @retval RESULT_OK 	: If initialization is successful
+ * 		   RESULT_ERROR : If initialization is not successful
+ */
 uint8_t RTC_Init()
 {
 	uint8_t Result = RESULT_OK;
@@ -80,6 +86,15 @@ uint8_t RTC_Init()
 	return Result;
 }
 
+/**
+ * @brief  Function to set the date into the RTC registers
+ * @param  Weekday		: Pointer to the day variable (MONDAY,TUESDAY,WEDNESDAY etc...)
+ * @param  Date			: Pointer to the date variable
+ * @param  Month		: Pointer to the month variable
+ * @param  Year			: Pointer to the year variable
+ * @retval RESULT_OK 	: If setting date to RTC is successful
+ * 		   RESULT_ERROR : If setting date to RTC is unsuccessful
+ */
 uint8_t RTC_Set_Date(uint8_t *Weekday, uint8_t *Date,uint8_t *Month,uint8_t *Year)
 {
 	uint8_t Result = RESULT_OK;
@@ -98,6 +113,15 @@ uint8_t RTC_Set_Date(uint8_t *Weekday, uint8_t *Date,uint8_t *Month,uint8_t *Yea
 	return Result;
 }
 
+/**
+ * @brief  Function to retrieve the date from RTC registers
+ * @param  D	ay		: Pointer to the day variable in which data is to be retrieved (MONDAY,TUESDAY,WEDNESDAY etc...)
+ * @param  Date			: Pointer to the date variable in which data is to be retrieved
+ * @param  Month		: Pointer to the month variable in which data is to be retrieved
+ * @param  Year			: Pointer to the year variable in which data is to be retrieved
+ * @retval RESULT_OK 	: If retrieving date from RTC is successful
+ * 		   RESULT_ERROR : If retrieving date from RTC is unsuccessful
+ */
 uint8_t RTC_Get_Date(uint8_t *Day,uint8_t *Date,uint8_t *Month, uint8_t *Year)
 {
 	uint8_t Result = RESULT_OK;
@@ -118,6 +142,14 @@ uint8_t RTC_Get_Date(uint8_t *Day,uint8_t *Date,uint8_t *Month, uint8_t *Year)
 	return Result;
 }
 
+/**
+ * @brief  Function to set the time into the RTC registers
+ * @param  Hours		: Pointer to hours variable to be set in RTC
+ * @param  Minutes		: Pointer to minutes variable to be set in RTC
+ * @param  Seconds		: Pointer to seconds variable to be set in RTC
+ * @retval RESULT_OK 	: If setting time to RTC is successful
+ * 		   RESULT_ERROR : If setting time to RTC is unsuccessful
+ */
 uint8_t RTC_Set_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds)
 {
 	uint8_t Result = RESULT_OK;
@@ -139,6 +171,14 @@ uint8_t RTC_Set_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds)
 	return Result;
 }
 
+/**
+ * @brief  Function to retrieve the time from RTC registers
+ * @param  Hours		: Pointer to hours variable in which data to be received
+ * @param  Minutes		: Pointer to minutes variable in which data to be received
+ * @param  Seconds		: Pointer to seconds variable in which data to be received
+ * @retval RESULT_OK 	: If retrieving time from RTC is successful
+ * 		   RESULT_ERROR : If retrieving time from RTC is unsuccessful
+ */
 uint8_t RTC_Get_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds)
 {
 	uint8_t Result = RESULT_OK;
@@ -193,6 +233,11 @@ void RTC_Alarm_IRQHandler(void)
   /* User can write his own functionality when alarm is fired*/
 }
 
+/**
+ * @brief  Function to fill the date and time into the user buffer
+ * @param  Hours		: Pointer to the buffer in which data to be filled
+ * @retval Length	 	: The number of character filled in the buffer passed as parameter to this function
+ */
 uint8_t RTC_TimeShow(uint8_t* showtime)
 {
   uint8_t Length = 0;

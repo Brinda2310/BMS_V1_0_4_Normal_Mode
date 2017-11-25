@@ -60,11 +60,18 @@ void MCU_Exit_Sleep_Mode()
 	/* Initialize the timer to 40mS and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
-	/* Initialize the USART to 115200 baud rate to debug the code */
-	BMS_Debug_COM_Init();
+	/* Initialize the Status and Error LEDs connected on the BMS board */
+	BMS_Status_Error_LED_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-	BMS_Status_LEDs_Init();
+	if (Debug_COM_Enable == false)
+	{
+		BMS_SOH_SOC_LEDs_Init();
+	}
+	{
+		/* Initialize the USART to 115200 baud rate to debug the code */
+		BMS_Debug_COM_Init();
+	}
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/

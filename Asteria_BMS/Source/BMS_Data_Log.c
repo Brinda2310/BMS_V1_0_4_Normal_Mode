@@ -41,7 +41,7 @@ Log_SD_Summary_Vars SD_Summary_Data;
 static uint16_t Old_Power_Up_Num = 0;
 
 /* New file created only upon power up otherwise logging is done in the old file after wake up */
-static bool New_File_Created = false,File_Size_Exceed = false;
+static bool New_File_Created = false;
 
 /* Variable to create only one log file in each power up */
 static bool Power_Up_BMS = false;
@@ -154,7 +154,7 @@ uint8_t Create_Log_Summary_File()
 	SD_Result = Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
 
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
-	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false && File_Size_Exceed == false)
+	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false)
 	{
 		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
 		SD_Summary_Data.Power_Up_Number++;
@@ -391,11 +391,10 @@ uint8_t Log_All_Data()
 	uint8_t Char_Values[5];
 	uint8_t Result = RESULT_OK;
 
+	/* If the size of file exceeds the 200MB size then initialize all the variables responsible for creating new file*/
 	if((Get_BMS_Log_File_Size()/_1MB_FILE_SIZE) > _200MB_FILE_SIZE)
 	{
-		Power_Up_BMS = true;
 		New_File_Created = false;
-		File_Size_Exceed = true;
 		BMS_Log_Init();
 	}
 	*String_Index = 0;
@@ -406,10 +405,10 @@ uint8_t Log_All_Data()
 
 	String_Buffer[(*String_Index)++] = ',';
 
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();							// Start Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// Start Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();							// End Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// End Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();									// Cell1 Voltage
@@ -420,14 +419,14 @@ uint8_t Log_All_Data()
 	Float_Values[(*Index_Counter)++] = Get_Cell8_Voltage();									// Cell6 Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage
-	Float_Values[(*Index_Counter)++] = Get_BMS_Accumulated_Pack_Voltage();
+	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage from ISL
+	Float_Values[(*Index_Counter)++] = Get_BMS_Accumulated_Pack_Voltage();					// Acculumated Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current
-	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();
-	Float_Values[(*Index_Counter)++] = (float)BATTERY_CAPACITY;								// Total pack capacity
-	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Total initial Capacity
+	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current from ISL
+	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();							// Accurate Pack Current
+	Float_Values[(*Index_Counter)++] = (float)BATTERY_CAPACITY;								// Total Pack Capacity
+	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Pack Capacity Remaining
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
@@ -436,7 +435,7 @@ uint8_t Log_All_Data()
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH
-	Float_Values[(*Index_Counter)++] = C_D_Rate_Seconds;									// Charge/Discharge Rate
+	Float_Values[(*Index_Counter)++] = C_D_Accumulated_mAH;									// Charge/Discharge mAH
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status

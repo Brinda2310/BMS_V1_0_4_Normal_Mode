@@ -309,14 +309,13 @@ extern uint8_t Last_Charge_Disharge_Status;
 
 extern uint16_t Current_Gain;
 
-extern double C_D_Rate_Seconds;
+extern double C_D_Accumulated_mAH;
 
 extern uint32_t Error_Check_Data;
 
 /* Constant battery parameters */
 extern const uint8_t Battery_ID[];
 extern const uint8_t BMS_Board_Serial_Number[];
-
 
 /* BMS IC configurations functions which will get called only at the start of the code */
 void BMS_Configure_Parameters(void);

@@ -42,17 +42,13 @@ uint8_t Last_Charge_Disharge_Status = LOW_POWER_CONSUMPTION;
 uint16_t Current_Gain = CURRENT_GAIN_5X;
 
 /* Variable to calculate the rate at which battery is discharging(per seconds) */
-double C_D_Rate_Seconds = 0;
+double C_D_Accumulated_mAH = 0.0;
 
 /* Variable to copy the data from status flags and same is used to log it in the SD card */
 uint32_t Error_Check_Data = 0;
 
 /* Variable to set restart the I2C if any problem occurs during read and write operation */
 static bool BMS_Com_Restart = false;
-
-/* Variable used to monitor the configuration settings done in BMS ASIC. If all parameters are written
- * properly to the ASIC then this flag will be true otherwise it will remain false */
-bool Configuration_OK = false;
 
 /**
  * @brief  Function initializes the I2C communication between MCU and BMS IC
@@ -1107,13 +1103,13 @@ void BMS_Estimate_Capacity_Used()
 	Current_Time = Get_System_Time_Millis();
 	Current_Amperes = Get_BMS_Pack_Current();
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
-	C_D_Rate_Seconds += BMS_Data.Pack_Charge_Discharge_Rate;
+	C_D_Accumulated_mAH += BMS_Data.Pack_Charge_Discharge_Rate;
 
 	if(Status_Flag.Pack_Charging == YES)
 	{
 		if(Previous_State == DISCHARGING)
 		{
-			C_D_Rate_Seconds = 0.0;
+			C_D_Accumulated_mAH = 0.0;
 			Previous_State = CHARGING;
 		}
 		else if (Previous_State == LOW_POWER_CONSUMPTION)
@@ -1135,7 +1131,7 @@ void BMS_Estimate_Capacity_Used()
 	{
 		if(Previous_State == CHARGING)
 		{
-			C_D_Rate_Seconds = 0.0;
+			C_D_Accumulated_mAH = 0.0;
 			Previous_State = DISCHARGING;
 		}
 		else if (Previous_State == LOW_POWER_CONSUMPTION)
