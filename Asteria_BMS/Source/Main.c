@@ -560,7 +560,6 @@ int main(void)
 				BMS_ASIC_Init();
 				/* Variable to log the number of time ISL restarted during its operation */
 				ASIC_Restart_Count++;
-//				BMS_Debug_COM_Write_Data("ASIC Restart\r",13);
 			}
 
 			/* Variable to log the loop rate */

@@ -62,7 +62,6 @@ void BMS_ASIC_Init(void)
 	if(I2C_Init(BMS_I2C,I2C_OWN_ADDRESS,I2C_100KHZ,I2C_MASTER) ==  RESULT_OK)
 	{
 		I2C_Error_Flag.I2C_Init_Flag = 0;
-		BMS_Com_Restart = false;
 	}
 	else
 	{
@@ -163,7 +162,7 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 static void Convert_To_Cell_Voltages(uint8_t *Data)
 {
 	unsigned short  *Integers;
-	Integers = (unsigned short*)Data;
+	Integers = (unsigned short*)&Data[0];
 
 	/* Hard coded formulae defined by the ASIC manufacturer */
 	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
@@ -1032,7 +1031,7 @@ void BMS_Read_Cell_Voltages()
 
 	/* This function converts the read HEX values from ISL; convert them to integer and then does calculation
 	 * to find the actual cell voltage */
-	Convert_To_Cell_Voltages(Cell_Voltages);
+	Convert_To_Cell_Voltages(&Cell_Voltages[0]);
 }
 
 /**

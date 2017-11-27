@@ -493,7 +493,7 @@ uint8_t Log_All_Data()
 
 	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
 	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];
-	Char_Values[(*Index_Counter)++] = Get_Reset_Source();
+	Char_Values[(*Index_Counter)++] = Reset_Source;
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 //	while(*String_Index != 1021)
