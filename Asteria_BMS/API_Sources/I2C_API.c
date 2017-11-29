@@ -462,14 +462,15 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				Flight_Status_Request = true;
 				break;
 			case ALL_CELL_VOLTAGES_REG:
-				Pack_Data.values[Index++]= 3.2;//Get_Cell1_Voltage();
-				Pack_Data.values[Index++]= 3.3;//Get_Cell2_Voltage();
-				Pack_Data.values[Index++]= 3.65;//Get_Cell3_Voltage();
-				Pack_Data.values[Index++]= 3.55;//Get_Cell6_Voltage();
-				Pack_Data.values[Index++]= 3.68;//Get_Cell7_Voltage();
-				Pack_Data.values[Index++]= 3.65;//Get_Cell8_Voltage();
-				Pack_Data.values[Index++]= 23.70;//Get_BMS_Pack_Voltage();
-				Pack_Data.values[Index++]= 102.56;//Get_BMS_Pack_Current();
+//				Pack_Data.values[Index++]= 3.2;//Get_Cell1_Voltage();
+//				Pack_Data.values[Index++]= 3.3;//Get_Cell2_Voltage();
+//				Pack_Data.values[Index++]= 3.65;//Get_Cell3_Voltage();
+//				Pack_Data.values[Index++]= 3.55;//Get_Cell6_Voltage();
+//				Pack_Data.values[Index++]= 3.68;//Get_Cell7_Voltage();
+//				Pack_Data.values[Index++]= 3.65;//Get_Cell8_Voltage();
+//				Pack_Data.values[Index++]= 23.70;//Get_BMS_Pack_Voltage();
+//				Pack_Data.values[Index++]= 102.56;//Get_BMS_Pack_Current();
+				Index = 8;
 				Bytes_Count = 1;
 				break;
 			default:

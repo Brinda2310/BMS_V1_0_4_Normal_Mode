@@ -9,6 +9,7 @@
 #define BMS_ASIC_H_
 
 #include <I2C_API.h>
+#include <AP_Communication.h>
 
 #define BMS_ADDRESS									0x50	/* ISL94203 slave address */
 #define BMS_I2C										I2C_1	/* I2C bus of MCU to be used for ISL */

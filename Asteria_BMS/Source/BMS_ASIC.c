@@ -166,13 +166,25 @@ static void Convert_To_Cell_Voltages(uint8_t *Data)
 
 	/* Hard coded formulae defined by the ASIC manufacturer */
 	BMS_Data.Cell1_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[0] = BMS_Data.Cell1_Voltage;
+
 	BMS_Data.Cell2_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[1] = BMS_Data.Cell2_Voltage;
+
 	BMS_Data.Cell3_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[2] = BMS_Data.Cell3_Voltage;
+
 	BMS_Data.Cell4_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
 	BMS_Data.Cell5_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+
 	BMS_Data.Cell6_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[3] = BMS_Data.Cell6_Voltage;
+
 	BMS_Data.Cell7_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[4] = BMS_Data.Cell7_Voltage;
+
 	BMS_Data.Cell8_Voltage = (*Integers++ * 1.8 * 8)/ (4095 * 3);
+	Pack_Data.values[5] = BMS_Data.Cell8_Voltage;
 }
 
 static void Convert_Float_Voltage_to_Hex(float Voltage_Value,uint8_t* Data_Buffer,uint8_t *Index)
@@ -1161,12 +1173,12 @@ void BMS_Estimate_Capacity_Used()
  */
 void BMS_Read_Pack_Voltage()
 {
-	uint16_t Pack_Data;
+	uint16_t Pack_Voltage;
 	uint8_t Address = PACK_VOLTAGE_ADDR;
 
 	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,&Address,1) == RESULT_OK)
 	{
-		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Data,2) == RESULT_OK)
+		if(I2C_ReadData(BMS_I2C,BMS_ADDRESS|0x01,(uint8_t*)&Pack_Voltage,2) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Pack_Volt_Flag = 0;
 			BMS_Com_Restart = false;
@@ -1184,7 +1196,8 @@ void BMS_Read_Pack_Voltage()
 	}
 
 	/* Hard coded formula defined by the ASIC manufacturer */
-	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Data) * 1.8 * 32)/(4095);
+	BMS_Data.Pack_Voltage = ((uint16_t)(Pack_Voltage) * 1.8 * 32)/(4095);
+	Pack_Data.values[6] = BMS_Data.Pack_Voltage;
 }
 
 /**
@@ -1194,12 +1207,12 @@ void BMS_Read_Pack_Voltage()
  */
 void BMS_Read_Pack_Current()
 {
-	uint16_t Pack_Data;
+	uint16_t Pack_Current;
 	uint8_t Address = PACK_CURRENT_ADDR;
 
 	if(I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1) == RESULT_OK)
 	{
-		if(I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Data, 2) == RESULT_OK)
+		if(I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*)&Pack_Current, 2) == RESULT_OK)
 		{
 			I2C_Error_Flag.I2C_Read_Pack_Current_Flag = 0;
 			BMS_Com_Restart = false;
@@ -1217,7 +1230,8 @@ void BMS_Read_Pack_Current()
 	}
 
 	/* Hard coded formula defined by ASIC manufacturer */
-	BMS_Data.Pack_Current = (((float)(Pack_Data) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
+	BMS_Data.Pack_Current = (((float)(Pack_Current) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
+	Pack_Data.values[7] = BMS_Data.Pack_Current;
 }
 
 /**
