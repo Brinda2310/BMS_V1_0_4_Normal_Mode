@@ -27,7 +27,7 @@
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define BOARD_STATUS_ERROR_LED							DISABLE
+#define BOARD_STATUS_ERROR_LED							ENABLE
 
 #define NUM_OF_USARTS									1
 #define NUM_OF_SPI_BUSES								1
