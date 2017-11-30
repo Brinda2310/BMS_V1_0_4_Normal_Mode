@@ -9,6 +9,7 @@
 
 #include <I2C_API.h>
 #include "AP_Communication.h"
+#include "BMS_Serial_Communication.h"
 
 #if defined (USE_I2C1) || defined(USE_I2C3)
 #if (I2C1_MODE == NORMAL_I2C_MODE) || (I2C3_MODE == NORMAL_I2C_MODE)
@@ -17,14 +18,12 @@
 #if I2C1_MODE == SMBUS_MODE || I2C3_MODE == SMBUS_MODE
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
-    volatile uint8_t SMBUS_RxData[20];
+    uint8_t SMBUS_RxData[20];
     uint16_t Bytes_Count = 1;
-    volatile uint8_t GPS_Data_Request = false,Flight_Status_Request = false;
-    volatile uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
-    volatile uint8_t SMBUS_Request = false;
-    volatile uint8_t Index = 0, Reply_Byte = 0xAA;
-    volatile uint32_t SMBUS_Request_Start_Time = 0;
+    uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
+    uint8_t Index = 0, Reply_Byte = 0xAA;
 	static uint8_t State = 255;
+	static bool GPS_Data_Count_Set = false,Flight_Data_Count_Set = false;
 #endif
 #endif
 
@@ -365,32 +364,51 @@ void I2C3_EV_IRQHandler(void)
 
 void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+	/* When entire SMBUS operation is finished, BMS should go to the listen mode again to receive the
+	 * next requests */
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
-	SMBUS_Request = false;
-
+	/* When SMBUS transmission is completed then BMS should again go back to listen mode to serve
+	 * next requests */
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
 
 void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
-	/* This function will called when all the bytes mentioned in the address callback function
-	 * are received */
-	if(GPS_Data_Request == true)
+	/* If Data request is for receiving the GPS date and time from AP then set the receive byte count
+	 * to 17 as packet size is 17 bytes */
+	if(SMBUS_RxData[0] == GPS_PACKET_REG && GPS_Data_Count_Set == false)
+	{
+		GPS_Data_Count_Set = true;
+		Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
+	}
+	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
+	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
+	else if(GPS_Data_Count_Set == true)
 	{
 		Bytes_Count = 1;
 		memcpy(GPS_Data,SMBUS_RxData,GPS_DATE_TIME_DATA_SIZE);
-		GPS_Data_Request = false;
+		/* This variable is used in main.c file to set the actual date and time in the RTC */
 		GPS_Data_Received = true;
 	}
-	if (Flight_Status_Request == true)
+
+	/* If Data request is for receiving the Flight status from AP then set the receive byte count
+	 * to 2 as packet size is 2 bytes */
+	if(SMBUS_RxData[0] == FLIGHT_STATUS_REG && Flight_Data_Count_Set == false)
+	{
+		Flight_Data_Count_Set = true;
+		Bytes_Count = FLIGHT_STATUS_DATA_SIZE;
+	}
+	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
+	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
+	else if (Flight_Data_Count_Set == true)
 	{
 		Bytes_Count = 1;
-		memcpy(&AP_Stat_Data.bytes[0],SMBUS_RxData,FLIGHT_STATUS_DATA_SIZE);
-		Flight_Status_Request = false;
+		memcpy(AP_Stat_Data.bytes,SMBUS_RxData,FLIGHT_STATUS_DATA_SIZE);
+		/* This variable is used in the main.c file to set the AP status and take the necessary action */
 		Flight_Stat_Received = true;
 	}
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
@@ -398,85 +416,65 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
+	/* The sequence for SMBUS is "BCDFE" for first write and then read request */
 	Index = 0;
 	bool Default_Case = false;
 
 	AddrMatchCode = AddrMatchCode << 1;
 	if(AddrMatchCode == (uint16_t)SMBUS_Own_Address)
 	{
-		SMBUS_Request = true;
-
-		SMBUS_Request_Start_Time= Get_System_Time_Millis();
-
-		/* Read request (AP requests BMS to send the data as per the packet index */
+		/* AP sends write request */
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
 		}
-		/* Write request */
+		/* AP sends read request */
 		else
 		{
+			/* If GPS date and time or Flight status is received by BMS then send the acknowledge byte
+			 * to AP i.e. 0xAA */
+			if(GPS_Data_Count_Set == true || Flight_Data_Count_Set == true)
+			{
+				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
+				GPS_Data_Count_Set = false;
+				Flight_Data_Count_Set = false;
+			}
 			State = SMBUS_RxData[0];
 			switch(State)
 			{
 			case CELL1_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell1_Voltage();
-				Bytes_Count = 1;
 				break;
 			case CELL2_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell2_Voltage();
-				Bytes_Count = 1;
 				break;
 			case CELL3_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell3_Voltage();
-				Bytes_Count = 1;
 				break;
 			case CELL4_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell6_Voltage();
-				Bytes_Count = 1;
 				break;
 			case CELL5_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell7_Voltage();
-				Bytes_Count = 1;
 				break;
 			case CELL6_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_Cell8_Voltage();
-				Bytes_Count = 1;
 				break;
 			case PACK_VOLTAGE_REG:
 				Pack_Data.values[Index++] = Get_BMS_Pack_Voltage();
-				Bytes_Count = 1;
 				break;
 			case PACK_CURRENT_REG:
 				Pack_Data.values[Index++] = Get_BMS_Pack_Current();
-				Bytes_Count = 1;
-				break;
-			case GPS_PACKET_REG:
-				Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
-				GPS_Data_Request = true;
-				break;
-			case FLIGHT_STATUS_REG:
-				Bytes_Count = FLIGHT_STATUS_DATA_SIZE;
-				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-				Flight_Status_Request = true;
 				break;
 			case ALL_CELL_VOLTAGES_REG:
-//				Pack_Data.values[Index++]= 3.2;//Get_Cell1_Voltage();
-//				Pack_Data.values[Index++]= 3.3;//Get_Cell2_Voltage();
-//				Pack_Data.values[Index++]= 3.65;//Get_Cell3_Voltage();
-//				Pack_Data.values[Index++]= 3.55;//Get_Cell6_Voltage();
-//				Pack_Data.values[Index++]= 3.68;//Get_Cell7_Voltage();
-//				Pack_Data.values[Index++]= 3.65;//Get_Cell8_Voltage();
-//				Pack_Data.values[Index++]= 23.70;//Get_BMS_Pack_Voltage();
-//				Pack_Data.values[Index++]= 102.56;//Get_BMS_Pack_Current();
 				Index = 8;
-				Bytes_Count = 1;
 				break;
 			default:
 				Default_Case = true;
 				break;
 			}
+			/* If the AP read request is for any other register than the defined in the code then don't
+			 * send any data to AP */
 			if(Default_Case == false)
 			{
 				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Pack_Data.bytes[0],

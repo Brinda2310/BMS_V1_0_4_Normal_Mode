@@ -680,18 +680,22 @@ int main(void)
 #ifdef TEST_DEBUG_LOG_FILE_INFO
 				case 'N':
 					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
-					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
+					Length += sprintf(&Buffer[Length],"File Num :%d\r\r",SD_Summary_Data.Total_Num_of_Files);
 					break;
 #endif
 #ifdef TEST_DEBUG_STOP_LOG
 				case 'O':
 					Stop_Log();
 					break;
+
+				case '?':
+					AP_COM_Init(AP_COM_SMBUS_MODE);
+					break;
 #endif
 			}
 
-			/* If logging is happening without any problem then display SD_OK string over debug port otherwise display
-			 * SD_ERROR string */
+			/* If logging is happening without any problem then display SD_OK string over debug port otherwise
+			 * display SD_ERROR string */
 			if(Log_Status == true)
 			{
 				Length += sprintf(&Buffer[Length],"SD OK\r\r");
