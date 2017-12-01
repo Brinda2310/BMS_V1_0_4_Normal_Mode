@@ -27,8 +27,6 @@ enum SMBUS_Operation_Result
 };
 
 extern uint8_t GPS_Data_Received,Flight_Stat_Received;
-extern uint8_t SMBUS_Data_Sequence[50];
-extern uint8_t Sequence_Count;
 
 /* Function prototypes */
 uint8_t I2C_Init(uint8_t I2C_Num,uint8_t I2C_Own_Address,uint32_t Clock_Frequency,uint8_t I2C_Mode);

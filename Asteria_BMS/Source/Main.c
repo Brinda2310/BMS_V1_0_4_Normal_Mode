@@ -694,23 +694,19 @@ int main(void)
 #endif
 			}
 
-			/* If logging is happening without any problem then display SD_OK string over debug port otherwise
-			 * display SD_ERROR string */
+			/* If logging is happening without any problem then display SD Write OK string otherwise display
+			 * SD Write Error string over debug port */
 			if(Log_Status == true)
 			{
-//				Length += sprintf(&Buffer[Length],"SD OK\r\r");
+				Length += sprintf(&Buffer[Length],"SD Write OK\r\r");
 			}
 			else
 			{
-//				Length += sprintf(&Buffer[Length],"SD ERROR\r\r");
+				Length += sprintf(&Buffer[Length],"SD Write Error\r\r");
 			}
 
 			BMS_Debug_COM_Write_Data(Buffer, Length);
-			if(Sequence_Count > 1)
-			{
-				BMS_Debug_COM_Write_Data(SMBUS_Data_Sequence, Sequence_Count);
-				Sequence_Count = 0;
-			}
+
 			_1Hz_Flag = false;
 		}
 
@@ -728,12 +724,9 @@ int main(void)
 			RTC_Info.Month = ((GPS_Data[Index++] - '0') << 4);
 			RTC_Info.Month |= (GPS_Data[Index++] - '0');
 
-			uint8_t Dummy[5];
+			Index++;
+			Index++;
 
-			Dummy[0] = GPS_Data[Index++];
-			Dummy[1] = GPS_Data[Index++];
-
-			BMS_Debug_COM_Write_Data(Dummy,2);
 			RTC_Info.Year = ((GPS_Data[Index++] - '0') << 4);
 			RTC_Info.Year |= (GPS_Data[Index++] - '0');
 

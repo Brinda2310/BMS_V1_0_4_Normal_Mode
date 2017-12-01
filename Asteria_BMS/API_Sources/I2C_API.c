@@ -18,14 +18,12 @@
 #if I2C1_MODE == SMBUS_MODE || I2C3_MODE == SMBUS_MODE
 	SMBUS_HandleTypeDef SMBus_Handle[NUM_OF_I2C_BUSES];
 	static uint8_t SMBUS_Own_Address;
-    uint8_t SMBUS_RxData[20];
-    uint16_t Bytes_Count = 1;
+    static uint8_t SMBUS_RxData[50];
+    static uint16_t Bytes_Count = 1;
     uint8_t GPS_Data_Received = false,Flight_Stat_Received = false;
-    uint8_t Index = 0, Reply_Byte = 0xAA;
+    static uint8_t Index = 0, Reply_Byte = 0xAA;
 	static uint8_t State = 255;
 	static bool GPS_Data_Count_Set = false,Flight_Data_Count_Set = false;
-	uint8_t SMBUS_Data_Sequence[50];
-	uint8_t Sequence_Count;
 #endif
 #endif
 
@@ -381,8 +379,6 @@ void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 		Bytes_Count = 1;
 		memcpy(GPS_Data,SMBUS_RxData,GPS_DATE_TIME_DATA_SIZE);
 
-		SMBUS_Data_Sequence[Sequence_Count] = '3';
-		Sequence_Count++;
 		/* This variable is used in main.c file to set the actual date and time in the RTC */
 		GPS_Data_Received = true;
 	}
@@ -407,16 +403,10 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 	/* If Data request is for receiving the GPS date and time from AP then set the receive byte count
 	 * to 17 as packet size is 17 bytes */
-	SMBUS_Data_Sequence[Sequence_Count] = SMBUS_RxData[0];
-	Sequence_Count++;
 	if(SMBUS_RxData[0] == GPS_PACKET_REG && GPS_Data_Count_Set == false)
 	{
-		SMBUS_Data_Sequence[Sequence_Count] = '1';
-		Sequence_Count++;
 		GPS_Data_Count_Set = true;
 		Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-		SMBUS_Data_Sequence[Sequence_Count] = Bytes_Count;
-		Sequence_Count++;
 	}
 
 	/* If Data request is for receiving the Flight status from AP then set the receive byte count
@@ -442,8 +432,6 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
-			SMBUS_Data_Sequence[Sequence_Count] = Bytes_Count;
-			Sequence_Count++;
 		}
 		/* AP sends read request */
 		else
@@ -453,8 +441,6 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 			if(GPS_Data_Count_Set == true || Flight_Data_Count_Set == true)
 			{
 				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
-				SMBUS_Data_Sequence[Sequence_Count] = '2';
-				Sequence_Count++;
 			}
 			State = SMBUS_RxData[0];
 			switch(State)
