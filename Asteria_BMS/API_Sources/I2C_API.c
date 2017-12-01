@@ -24,6 +24,8 @@
     uint8_t Index = 0, Reply_Byte = 0xAA;
 	static uint8_t State = 255;
 	static bool GPS_Data_Count_Set = false,Flight_Data_Count_Set = false;
+	uint8_t SMBUS_Data_Sequence[50];
+	uint8_t Sequence_Count;
 #endif
 #endif
 
@@ -371,6 +373,31 @@ void HAL_SMBUS_ListenCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 
 void HAL_SMBUS_SlaveTxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
+	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
+	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
+	if(GPS_Data_Count_Set == true)
+	{
+		GPS_Data_Count_Set = false;
+		Bytes_Count = 1;
+		memcpy(GPS_Data,SMBUS_RxData,GPS_DATE_TIME_DATA_SIZE);
+
+		SMBUS_Data_Sequence[Sequence_Count] = '3';
+		Sequence_Count++;
+		/* This variable is used in main.c file to set the actual date and time in the RTC */
+		GPS_Data_Received = true;
+	}
+
+	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
+	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
+	if (Flight_Data_Count_Set == true)
+	{
+		Bytes_Count = 1;
+		memcpy(AP_Stat_Data.bytes,SMBUS_RxData,FLIGHT_STATUS_DATA_SIZE);
+		/* This variable is used in the main.c file to set the AP status and take the necessary action */
+		Flight_Stat_Received = true;
+	}
+
+
 	/* When SMBUS transmission is completed then BMS should again go back to listen mode to serve
 	 * next requests */
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
@@ -380,19 +407,16 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 {
 	/* If Data request is for receiving the GPS date and time from AP then set the receive byte count
 	 * to 17 as packet size is 17 bytes */
+	SMBUS_Data_Sequence[Sequence_Count] = SMBUS_RxData[0];
+	Sequence_Count++;
 	if(SMBUS_RxData[0] == GPS_PACKET_REG && GPS_Data_Count_Set == false)
 	{
+		SMBUS_Data_Sequence[Sequence_Count] = '1';
+		Sequence_Count++;
 		GPS_Data_Count_Set = true;
 		Bytes_Count = GPS_DATE_TIME_DATA_SIZE;
-	}
-	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
-	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
-	else if(GPS_Data_Count_Set == true)
-	{
-		Bytes_Count = 1;
-		memcpy(GPS_Data,SMBUS_RxData,GPS_DATE_TIME_DATA_SIZE);
-		/* This variable is used in main.c file to set the actual date and time in the RTC */
-		GPS_Data_Received = true;
+		SMBUS_Data_Sequence[Sequence_Count] = Bytes_Count;
+		Sequence_Count++;
 	}
 
 	/* If Data request is for receiving the Flight status from AP then set the receive byte count
@@ -401,15 +425,6 @@ void HAL_SMBUS_SlaveRxCpltCallback(SMBUS_HandleTypeDef *hsmbus)
 	{
 		Flight_Data_Count_Set = true;
 		Bytes_Count = FLIGHT_STATUS_DATA_SIZE;
-	}
-	/* If Data is received properly then only save and reply back with acknowledge byte i.e. 0xAA
-	 * and set the receive byte count to 1 as there can be request for sending other data from BMS */
-	else if (Flight_Data_Count_Set == true)
-	{
-		Bytes_Count = 1;
-		memcpy(AP_Stat_Data.bytes,SMBUS_RxData,FLIGHT_STATUS_DATA_SIZE);
-		/* This variable is used in the main.c file to set the AP status and take the necessary action */
-		Flight_Stat_Received = true;
 	}
 	HAL_SMBUS_EnableListen_IT(&SMBus_Handle[I2C3_HANDLE_INDEX]);
 }
@@ -427,6 +442,8 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 		if(TransferDirection == 0)
 		{
 			HAL_SMBUS_Slave_Receive_IT(hsmbus, &SMBUS_RxData[0], Bytes_Count, SMBUS_AUTOEND_MODE);
+			SMBUS_Data_Sequence[Sequence_Count] = Bytes_Count;
+			Sequence_Count++;
 		}
 		/* AP sends read request */
 		else
@@ -436,8 +453,8 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 			if(GPS_Data_Count_Set == true || Flight_Data_Count_Set == true)
 			{
 				HAL_SMBUS_Slave_Transmit_IT(&SMBus_Handle[I2C3_HANDLE_INDEX],&Reply_Byte,1,SMBUS_AUTOEND_MODE);
-				GPS_Data_Count_Set = false;
-				Flight_Data_Count_Set = false;
+				SMBUS_Data_Sequence[Sequence_Count] = '2';
+				Sequence_Count++;
 			}
 			State = SMBUS_RxData[0];
 			switch(State)

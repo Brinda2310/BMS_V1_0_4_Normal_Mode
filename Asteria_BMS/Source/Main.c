@@ -698,14 +698,19 @@ int main(void)
 			 * display SD_ERROR string */
 			if(Log_Status == true)
 			{
-				Length += sprintf(&Buffer[Length],"SD OK\r\r");
+//				Length += sprintf(&Buffer[Length],"SD OK\r\r");
 			}
 			else
 			{
-				Length += sprintf(&Buffer[Length],"SD ERROR\r\r");
+//				Length += sprintf(&Buffer[Length],"SD ERROR\r\r");
 			}
-			BMS_Debug_COM_Write_Data(Buffer, Length);
 
+			BMS_Debug_COM_Write_Data(Buffer, Length);
+			if(Sequence_Count > 1)
+			{
+				BMS_Debug_COM_Write_Data(SMBUS_Data_Sequence, Sequence_Count);
+				Sequence_Count = 0;
+			}
 			_1Hz_Flag = false;
 		}
 
@@ -723,9 +728,12 @@ int main(void)
 			RTC_Info.Month = ((GPS_Data[Index++] - '0') << 4);
 			RTC_Info.Month |= (GPS_Data[Index++] - '0');
 
-			Index++;
-			Index++;
+			uint8_t Dummy[5];
 
+			Dummy[0] = GPS_Data[Index++];
+			Dummy[1] = GPS_Data[Index++];
+
+			BMS_Debug_COM_Write_Data(Dummy,2);
 			RTC_Info.Year = ((GPS_Data[Index++] - '0') << 4);
 			RTC_Info.Year |= (GPS_Data[Index++] - '0');
 
@@ -744,6 +752,7 @@ int main(void)
 			RTC_Set_Date(&RTC_Info.Day, &RTC_Info.Date, &RTC_Info.Month,&RTC_Info.Year);
 			RTC_Set_Time(&RTC_Info.Hours, &RTC_Info.Minutes,&RTC_Info.Seconds);
 
+			memset(GPS_Data,0,sizeof(GPS_Data));
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}
