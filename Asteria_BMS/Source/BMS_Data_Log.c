@@ -15,7 +15,7 @@ FRESULT Result;
 UINT BytesWritten;
 
 /* Variable to update the time and date received from GPS */
-static char GPS_Date_Time[25];
+char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
 static char String_Buffer[4096];
@@ -59,6 +59,11 @@ uint32_t ASIC_Restart_Count = 0;
 uint8_t BMS_Log_Init()
 {
 	uint8_t Result = RESULT_OK;
+
+	for(int i = 0; i < 20; i++)
+	{
+		GPS_Data[i] = '0';
+	}
 
 	/* Closing of the file handles is necessary as code may return error in case it is not able to open the files */
 	f_close(&BMS_Log_File);
@@ -219,11 +224,30 @@ uint8_t Create_BMS_Log_File()
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
+	uint8_t Len = 0;
 	/* The gps fix flag has to be used in place of 1 */
-	if(1)
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 22,11,2017,15,00,05);
-	else
-		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[2],2);
+	Len += 2;
+	GPS_Date_Time[Len++] = '-';
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[4],2);
+	Len += 2;
+	GPS_Date_Time[Len++] = '-';
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
+	Len += 4;
+	GPS_Date_Time[Len++] = '-';
+
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[11],2);
+	Len += 2;
+	GPS_Date_Time[Len++] = '_';
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[13],2);
+	Len += 2;
+	GPS_Date_Time[Len++] = '_';
+	memcpy(&GPS_Date_Time[Len],&GPS_Data[15],2);
+
+//	if(1)
+//		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 22,11,2017,15,00,05);
+//	else
+//		sprintf(GPS_Date_Time, "%02d-%02d-%04d %02d-%02d-%02d", 0,0,0,0,0,0);
 
 	/* Make sure that only one is file created on each power up */
 	if (Power_Up_BMS == true && New_File_Created == false)
@@ -278,6 +302,8 @@ uint8_t Create_BMS_Log_File()
 		File_Name[Lcl_Counter++] = 'x';
 		File_Name[Lcl_Counter++] = 't';
 		File_Name[Lcl_Counter++] = '\0';
+
+		BMS_Debug_COM_Write_Data(File_Name,Lcl_Counter);
 
 		/* Make sure file system is mounted before opening/writing the files */
 		if (f_mount(&FatFs, "0", 1) != FR_OK)

@@ -745,7 +745,18 @@ int main(void)
 			RTC_Set_Date(&RTC_Info.Day, &RTC_Info.Date, &RTC_Info.Month,&RTC_Info.Year);
 			RTC_Set_Time(&RTC_Info.Hours, &RTC_Info.Minutes,&RTC_Info.Seconds);
 
-			memset(GPS_Data,0,sizeof(GPS_Data));
+			uint8_t Len = 0;
+
+			memcpy(&GPS_Date_Time[Len],&GPS_Data[2],2);
+			Len += 2;
+			GPS_Date_Time[Len++] = '-';
+			memcpy(&GPS_Date_Time[Len],&GPS_Data[4],2);
+			Len += 2;
+			GPS_Date_Time[Len++] = '-';
+			memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
+			Len += 4;
+			GPS_Date_Time[Len++] = '-';
+
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}
