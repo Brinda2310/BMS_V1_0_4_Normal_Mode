@@ -1112,7 +1112,7 @@ void BMS_Estimate_Capacity_Used()
 	static uint8_t Previous_State = LOW_POWER_CONSUMPTION;
 
 	Current_Time = Get_System_Time_Millis();
-	Current_Amperes = Get_BMS_Pack_Current();
+	Current_Amperes = BMS_Data.Pack_Current_Adjusted;
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
 	C_D_Accumulated_mAH += BMS_Data.Pack_Charge_Discharge_Rate;
 
@@ -1232,6 +1232,22 @@ void BMS_Read_Pack_Current()
 	/* Hard coded formula defined by ASIC manufacturer */
 	BMS_Data.Pack_Current = (((float)(Pack_Current) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
 	Pack_Data.values[7] = BMS_Data.Pack_Current;
+
+	if(Current_Gain == CURRENT_GAIN_500X)
+	{
+		BMS_Data.Pack_Current_Adjusted = BMS_Data.Pack_Current +
+				(BMS_Data.Pack_Current * SLOPE_500X) + CONSTANT_500X;
+	}
+	else if (Current_Gain == CURRENT_GAIN_50X)
+	{
+		BMS_Data.Pack_Current_Adjusted = BMS_Data.Pack_Current +
+				(BMS_Data.Pack_Current * SLOPE_50X) + CONSTANT_50X;
+	}
+	else
+	{
+		BMS_Data.Pack_Current_Adjusted = BMS_Data.Pack_Current +
+				(BMS_Data.Pack_Current * SLOPE_5X) + CONSTANT_5X;
+	}
 }
 
 /**
@@ -1414,28 +1430,8 @@ float Get_BMS_Accumulated_Pack_Voltage()
  */
 float Get_BMS_Pack_Current()
 {
-	float Temp_Current = 0.0;
 	/* Convert the ampere current to milli amperes by multiplying it by 1000 */
-
-	Temp_Current = (BMS_Data.Pack_Current * 1000);
-
-	if(Current_Gain == CURRENT_GAIN_500X)
-	{
-		BMS_Data.Pack_Current_Adjusted = Temp_Current +
-				(Temp_Current * SLOPE_500X) + CONSTANT_500X;
-	}
-	else if (Current_Gain == CURRENT_GAIN_50X)
-	{
-		BMS_Data.Pack_Current_Adjusted = Temp_Current +
-				(Temp_Current * SLOPE_50X) + CONSTANT_50X;
-	}
-	else
-	{
-		BMS_Data.Pack_Current_Adjusted = Temp_Current +
-				(Temp_Current * SLOPE_5X) + CONSTANT_5X;
-	}
-
-	return Temp_Current;
+	return (BMS_Data.Pack_Current * 1000);
 }
 
 /**

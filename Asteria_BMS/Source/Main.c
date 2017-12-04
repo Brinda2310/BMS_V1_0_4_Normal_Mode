@@ -336,7 +336,7 @@ int main(void)
 			 * counting the timer value */
 			if(Sleep_Mode_Funtionality == ENABLE)
 			{
-				if(((uint16_t)Get_BMS_Pack_Current() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+				if(((uint16_t)Get_BMS_Pack_Current_Adj() < MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
 				{
 					BMS_Sleep_Time_Count++;
 
@@ -351,7 +351,7 @@ int main(void)
 					}
 				}
 				/* If some load is present then always clear the timer counts to zero */
-				else if (((uint16_t)Get_BMS_Pack_Current() > MINIMUM_CURRENT_CONSUMPTION))
+				else if (((uint16_t)Get_BMS_Pack_Current_Adj() > MINIMUM_CURRENT_CONSUMPTION))
 				{
 				   /* If BMS consumes more than 200mA in between then reset the time count to zero */
 					BMS_Sleep_Time_Count = 0;
@@ -411,7 +411,7 @@ int main(void)
 					Charge_Time_Count++;
 #else
 					/* If current coming into the pack is more than 1A then start counting the time */
-					if(Get_BMS_Pack_Current() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+					if(Get_BMS_Pack_Current_Adj() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
 						Charge_Time_Count++;
 					}
@@ -459,7 +459,7 @@ int main(void)
 					Discharge_Time_Count++;
 #else
 					/* If current going out of the pack is more than 1 amperes then start counting the time */
-					if(Get_BMS_Pack_Current() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+					if(Get_BMS_Pack_Current_Adj() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
 					{
 						Discharge_Time_Count++;
 					}

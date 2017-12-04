@@ -2,7 +2,7 @@
 #                           BMS Firmware Development Tracker
 			
 ##  Current Version
-    1.0.1
+    1.0.2
 			
 ##  About this file
     	
@@ -45,7 +45,68 @@
   
     Issues Resolved:
 	**********************
-	
+
+### ****BMS_CODE  1.0.2  ****
+	Pull request number: 7
+			
+Features developed in BMS code for this release:
+	1. Made separate functions for status/error LEDs and SOC/SOH LEDs. Based on external switch press for more than 5 seconds and less than 10 seconds, USART debug and 
+	   SOC/SOH status will toggle their functionality.
+	2. Bug fix for logging the reset source for MCU in SD card. Initially Get_Reset_Source function was being called in the log.c where at very start variable was being 
+	   cleared before logging. Now directly variable value is stored in the log array buffer. 
+	3. Changed the function for RTC_Showtime. Now we have added one more parameter which will decide whether to fill DATE,TIME or DATE_TIME_COMBINED in the buffer passed
+	   to the function. It was necessary to make it separate as the same is being logged on the SD card. 
+	4. Buf fix for SD_CARD_DETECT pin. Earlier, we were using different pin for sd card detection (while developing the code on development board). 
+	5. Optimized the configuration settings functions in BMS_ASIC.c and the same gets validated. Also, added some more configuration parameters which are listed below.
+     	a. OV threshold voltage
+	    b. OV recovery threshold 
+	    c. UV threshold voltage
+	    d. UV recovery threshold 
+	    f. OV lockout threshold 
+	    g. UV lockout threshold 
+	    h. End of charge (EOC) threshold
+	    i. Internal over temperature threshold
+		j. Disable cell balancing by external MCU
+		k. Internal over temperature recovery threshold
+		l. Internal current gain 
+		m. OV delay timeout 
+		n. UV delay timeout
+		o. Open wiring delay timeout  
+		p. Number of cells configuration 
+	6. Made all the configuration parameters as macros so that we can directly put the float values in the macro. We need not to do any calculations for 
+	   HEX values. Wrote generalized logic for converting the float voltage values into the hex value to set them in the ISL registers.
+    7. Bug fix for Last_Charge_Discharge_Status. It was defined as the bool variable in the code and value of 2 was getting assigned initially at the start of the code.
+	8. Bug fixes for I2C status for all the functions which are being called at 25Hz. Initially we were logging only writing/reading status which was not giving clear idea
+	   whether problem was there in writing or reading. Now the logic is changed, if written value is not same as that of read value from the register then set the 
+	   corresponding flag in I2C_Status structure.
+	9. Bug fix for calculating the charge and discharge rate. Now code is logging both rates (for charging and for discharging) separately.
+	10. If any of the I2C error occurs while querying the data form ISL, then it will restart the I2C for proper functioning. 
+	11. Bug fix for incrementing the power up number of BMS (logged in Log summary file). Initially, after calling BMS_Log_Init, it was incrementing the file 
+	    number along with power up number.   
+	12. Added the logic for updating the RTC date and time sent by AP and tested the same with AP. Now BMS will send acknowledge to AP only when date and time is set 
+	    in the RTC registers. Bug fix for BMS_Pack data structure member's memory location after connecting the AP.
+	13. Added the debug functionality for the testing purpose described as follows.
+		1. Character 'A' for RTC DATE AND TIME
+		2. Character 'B' for MCU ON TIME
+		3. Character 'C' for pack data (all cell voltages,pack voltage and pack current)
+		4. Character 'D' for Pack current adjusted and C_D_Accumulated for charging or discharging cycle
+		5. Character 'E' for Total capacity, capacity remaining, capacity used
+		6. Character 'F' for Charge/discharge cycles and total pack cycles
+		7. Character 'G' for Health and I2C error status
+		8. Character 'H' for Pack temperature
+		9. Character 'I' for Watchdog reset test
+		10. Character 'J' for Software reset 
+		11. Character 'N' for Power up number and total number of files on SD card
+	14. Whenever SD card is removed from the slot, it will throw SD_WRITE_ERROR string on debug port (USART). As soon as SD card is inserted in the slot, code will
+		re-init the log and start logging from the location in the file at which SD card was removed.
+	15. If any error occurs while logging the data on SD card, code will try to write the data for 5 times (125ms) after that it will re-init the log and will start
+		logging from the part where it had stopped.	
+    16. Code is continuously monitoring the SD_DETECT pin so that logging can be stopped and re-initiated after inserting the same in the slot.
+	17. Implemented the logic for displaying the SOC and SOH status on LEDs.
+	18. Bug fix for charge discharge cycles calculation.  	 
+	19. Bug fix for calculations which were dependent on the pack current. Initially, calculations were done using raw pack current. Now everything will be calculcated
+	    from the actual pack current (after applying LPF)   	          
+	       							
 ### ****BMS_CODE  1.0.1  ****
 	Pull request number: 6
 			

@@ -467,7 +467,7 @@ void HAL_SMBUS_AddrCallback(SMBUS_HandleTypeDef *hsmbus, uint8_t TransferDirecti
 				Pack_Data.values[Index++] = Get_BMS_Pack_Voltage();
 				break;
 			case PACK_CURRENT_REG:
-				Pack_Data.values[Index++] = Get_BMS_Pack_Current();
+				Pack_Data.values[Index++] = Get_BMS_Pack_Current_Adj();
 				break;
 			case ALL_CELL_VOLTAGES_REG:
 				Index = 8;
