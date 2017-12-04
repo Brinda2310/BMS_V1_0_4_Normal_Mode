@@ -58,24 +58,29 @@ uint32_t ASIC_Restart_Count = 0;
  */
 uint8_t BMS_Log_Init()
 {
+	static bool Once = false;
+
 	uint8_t Result = RESULT_OK;
 
-	for(int i = 0; i < 20; i++)
+	/* This will make sure that GPS date and time buffer will be set to zeros only once in the log file after powering up THE MCU */
+	if(Once == false)
 	{
-		GPS_Data[i] = '0';
+		Once = true;
+		for(int i = 0; i < 20; i++)
+		{
+			GPS_Data[i] = '0';
+		}
 	}
-
 	/* Closing of the file handles is necessary as code may return error in case it is not able to open the files */
 	f_close(&BMS_Log_File);
 	f_close(&Summary_File);
 
-	/* We want to create only one log file during each power up. This flag does that job. It becomes false
-	 * as soon as file is created */
 	if(Power_Up_BMS == false)
 	{
 		Power_Up_BMS = true;
 	}
-
+	/* We want to create only one log file during each power up. This flag does that job. It becomes false
+	 * as soon as file is created */
 	if(Power_Up_BMS == true)
 	{
 		/* Create the log summary file in SD card. If it already exists then get the counts for total number of
@@ -141,13 +146,14 @@ uint8_t Create_Log_Summary_File()
 			/* Write the data stored in buffers to the SD card */
 			f_sync(&Summary_File);
 
-			Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
-
 			SD_Summary_Data.Power_Up_Number++;
 
 			/* Update the Power Up index in Log_Summary_File */
-			Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
-
+			if(Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number) == RESULT_OK)
+			{
+				/* Update the variable with the latest power up number so that it won't be incremented as long as code is running */
+				Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
+			}
 		}
 		return RESULT_OK;
 	}
@@ -161,10 +167,12 @@ uint8_t Create_Log_Summary_File()
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
 	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false)
 	{
-		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
 		SD_Summary_Data.Power_Up_Number++;
 
-		/* Store the total character counts that are there in the file which is useful to write at the respective cursor position */
+		/* Make sure as long as the code is running Old_Power_Up_Number is same as that of the value read fomr the SD card */
+		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
+
+		/* Write the power up number to the SD card */
 		SD_Result = Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
 	}
 
@@ -172,9 +180,6 @@ uint8_t Create_Log_Summary_File()
 	*String_Index = 0;
 	*Index_Counter= 0;
 
-//	char Buffer[10],Len;
-//	Len = sprintf(Buffer,"%d\r",SD_Summary_Data.Power_Up_Number);
-//	BMS_Debug_COM_Write_Data(Buffer,Len);
 	return SD_Result;
 }
 
@@ -524,6 +529,7 @@ uint8_t Log_All_Data()
 	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
 	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];
 	Char_Values[(*Index_Counter)++] = Reset_Source;
+	Char_Values[(*Index_Counter)++] = Power_Up_BMS;
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 //	while(*String_Index != 1021)
@@ -579,7 +585,10 @@ uint8_t Write_Count_Log_Summary_File(uint32_t Offset,uint16_t Decimal_Number)
 	}
 
 	/* make sure data is written to the file by calling f_sync function */
-	f_sync(&Summary_File);
+	if(f_sync(&Summary_File) != FR_OK)
+	{
+		return RESULT_ERROR;
+	}
 
 	return RESULT_OK;
 }

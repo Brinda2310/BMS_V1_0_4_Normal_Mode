@@ -193,14 +193,8 @@ int main(void)
 			/* Create the LOG file on SD card by reading the count from log summary file; Debug code is
 			 * to be removed after testing; We can decide to show some statuses on LEDs if there is
 			 * problem with the SD card */
-			if(BMS_Log_Init() == RESULT_OK)
-			{
-				BMS_Debug_COM_Write_Data("Log_file_Created\r", 17);
-			}
-			else
-			{
-				BMS_Debug_COM_Write_Data("SD Card Not Present\r", 20);
-			}
+			BMS_Log_Init();
+
 			/* Calculate the battery capacity used and remaining so that same value will be used to estimate
 			 * next values */
 			BMS_Estimate_Initial_Capacity();
@@ -680,7 +674,7 @@ int main(void)
 #ifdef TEST_DEBUG_LOG_FILE_INFO
 				case 'N':
 					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
-					Length += sprintf(&Buffer[Length],"File Num :%d\r\r",SD_Summary_Data.Total_Num_of_Files);
+					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
 					break;
 #endif
 #ifdef TEST_DEBUG_STOP_LOG
@@ -759,13 +753,9 @@ int main(void)
 				memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
 				Len += 4;
 				GPS_Date_Time[Len++] = '-';
-				BMS_Debug_COM_Write_Data("date set\r",9);
+				BMS_Debug_COM_Write_Data("Date Set\r",9);
 			}
-			else
-			{
-				BMS_Debug_COM_Write_Data(&RTC_Info.Year,1);
-				BMS_Debug_COM_Write_Data("\r",1);
-			}
+
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}
