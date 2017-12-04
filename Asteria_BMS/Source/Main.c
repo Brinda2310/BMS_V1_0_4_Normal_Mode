@@ -579,7 +579,7 @@ int main(void)
 			{
 #ifdef TEST_DEBUG_GPS_INFO
 				case 'A':
-					Length += RTC_TimeShow((uint8_t*)&Buffer[Length]);
+					Length += RTC_TimeShow((uint8_t*)&Buffer[Length],DATE_TIME_COMBINED);
 					break;
 #endif
 

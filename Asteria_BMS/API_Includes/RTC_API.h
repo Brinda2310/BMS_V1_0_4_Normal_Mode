@@ -52,12 +52,17 @@ enum Months
 	JANUARY = 1,FEBRUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBER = 16,NOVEMBER,DECEMBER
 };
 
+enum Data_Types
+{
+	DATE,TIME,DATE_TIME_COMBINED
+};
+
 uint8_t RTC_Init(void);
 uint8_t RTC_Set_Date(uint8_t *Day, uint8_t *Date,uint8_t *Month,uint8_t *Year);
 uint8_t RTC_Get_Date(uint8_t *Day,uint8_t *Date,uint8_t *Month, uint8_t *Year);
 uint8_t RTC_Set_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds);
 uint8_t RTC_Get_Time(uint8_t *Hours,uint8_t *Minutes,uint8_t *Seconds);
 uint8_t RTC_AlarmConfig(uint8_t *Day,uint8_t * Hours,uint8_t * Minutes, uint8_t *Seconds);
-uint8_t RTC_TimeShow(uint8_t* showtime);
+uint8_t RTC_TimeShow(uint8_t* showtime,uint8_t Data_Type);
 
 #endif /* RTC_API_H_ */

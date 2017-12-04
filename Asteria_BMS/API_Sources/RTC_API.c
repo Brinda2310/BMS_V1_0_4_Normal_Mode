@@ -238,7 +238,7 @@ void RTC_Alarm_IRQHandler(void)
  * @param  Hours		: Pointer to the buffer in which data to be filled
  * @retval Length	 	: The number of character filled in the buffer passed as parameter to this function
  */
-uint8_t RTC_TimeShow(uint8_t* showtime)
+uint8_t RTC_TimeShow(uint8_t* showtime,uint8_t Data_Type)
 {
   uint8_t Length = 0;
   RTC_DateTypeDef sdatestructureget;
@@ -246,11 +246,25 @@ uint8_t RTC_TimeShow(uint8_t* showtime)
 
   /* Get the RTC current Time */
   HAL_RTC_GetTime(&RtcHandle, &stimestructureget, RTC_FORMAT_BIN);
+
   /* Get the RTC current Date */
   HAL_RTC_GetDate(&RtcHandle, &sdatestructureget, RTC_FORMAT_BIN);
-  /* Display time Format : hh:mm:ss */
-  Length += sprintf((char*)showtime,"%02d/%02d/%02d\r",sdatestructureget.Date, sdatestructureget.Month, sdatestructureget.Year);
-  Length += sprintf((char*)&showtime[Length],"%02d:%02d:%02d\r",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+
+  if(Data_Type == DATE)
+  {
+	  /* Display time Format : hh:mm:ss */
+	  Length += sprintf((char*)showtime,"%02d-%02d-%02d,",sdatestructureget.Date, sdatestructureget.Month, sdatestructureget.Year);
+  }
+  else if (Data_Type == TIME)
+  {
+	  Length += sprintf((char*)&showtime[Length],"%02d-%02d-%02d,",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+  }
+  else
+  {
+	  /* Display time Format : hh:mm:ss */
+	  Length += sprintf((char*)showtime,"%02d-%02d-%02d,",sdatestructureget.Date, sdatestructureget.Month, sdatestructureget.Year);
+	  Length += sprintf((char*)&showtime[Length],"%02d-%02d-%02d,",stimestructureget.Hours, stimestructureget.Minutes, stimestructureget.Seconds);
+  }
 
   return Length;
 }
