@@ -62,8 +62,8 @@ bool Update_Pack_Cycles = false;
 
 /* Debug code variables definition; Allocate the buffer size only if debugging is to be done */
 char Buffer[400];
-
 uint8_t RecData = 0;
+
 /* This variable counts the time for which log was unsuccessful; If it more than 125ms then SD card is
  * reinitialized */
 uint8_t Log_Init_Counter = 0 ;
@@ -747,16 +747,25 @@ int main(void)
 
 			uint8_t Len = 0;
 
-			memcpy(&GPS_Date_Time[Len],&GPS_Data[2],2);
-			Len += 2;
-			GPS_Date_Time[Len++] = '-';
-			memcpy(&GPS_Date_Time[Len],&GPS_Data[4],2);
-			Len += 2;
-			GPS_Date_Time[Len++] = '-';
-			memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
-			Len += 4;
-			GPS_Date_Time[Len++] = '-';
-
+			/* This section copies the GPS date and time received from AP into the data buffer which is being used to log the date in SD card */
+			if(RTC_Info.Year <= 0x18)
+			{
+				memcpy(&GPS_Date_Time[Len],&GPS_Data[2],2);
+				Len += 2;
+				GPS_Date_Time[Len++] = '-';
+				memcpy(&GPS_Date_Time[Len],&GPS_Data[4],2);
+				Len += 2;
+				GPS_Date_Time[Len++] = '-';
+				memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
+				Len += 4;
+				GPS_Date_Time[Len++] = '-';
+				BMS_Debug_COM_Write_Data("date set\r",9);
+			}
+			else
+			{
+				BMS_Debug_COM_Write_Data(&RTC_Info.Year,1);
+				BMS_Debug_COM_Write_Data("\r",1);
+			}
 			/* Make this flag to false so as to serve next GPS date and time update request from AP */
 			GPS_Data_Received = false;
 		}

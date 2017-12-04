@@ -229,9 +229,11 @@ uint8_t Create_BMS_Log_File()
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[2],2);
 	Len += 2;
 	GPS_Date_Time[Len++] = '-';
+
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[4],2);
 	Len += 2;
 	GPS_Date_Time[Len++] = '-';
+
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[6],4);
 	Len += 4;
 	GPS_Date_Time[Len++] = '-';
@@ -239,9 +241,11 @@ uint8_t Create_BMS_Log_File()
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[11],2);
 	Len += 2;
 	GPS_Date_Time[Len++] = '_';
+
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[13],2);
 	Len += 2;
 	GPS_Date_Time[Len++] = '_';
+
 	memcpy(&GPS_Date_Time[Len],&GPS_Data[15],2);
 
 //	if(1)
