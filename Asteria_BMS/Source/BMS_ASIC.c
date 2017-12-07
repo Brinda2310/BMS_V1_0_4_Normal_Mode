@@ -1112,7 +1112,17 @@ void BMS_Estimate_Capacity_Used()
 	static uint8_t Previous_State = LOW_POWER_CONSUMPTION;
 
 	Current_Time = Get_System_Time_Millis();
-	Current_Amperes = BMS_Data.Pack_Current_Adjusted;
+
+	/* Default value for the current is in between 50-200mA. For board 1 it is varying in between 85-150mA (raw current)
+	 * For board 3 it is giving 0mA (raw current) */
+	if(BMS_Data.Pack_Current_Adjusted > 100.0f)
+	{
+		Current_Amperes = BMS_Data.Pack_Current_Adjusted;
+	}
+	else
+	{
+		Current_Amperes = 0.0;
+	}
 	BMS_Data.Pack_Charge_Discharge_Rate = ((Current_Amperes + Previous_Amperes)/2) * ((double)(Current_Time - Previous_Time)/3600000);
 	C_D_Accumulated_mAH += BMS_Data.Pack_Charge_Discharge_Rate;
 

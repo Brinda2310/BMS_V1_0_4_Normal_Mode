@@ -18,13 +18,13 @@
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 #define READ_WRITE_DELAY							5
 
-#define SLOPE_5X									0.07713	/* Equation(slope M)coefficients derived from log analysis */
-#define SLOPE_50X									0.0831
-#define SLOPE_500X									0.0774
+#define SLOPE_5X									0.07713f	/* Equation(slope M)coefficients derived from log analysis */
+#define SLOPE_50X									0.0831f
+#define SLOPE_500X									0.0774f
 
-#define CONSTANT_5X									54.9544	/* Equation (constant C) derived from log analysis */
-#define CONSTANT_50X								127.6836
-#define CONSTANT_500X								96.6649
+#define CONSTANT_5X									54.9544f	/* Equation (constant C) derived from log analysis */
+#define CONSTANT_50X								127.6836f
+#define CONSTANT_500X								96.6649f
 
 /*
  * Coefficients required for calculating used mAh from the no-load battery voltage
@@ -33,25 +33,25 @@
  * where x is battery voltage;
  * y is estimated battery capacity remaining (in mAh)
  */
-#define BATT_EST_COEFF_0 							79.795	/* z^0 */
-#define BATT_EST_COEFF_1 							14.781	/* z^1 */
-#define BATT_EST_COEFF_2 							-3.0335	/* z^2 */
-#define BATT_EST_COEFF_3 							1.9663	/* z^3 */
-#define BATT_EST_COEFF_4 							-0.69723/* z^4 */
-#define BATT_EST_COEFF_5 							0.051156/* z^5 */
-#define BATT_EST_Mu									3.94	/* constant used 3.94 (mean value)in above equation */
-#define BATT_EST_Sigma 								0.13453	/* constant used 0.13453 (standard deviation) */
+#define BATT_EST_COEFF_0 							79.795f		/* z^0 */
+#define BATT_EST_COEFF_1 							14.781f		/* z^1 */
+#define BATT_EST_COEFF_2 							-3.0335f	/* z^2 */
+#define BATT_EST_COEFF_3 							1.9663f		/* z^3 */
+#define BATT_EST_COEFF_4 							-0.69723f	/* z^4 */
+#define BATT_EST_COEFF_5 							0.051156f	/* z^5 */
+#define BATT_EST_Mu									3.94f		/* constant used 3.94 (mean value)in above equation */
+#define BATT_EST_Sigma 								0.13453f	/* constant used 0.13453 (standard deviation) */
 
 //#define TATTU_BATTERY_9000
 //#define TATTU_BATTERY_10000
 #define MAX_AMP_11000
 
 #ifdef TATTU_BATTERY_9000									/* TATTU Battery has capacity of 9000mAH */
-	#define BATTERY_CAPACITY							9000	/* Battery capacity in mAH */
+	#define BATTERY_CAPACITY							9000		/* Battery capacity in mAH */
 #elif defined TATTU_BATTERY_10000
-	#define BATTERY_CAPACITY							10000	/* Battery capacity in mAH */
+	#define BATTERY_CAPACITY							10000		/* Battery capacity in mAH */
 #elif defined MAX_AMP_11000
-	#define BATTERY_CAPACITY							11000	/* Battery capacity in mAH */
+	#define BATTERY_CAPACITY							11000.0f	/* Battery capacity in mAH */
 #endif
 
 /* BMS ISL94203 status flags Internal register's addresses */
@@ -116,10 +116,10 @@
 #define CELL_VOLTAGES_DATA_SIZE						(2*NUMBER_OF_CELLS)
 #define SENSE_RESISTOR_VALUE						1e-3	/* Current sense resistor value used in hardware */
 #define CURRENT_GAIN								5		/* Set the current gain as per sense resistor value */
-#define MINIMUM_CURRENT_CONSUMPTION					200		/* If current consumption is less than 50mA
+#define MINIMUM_CURRENT_CONSUMPTION					200.0f		/* If current consumption is less than 50mA
  	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  for specific time then put the BMS to sleep */
-#define MAXIMUM_PACK_VOLTAGE						25		/* Maximum value of pack voltage */
-#define CHARGE_CURRENT_CONSUMPTION					1000
+#define MAXIMUM_PACK_VOLTAGE						25.0f		/* Maximum value of pack voltage */
+#define CHARGE_CURRENT_CONSUMPTION					1000.0f
 #define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
 
 /* Battery Parameters to be logged in the SD card */
@@ -128,20 +128,20 @@
 
 #define BATT_NUMBER_OF_CELLS						6
 #define BATT_MAH									BATTERY_CAPACITY
-#define BATT_CELL_VOLT_MAX							4.20
-#define BATT_CELL_VOLT_MIN							3.60
+#define BATT_CELL_VOLT_MAX							4.20f
+#define BATT_CELL_VOLT_MIN							3.60f
 #define BATTERY_TYPE								LI_POLYMER
 #define BATT_MAX_PACK_CYCLES						200
 
 
 /* Battery Configuration Parameters to be stored in ISL EEPROM */
-#define CELL_OVER_VOLTAGE_THR_VALUE					4.25			// In Volt
-#define CELL_OV_RECOVERY_VALUE						4.15			// In Volt
-#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50			// In Volt
-#define CELL_UV_RECOVERY_VALUE						3.60			// In Volt
-#define CELL_OV_LOCKOUT_THR_VALUE					4.30			// In Volt
-#define CELL_UV_LOCKOUT_THR_VALUE					2.50			// In Volt
-#define CELL_EOC_THR_VALUE							4.20			// In Volt
+#define CELL_OVER_VOLTAGE_THR_VALUE					4.25f			// In Volt
+#define CELL_OV_RECOVERY_VALUE						4.15f			// In Volt
+#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50f			// In Volt
+#define CELL_UV_RECOVERY_VALUE						3.60f			// In Volt
+#define CELL_OV_LOCKOUT_THR_VALUE					4.30f			// In Volt
+#define CELL_UV_LOCKOUT_THR_VALUE					2.50f			// In Volt
+#define CELL_EOC_THR_VALUE							4.20f			// In Volt
 #define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
 #define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
 #define OV_DELAY_TIMEOUT_VALUE						1				// In seconds
