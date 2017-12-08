@@ -1258,6 +1258,9 @@ void BMS_Read_Pack_Current()
 		BMS_Data.Pack_Current_Adjusted = BMS_Data.Pack_Current +
 				(BMS_Data.Pack_Current * SLOPE_5X) + CONSTANT_5X;
 	}
+
+	/* Convert adjusted pack current from amperes to the milli amperes */
+	BMS_Data.Pack_Current_Adjusted *= 1000;
 }
 
 /**
