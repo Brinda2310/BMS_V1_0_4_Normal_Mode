@@ -195,6 +195,11 @@ enum Health_Status
 	HEALTH_NOT_OK = 0, HEALTH_OK
 };
 
+enum Operations
+{
+	WRITE_REGISTER = 0, READ_REGISTER
+};
+
 /* Structure holding all the flags which are queried from BMS IC and same will be updated to use in code
  * after reading them from registers */
 typedef struct
@@ -319,7 +324,7 @@ extern const uint8_t Battery_ID[];
 extern const uint8_t BMS_Board_Serial_Number[];
 
 /* BMS IC configurations functions which will get called only at the start of the code */
-void BMS_Configure_Parameters(void);
+uint8_t BMS_Configure_Parameters(void);
 
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
@@ -333,6 +338,8 @@ void BMS_Estimate_Capacity_Used(void);
 void BMS_Read_Pack_Voltage(void);
 void BMS_Read_Pack_Current(void);
 void BMS_Read_Pack_Temperature(void);
+uint8_t BMS_Read_Number_Of_Cells_Configuration();
+
 float Get_BMS_Pack_Current_Adj();
 float Get_BMS_Accumulated_Pack_Voltage();
 

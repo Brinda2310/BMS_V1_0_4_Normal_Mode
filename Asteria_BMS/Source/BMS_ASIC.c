@@ -815,7 +815,7 @@ static void BMS_Disable_Cell_Balancing(void)
  * @param  None
  * @retval None
  */
-static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
+static uint8_t BMS_Config_Number_of_Cells(uint8_t Num_of_Cells,uint8_t Operation)
 {
 	uint8_t Data_Value[3],Index = 0;
 	uint16_t Cell_Info = 0;
@@ -824,7 +824,7 @@ static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
 	Data_Value[Index++] = NUMBER_OF_CELLS_ADDR;
 	Data_Value[Index++] = 0xFF;
 
-	if(Num_of_Cells == 8)
+	if (Num_of_Cells == 8)
 	{
 		Data_Value[Index++] = 0xFF;
 	}
@@ -836,9 +836,10 @@ static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
 	{
 		Data_Value[Index++] = 0xC3;
 	}
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
-
+	if (Operation == WRITE_REGISTER)
+	{
+		I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
+	}
 	uint8_t Address = NUMBER_OF_CELLS_ADDR;
 
 	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
@@ -852,10 +853,12 @@ static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
 		if (Cell_Info == *Temp_Data)
 		{
 			I2C_Error_Flag.I2C_Config_Number_of_Cells_Flag = 0;
+			return Num_of_Cells;
 		}
 		else
 		{
 			I2C_Error_Flag.I2C_Config_Number_of_Cells_Flag = 1;
+			return 0;
 		}
 	}
 }
@@ -863,9 +866,10 @@ static void BMS_Config_Number_of_Cells(uint8_t Num_of_Cells)
 /**
  * @brief  Function to set all the configuration parameters in the BMS ASIC
  * @param  None
- * @retval None
+ * @retval RESULT_OK	: Operation is successful
+ * 		   RESULT_ERROR	: Operation is unsuccessful
  */
-void BMS_Configure_Parameters(void)
+uint8_t BMS_Configure_Parameters(void)
 {
 	BMS_Set_Over_Voltage_Threshold();
 	BMS_Set_Over_Voltage_Recovery();
@@ -880,17 +884,34 @@ void BMS_Configure_Parameters(void)
 	BMS_Set_Internal_OT_Threshold();
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
-	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS);
+	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,WRITE_REGISTER);
 
 	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
 	if(*Temp_Data == 0x00)
 	{
 		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",35);
+		return RESULT_OK;
 	}
 	else
 	{
 		BMS_Debug_COM_Write_Data("BMS Configuration Setting Failed...!!!\r",40);
+		return RESULT_ERROR;
 	}
+}
+
+/**
+ * @brief  Function to set all the configuration parameters in the BMS ASIC
+ * @param  None
+ * @retval RESULT_OK	: Operation is successful
+ * 		   RESULT_ERROR	: Operation is unsuccessful
+ */
+uint8_t BMS_Read_Number_Of_Cells_Configuration()
+{
+	if(BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,READ_REGISTER) != BATT_NUMBER_OF_CELLS)
+	{
+		return RESULT_ERROR;
+	}
+	return RESULT_OK;
 }
 
 /**

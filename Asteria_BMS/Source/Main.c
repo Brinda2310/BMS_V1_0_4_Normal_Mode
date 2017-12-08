@@ -39,7 +39,7 @@ const uint8_t BMS_Firmware_Version[3] =
 {
 		1,			// Major release version--modified when code is being merged to Master branch.
 		0,			// Current stable code release-- modified when code is being merged to Develop branch.
-		2			// Beta code release--modified when code is being merged to test_develop branch.
+		3			// Beta code release--modified when code is being merged to test_develop branch.
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
@@ -90,6 +90,9 @@ bool Log_Status = false;
 #ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
 	bool Start_Charging = false,Start_Discharging = false;
 #endif
+
+/* This flag becomes true when all the configuration parameters are written to the EEPROM of ISL ASIC */
+bool BMS_Configuration_OK = false;
 
 int main(void)
 {
@@ -144,7 +147,14 @@ int main(void)
 	}
 
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
-	BMS_Configure_Parameters();
+	if(BMS_Configure_Parameters() != RESULT_OK)
+	{
+		BMS_Configuration_OK = false;
+	}
+	else
+	{
+		BMS_Configuration_OK = true;
+	}
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
@@ -213,6 +223,35 @@ int main(void)
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
+			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
+			 * set BMS_Configuration_OK flag to true */
+			if(BMS_Configuration_OK == false)
+			{
+				if(BMS_Configure_Parameters() == RESULT_OK)
+				{
+					BMS_Configuration_OK = true;
+				}
+			}
+
+			/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
+			 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
+			 * into the ISL EEPROM */
+			if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
+			{
+				if(BMS_Configure_Parameters() == RESULT_OK)
+				{
+					BMS_Configuration_OK = true;
+				}
+				else
+				{
+					BMS_Configuration_OK = false;
+				}
+			}
+			else
+			{
+				BMS_Configuration_OK = true;
+			}
+
 			/* Monitor the SD card's existence in the slot */
 			SD_Status();
 
