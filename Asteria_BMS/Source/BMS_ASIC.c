@@ -861,6 +861,8 @@ static uint8_t BMS_Config_Number_of_Cells(uint8_t Num_of_Cells,uint8_t Operation
 			return 0;
 		}
 	}
+	else
+		return 0;
 }
 
 /**
@@ -1136,7 +1138,7 @@ void BMS_Estimate_Capacity_Used()
 
 	/* Default value for the current is in between 50-200mA. For board 1 it is varying in between 85-150mA (raw current)
 	 * For board 3 it is giving 0mA (raw current) */
-	if(BMS_Data.Pack_Current_Adjusted > 100.0f)
+	if(BMS_Data.Pack_Current_Adjusted > 200.0f)
 	{
 		Current_Amperes = BMS_Data.Pack_Current_Adjusted;
 	}
@@ -1261,7 +1263,7 @@ void BMS_Read_Pack_Current()
 	}
 
 	/* Hard coded formula defined by ASIC manufacturer */
-	BMS_Data.Pack_Current = (((float)(Pack_Current) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE));
+	BMS_Data.Pack_Current = (((((float)(Pack_Current) * 1.8) / (4095 * Current_Gain * SENSE_RESISTOR_VALUE))) * 1000);
 	Pack_Data.values[7] = BMS_Data.Pack_Current;
 
 	if(Current_Gain == CURRENT_GAIN_500X)
@@ -1280,8 +1282,11 @@ void BMS_Read_Pack_Current()
 				(BMS_Data.Pack_Current * SLOPE_5X) + CONSTANT_5X;
 	}
 
-	/* Convert adjusted pack current from amperes to the milli amperes */
-	BMS_Data.Pack_Current_Adjusted *= 1000;
+//	/* Convert adjusted pack current from amperes to the milli amperes */
+//	BMS_Data.Pack_Current_Adjusted *= 1000;
+//	uint8_t buffer[30];
+//	uint8_t Len = sprintf(buffer,"%f\r",BMS_Data.Pack_Current_Adjusted);
+//	BMS_Debug_COM_Write_Data(buffer,Len);
 }
 
 /**
@@ -1465,7 +1470,7 @@ float Get_BMS_Accumulated_Pack_Voltage()
 float Get_BMS_Pack_Current()
 {
 	/* Convert the ampere current to milli amperes by multiplying it by 1000 */
-	return (BMS_Data.Pack_Current * 1000);
+	return (BMS_Data.Pack_Current);
 }
 
 /**
