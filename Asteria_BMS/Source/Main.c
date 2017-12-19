@@ -83,7 +83,7 @@ bool SD_Card_ReInit = false;
 
 /* This variable monitors the logging is happening on SD card or not. If it is true then there is no any problem for logging otherwise
  * there is some problem in the logging which will be displayed over USART */
-bool Log_Status = false;
+bool Log_Status = false,Log_Stopped = false;
 
 /* These flags are used to test the software logic for charging and discharging pack cycles. These flags will be true only if user sends 'K'
  * or 'L' character over USART. Once it is sent, charge/discharge timers will start counting till the max time, after which it will considered as cycle */
@@ -719,6 +719,11 @@ int main(void)
 #ifdef TEST_DEBUG_STOP_LOG
 				case 'O':
 					Stop_Log();
+					Log_Stopped = true;
+					break;
+				case 'P':
+					BMS_Log_Init();
+					Log_Stopped = false;
 					break;
 
 				case '?':
@@ -729,13 +734,16 @@ int main(void)
 
 			/* If logging is happening without any problem then display SD Write OK string otherwise display
 			 * SD Write Error string over debug port */
-			if(Log_Status == true)
+			if(Log_Status == true && Log_Stopped == false)
 			{
 				Length += sprintf(&Buffer[Length],"SD Write OK\r\r");
 			}
 			else
 			{
-				Length += sprintf(&Buffer[Length],"SD Write Error\r\r");
+				if(Log_Stopped == true)
+					Length += sprintf(&Buffer[Length],"Write Stopped\r\r");
+				else
+					Length += sprintf(&Buffer[Length],"SD Write Error\r\r");
 			}
 
 			BMS_Debug_COM_Write_Data(Buffer, Length);
