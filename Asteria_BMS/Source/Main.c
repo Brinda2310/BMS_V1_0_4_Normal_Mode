@@ -110,7 +110,7 @@ int main(void)
 	BMS_Timers_Init();
 
 	/* Initialize the Status and Error LEDs connected on the BMS board */
-	BMS_Status_Error_LED_Init();
+//	BMS_Status_Error_LED_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
 	if(Debug_COM_Enable == false)
@@ -599,7 +599,7 @@ int main(void)
 			Loop_Rate_Counter++;
 
 			/* Debug LED to see whether the code is running or stuck */
-			BMS_Status_Error_LED_Toggle();
+//			BMS_Status_Error_LED_Toggle();
 
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
