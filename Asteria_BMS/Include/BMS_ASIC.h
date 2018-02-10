@@ -159,6 +159,9 @@
 #define UV_DELAY_TIMEOUT_RESOLUTION					DELAY_TIMEOUT_SECONDS
 #define OPEN_WIRING_TIMEOUT_RESOLUTION				OPEN_WIRING_DELAY_TIMEOUT_MILLIS
 
+
+#define CRITICAL_BATT_VOLTAGE						20.1f
+
 /* Enums to define the write results */
 enum Write_Result
 {
@@ -200,6 +203,10 @@ enum Operations
 	WRITE_REGISTER = 0, READ_REGISTER
 };
 
+enum Battery_Critical_Status
+{
+	BATT_LEVEL_OK = 0,BATT_CRITICAL_LEVEL_REACHED
+};
 /* Structure holding all the flags which are queried from BMS IC and same will be updated to use in code
  * after reading them from registers */
 typedef struct
@@ -346,6 +353,7 @@ float Get_BMS_Accumulated_Pack_Voltage();
 float Constrain(float Variable, float Lower_Limit, float Upper_Limit);
 
 uint8_t BMS_Check_COM_Health();
+uint8_t BMS_Check_Critical_Voltage();
 
 uint8_t Get_BMS_Charge_Discharge_Status(void);
 uint8_t Get_BMS_Sleep_Mode_Status();

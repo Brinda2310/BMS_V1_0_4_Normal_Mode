@@ -371,7 +371,7 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C_D_Rate,mAH_IN_OUT,C_D_Status,Temperature,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source,Sleep_Mode\r\n");
 
 //		while((*String_Index) != 1021)
 //		{
@@ -531,6 +531,7 @@ uint8_t Log_All_Data()
 	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
 	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];
 	Char_Values[(*Index_Counter)++] = Reset_Source;
+	Char_Values[(*Index_Counter)++] = Sleep_Mode_Entered;
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 //	while(*String_Index != 1021)

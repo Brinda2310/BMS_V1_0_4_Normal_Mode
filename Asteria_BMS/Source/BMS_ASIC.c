@@ -1234,6 +1234,24 @@ void BMS_Read_Pack_Voltage()
 }
 
 /**
+ * @brief  Function to sense the critical battery level
+ * @param  None
+ * @retval BATT_CRITICAL_LEVEL_REACHED: If battery voltage falls below set critical voltage level
+ * 		   BATT_LEVEL_OK : If battery voltage is above critical voltage level
+ */
+uint8_t BMS_Check_Critical_Voltage()
+{
+	if(BMS_Data.Pack_Voltage <= CRITICAL_BATT_VOLTAGE)
+	{
+		return BATT_CRITICAL_LEVEL_REACHED;
+	}
+	else
+	{
+		return BATT_LEVEL_OK;
+	}
+}
+
+/**
  * @brief  Function to read the pack current going into or out of pack from BMS ASIC
  * @param  None
  * @retval None

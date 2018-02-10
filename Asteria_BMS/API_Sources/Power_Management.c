@@ -11,6 +11,8 @@
 volatile bool Wakeup_From_Sleep = false,Sleep_Mode = false;
 uint8_t Reset_Source = 0xFF;
 
+uint8_t Sleep_Mode_Entered = false;
+
 void MCU_Enter_Sleep_Mode()
 {
 #ifdef BMS_VERSION
@@ -159,12 +161,6 @@ uint8_t Get_Reset_Source()
 		Reset_Source = SOFTWARE;
 	}
 
-//	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) == SET)
-//	{
-//		Reset_Source = HARDWARE;
-//		BMS_Debug_COM_Write_Data("H\r",2);
-//	}
-
 	__HAL_RCC_CLEAR_RESET_FLAGS();
 
 #endif
@@ -172,17 +168,17 @@ uint8_t Get_Reset_Source()
 }
 /* ISR which handles the wake up of MCU from sleep mode and resumes the operation from where it
  * had left off */
-//void EXTI9_5_IRQHandler(void)
-//{
-//  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
-//  /* Once MCU is awaken either by external switch press or by Vref of BMS IC, resume the operation of
-//   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
-//   * is triggered by external event again */
-//  if(Wakeup_From_Sleep == false && Sleep_Mode == true)
-//  {
-//	  MCU_Exit_Sleep_Mode();
-//	  Wakeup_From_Sleep = true;
-//	  Sleep_Mode = false;
-//  }
-//}
+void EXTI9_5_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(MCU_WAKEUP_PIN);
+  /* Once MCU is awaken either by external switch press or by Vref of BMS IC, resume the operation of
+   * MCU where it had left off. This flag makes sure that this sequence is not repeated unless it
+   * is triggered by external event again */
+  if(Wakeup_From_Sleep == false && Sleep_Mode == true)
+  {
+	  MCU_Exit_Sleep_Mode();
+	  Wakeup_From_Sleep = true;
+	  Sleep_Mode = false;
+  }
+}
 

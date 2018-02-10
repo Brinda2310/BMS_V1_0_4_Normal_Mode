@@ -18,6 +18,7 @@
  * sleep it can start from the point where it left off */
 extern volatile bool Wakeup_From_Sleep,Sleep_Mode;
 extern uint8_t Reset_Source;
+extern uint8_t Sleep_Mode_Entered;
 
 enum ResetSources
 {

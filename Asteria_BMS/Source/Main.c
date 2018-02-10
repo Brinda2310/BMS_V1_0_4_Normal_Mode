@@ -177,7 +177,7 @@ int main(void)
 
 	/* Initialize the watchdog timer to 2 seconds i.e. if system hangs for some reason then it will
 	 * automatically restart the code */
-	BMS_watchdog_Init();
+//	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -598,9 +598,6 @@ int main(void)
 			/* Variable to log the loop rate */
 			Loop_Rate_Counter++;
 
-			/* Debug LED to see whether the code is running or stuck */
-//			BMS_Status_Error_LED_Toggle();
-
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
 
@@ -814,6 +811,19 @@ int main(void)
 			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
 			/* Make this flag false to get the updated status from AP */
 			Flight_Stat_Received = false;
+		}
+
+//		if(RecData == 'S')
+//		{
+//			BMS_Data.Pack_Voltage = 19.8;
+//		}
+		if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
+		{
+			BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
+			Sleep_Mode_Entered = true;
+			Log_All_Data();
+			Delay_Millis(10);
+			MCU_Enter_Sleep_Mode();
 		}
 	}
 }
