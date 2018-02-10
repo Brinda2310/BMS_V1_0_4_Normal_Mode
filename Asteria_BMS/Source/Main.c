@@ -94,6 +94,8 @@ bool Log_Status = false,Log_Stopped = false;
 /* This flag becomes true when all the configuration parameters are written to the EEPROM of ISL ASIC */
 bool BMS_Configuration_OK = false;
 
+uint8_t Critical_Batt_V_Counter = 0;
+
 int main(void)
 {
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
@@ -601,6 +603,27 @@ int main(void)
 			/* Reload the watchdog timer value to avoid resetting of code */
 			BMS_Watchdog_Refresh();
 
+					if(RecData == 'S')
+					{
+						BMS_Data.Pack_Voltage = 19.8;
+					}
+
+			if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
+			{
+				if(Critical_Batt_V_Counter++ >= 10)
+				{
+					BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
+					Sleep_Mode_Entered = true;
+					Log_All_Data();
+					Delay_Millis(10);
+					MCU_Enter_Sleep_Mode();
+				}
+			}
+			else
+			{
+				Critical_Batt_V_Counter = 0;
+			}
+
 			_25Hz_Flag = false;
 		}
 		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
@@ -811,19 +834,6 @@ int main(void)
 			BMS_Debug_COM_Write_Data(&AP_Stat_Data.bytes[0],FLIGHT_STATUS_DATA_SIZE);
 			/* Make this flag false to get the updated status from AP */
 			Flight_Stat_Received = false;
-		}
-
-//		if(RecData == 'S')
-//		{
-//			BMS_Data.Pack_Voltage = 19.8;
-//		}
-		if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
-		{
-			BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
-			Sleep_Mode_Entered = true;
-			Log_All_Data();
-			Delay_Millis(10);
-			MCU_Enter_Sleep_Mode();
 		}
 	}
 }
