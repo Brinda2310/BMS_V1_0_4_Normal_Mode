@@ -109,7 +109,7 @@ int main(void)
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
 
-	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
+	/* Configure the system clock frequency (Peripherals clock) to 48MHz */
 	Set_System_Clock_Frequency();
 
 	/* Delay of 1000 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
