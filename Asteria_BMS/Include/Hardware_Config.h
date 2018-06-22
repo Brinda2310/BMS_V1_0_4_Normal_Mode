@@ -138,7 +138,7 @@
 #define I2C3_SUBPRIOIRTY								0
 #endif
 
-#define I2C_100KHZ										0x9032262A
+#define I2C_100KHZ										0x640403//0x320403
 #define I2C_400KHZ										0x90310309
 #define I2C_1MHZ										0x40200204
 #define I2C_DATA_TIMEOUT								100

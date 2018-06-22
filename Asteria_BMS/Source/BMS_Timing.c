@@ -30,10 +30,10 @@ uint8_t Loop_Rate_Counter = 0, Loop_Rate_Log_Counter = 0;
 void BMS_Timers_Init()
 {
 	/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-	Timer_Init(TIMER_2,_40ms_PERIOD_2MHz_SYS_Clock);
+	Timer_Init(TIMER_2,_40ms_PERIOD_1MHz_SYS_Clock);
 
 	/* Timer value set to 1 second */
-	Timer_Init(TIMER_6,_1sec_PERIOD_2MHz_SYS_Clock);
+	Timer_Init(TIMER_6,_1sec_PERIOD_1MHz_SYS_Clock);
 }
 
 /**

@@ -109,7 +109,7 @@ int main(void)
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
 
-	/* Configure the system clock frequency (Peripherals clock) to 2MHz */
+	/* Configure the system clock frequency (Peripherals clock) to 1MHz */
 	Set_System_Clock_Frequency();
 
 	/* Delay of 1000 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
@@ -379,12 +379,12 @@ int main(void)
 
 			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-			BMS_Read_Cell_Voltages();
-			BMS_Read_Pack_Voltage();
-			BMS_Read_Pack_Current();
-			BMS_Read_Pack_Temperature();
-			BMS_Read_RAM_Status_Register();
-			BMS_Estimate_Capacity_Used();
+//			BMS_Read_Cell_Voltages();
+//			BMS_Read_Pack_Voltage();
+//			BMS_Read_Pack_Current();
+//			BMS_Read_Pack_Temperature();
+//			BMS_Read_RAM_Status_Register();
+//			BMS_Estimate_Capacity_Used();
 
 			/* If current consumption is less than 200mA and BMS IC is not in sleep mode then start
 			 * counting the timer value */
