@@ -16,6 +16,11 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
+/* Structure for GPIO */
+GPIO_InitTypeDef    GPIO_InitStruct;
+
+void Gpio_Confi(void);
+
 #define TEST_DEBUG_GPS_INFO									/* Character A*/
 #define TEST_DEBUG_START_TIME								/* Character B*/
 #define TEST_DEBUG_ALL_PACK_DATA							/* Character C*/
@@ -98,6 +103,9 @@ uint8_t Critical_Batt_V_Counter = 0;
 
 int main(void)
 {
+	/* loop rate counter value store buffer*/
+	uint8_t loop_buff[2] = {0};
+
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
 
@@ -107,6 +115,8 @@ int main(void)
 	/* Delay of 1000 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
 	Delay_Millis(1000);
+
+	Gpio_Confi();
 
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
@@ -225,6 +235,9 @@ int main(void)
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
+			/* LED 5 (PB5) Toggle every 40ms */
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_5);
+
 			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
 			 * set BMS_Configuration_OK flag to true */
 			if(BMS_Configuration_OK == false)
@@ -835,5 +848,39 @@ int main(void)
 			/* Make this flag false to get the updated status from AP */
 			Flight_Stat_Received = false;
 		}
+
+		/* flag true every 1 second time interval (timer_6 event) */
+		if(flag == true)
+		{
+			/*flag clear */
+			flag = false;
+
+			/* loop rate counter value store into another variable */
+			Loop_Rate_Log_Counter = Loop_Rate_Counter;
+
+			/* clear variable */
+			Loop_Rate_Counter = 0;
+
+			/* integer value convert into string format */
+			sprintf(loop_buff, "%d", Loop_Rate_Log_Counter);
+
+			/* loop count value print on uart */
+			BMS_Debug_COM_Write_Data(loop_buff,2);
+		}
 	}
+}
+
+void Gpio_Confi(void)
+{
+	/* Enable the clock for the GPIOB */
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	/* Configure IO in output push-pull mode to drive external LEDs */
+	GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull  = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
+	GPIO_InitStruct.Pin = GPIO_PIN_5;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_5,RESET);
 }

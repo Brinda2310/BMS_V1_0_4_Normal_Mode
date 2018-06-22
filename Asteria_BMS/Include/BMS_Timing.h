@@ -10,6 +10,33 @@
 
 #include <TIMER_API.h>
 
+extern bool flag;
+
+#define _40ms_PERIOD_48MHz_SYS_Clock			24
+#define _1sec_PERIOD_48MHz_SYS_Clock			600
+
+#define _40ms_PERIOD_40MHz_SYS_Clock			20
+#define _1sec_PERIOD_40MHz_SYS_Clock			500
+
+#define _40ms_PERIOD_30MHz_SYS_Clock			15
+#define _1sec_PERIOD_30MHz_SYS_Clock			375
+
+#define _40ms_PERIOD_20MHz_SYS_Clock			10
+#define _1sec_PERIOD_20MHz_SYS_Clock			250
+
+#define _40ms_PERIOD_10MHz_SYS_Clock			5
+#define _1sec_PERIOD_10MHz_SYS_Clock			125
+
+/* period equation change */
+#define _40ms_PERIOD_5MHz_SYS_Clock				25
+#define _1sec_PERIOD_5MHz_SYS_Clock				625
+
+#define _40ms_PERIOD_2MHz_SYS_Clock				10
+#define _1sec_PERIOD_2MHz_SYS_Clock				250
+
+#define _40ms_PERIOD_1MHz_SYS_Clock				5
+#define _1sec_PERIOD_1MHz_SYS_Clock				125
+
 #define _40ms_PERIOD 							40
 #define _1_SECONDS								(1000/_40ms_PERIOD)
 #define _2_SECONDS								(2*_1_SECONDS)

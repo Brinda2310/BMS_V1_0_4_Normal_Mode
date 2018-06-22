@@ -6,6 +6,9 @@
  */
 
 #include <BMS_Timing.h>
+#include <string.h>
+
+bool flag = false;
 
 /* Flags to monitor 25Hz and 1Hz loop; 25Hz flag will be true after every 40ms time period;
  * 1Hz flag will be true after every one second */
@@ -80,6 +83,11 @@ void TIM2_PeriodElapsedCallback()
  */
 void TIM6_PeriodElapsedCallback(void)
 {
-	Loop_Rate_Log_Counter = Loop_Rate_Counter;
-	Loop_Rate_Counter = 0;
+	flag = true;
+//	Loop_Rate_Log_Counter = Loop_Rate_Counter;
+//	Loop_Rate_Counter = 0;
+//
+//	sprintf(loop_buff, "%d", Loop_Rate_Log_Counter);
+//
+//	BMS_Debug_COM_Write_Data(loop_buff,2);
 }
