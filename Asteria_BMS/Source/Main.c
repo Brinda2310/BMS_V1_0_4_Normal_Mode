@@ -100,6 +100,7 @@ bool Log_Status = false,Log_Stopped = false;
 bool BMS_Configuration_OK = false;
 
 extern uint8_t BMS_Idle_Time_Count;
+extern uint8_t BMS_Doze_Time_Count;
 
 uint8_t Critical_Batt_V_Counter = 0;
 
@@ -871,12 +872,12 @@ int main(void)
 		}
 
 		/* after 20 second force to BMS IC to Idle mode */
-		if(BMS_Idle_Time_Count == 20)
+		if(BMS_Doze_Time_Count >= 20)
 		{
-//			BMS_Idle_Time_Count = 0;
+//			BMS_Doze_Time_Count = 0;
 
 			/* Set the corresponding flag in BMS IC to force it to Idle mode */
-		    BMS_Force_Idle();
+			BMS_Force_Doze();
 
 		    Delay_Millis(2);
 

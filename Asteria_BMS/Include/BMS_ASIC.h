@@ -192,6 +192,13 @@ enum BMS_Idle_Status
 	NON_IDLE_MODE = 0,IDLE_MODE
 };
 
+/* Enums to define whether BMS is in Doze mode or not */
+enum BMS_Doze_Status
+{
+	NON_DOZE_MODE = 0,DOZE_MODE
+};
+
+
 /* Enums to define different gain values that can be set in the BMS ASIC */
 enum Current_Gain_Values
 {
@@ -262,6 +269,7 @@ typedef struct
 	uint8_t I2C_Init_Flag:1;
 	uint8_t I2C_Read_Cells_Flag:1;
 	uint8_t I2C_Force_Idle:1;
+	uint8_t I2C_Force_Doze:1;
 	uint8_t I2C_Force_Sleep:1;
 	uint8_t I2C_Read_Status_Flag:1;
 	uint8_t I2C_Read_Pack_Volt_Flag:1;
@@ -343,6 +351,7 @@ uint8_t BMS_Configure_Parameters(void);
 /* Function prototypes defined in the BMS_ASIC.c file */
 void BMS_ASIC_Init();
 void BMS_Force_Idle();
+void BMS_Force_Doze();
 void BMS_Force_Sleep();
 void BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
@@ -365,6 +374,7 @@ uint8_t BMS_Check_Critical_Voltage();
 
 uint8_t Get_BMS_Charge_Discharge_Status(void);
 uint8_t Get_BMS_Idle_Mode_Status();
+uint8_t Get_BMS_Doze_Mode_Status();
 uint8_t Get_BMS_Sleep_Mode_Status();
 float Get_Cell1_Voltage(void);
 float Get_Cell2_Voltage(void);

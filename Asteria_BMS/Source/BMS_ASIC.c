@@ -24,6 +24,9 @@ uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 /* Data bytes to be sent over I2C to force BMS IC to Idle mode */
 uint8_t  ISL_IDLE_DATA[2] = {0x88, 0x01};
 
+/* Data bytes to be sent over I2C to force BMS IC to Doze mode */
+uint8_t  ISL_DOZE_DATA[2] = {0x88, 0x02};
+
 /* Variable to calculate the discharge rate of pack */
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
 uint32_t Current_Time = 0,Previous_Time = 0;
@@ -118,6 +121,15 @@ static void BMS_RAM_Access_Enable()
  */
 static void BMS_Set_Status_Flags(uint32_t Flags)
 {
+	if(Flags & IS_ISL_IN_DOZE)
+	{
+		Status_Flag.BMS_In_Doze = YES;
+	}
+	else
+	{
+		Status_Flag.BMS_In_Doze = NO;
+	}
+
 	if(Flags & IS_ISL_IN_IDLE)
 	{
 		Status_Flag.BMS_In_Idle = YES;
@@ -315,6 +327,25 @@ void BMS_Force_Idle()
 	else
 	{
 		I2C_Error_Flag.I2C_Force_Idle = 0;
+	}
+}
+
+/**
+ * @brief  Function to put BMS ASIC into the Doze mode
+ * @param  None
+ * @retval None
+ */
+void BMS_Force_Doze()
+{
+	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_DOZE_DATA,sizeof(ISL_DOZE_DATA)) == RESULT_OK)
+	{
+		I2C_Error_Flag.I2C_Force_Doze = 0;
+
+		BMS_Debug_COM_Write_Data("A",1);
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Force_Doze = 0;
 	}
 }
 
@@ -1425,6 +1456,17 @@ uint8_t Get_BMS_Sleep_Mode_Status()
 uint8_t Get_BMS_Idle_Mode_Status()
 {
 	return Status_Flag.BMS_In_Idle;
+}
+
+/**
+ * @brief  Function to return the Idle mode status of the BMS
+ * @param  None
+ * @retval YES 	: BMS is Doze mode
+ * 		   NO	: BMS is not in Doze mode
+ */
+uint8_t Get_BMS_Doze_Mode_Status()
+{
+	return Status_Flag.BMS_In_Doze;
 }
 
 /**

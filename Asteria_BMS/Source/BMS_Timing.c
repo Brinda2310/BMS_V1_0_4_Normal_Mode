@@ -18,6 +18,7 @@ bool _25Hz_Flag = false,_1Hz_Flag = false;
 static volatile int16_t Counter = 0;
 
 uint8_t BMS_Idle_Time_Count = 0;
+uint8_t BMS_Doze_Time_Count = 0;
 
 /* variables to log the loop rate on SD card; Loop_Rate_Counter will be incremented after every 40ms duration
  * in main.c file */
@@ -88,6 +89,8 @@ void TIM6_PeriodElapsedCallback(void)
 	flag = true;
 
 	BMS_Idle_Time_Count++;
+	BMS_Doze_Time_Count++;
+
 
 //	Loop_Rate_Log_Counter = Loop_Rate_Counter;
 //	Loop_Rate_Counter = 0;
