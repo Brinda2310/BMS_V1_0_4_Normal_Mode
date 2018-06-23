@@ -99,12 +99,6 @@ bool Log_Status = false,Log_Stopped = false;
 /* This flag becomes true when all the configuration parameters are written to the EEPROM of ISL ASIC */
 bool BMS_Configuration_OK = false;
 
-/* BMS Idle time count variable increment every 1 second time interval in timer 6 ISR.*/
-extern uint8_t BMS_Idle_Time_Count;
-
-/* BMS Idle time count variable increment every 1 second time interval in timer 6 ISR.*/
-extern uint8_t BMS_Doze_Time_Count;
-
 /* after 20 second force BMS IC to Doze mode. if BMS in Doze mode, BMS_Mode_Status flag true */
 bool BMS_Mode_status = false;
 

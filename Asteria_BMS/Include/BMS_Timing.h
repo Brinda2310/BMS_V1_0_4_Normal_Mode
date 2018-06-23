@@ -64,6 +64,12 @@ extern bool _25Hz_Flag,_1Hz_Flag;
 
 extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 
+/* BMS Idle time count variable increment every 1 second time interval in timer 6 ISR.*/
+extern uint8_t BMS_Idle_Time_Count;
+
+/* BMS Idle time count variable increment every 1 second time interval in timer 6 ISR.*/
+extern uint8_t BMS_Doze_Time_Count;
+
 /* Prototypes for the function defined in the BMS_Timing.c file */
 void BMS_Timers_Init();
 double Get_System_Time_Seconds();
