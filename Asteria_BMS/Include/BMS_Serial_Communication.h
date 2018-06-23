@@ -10,7 +10,7 @@
 
 #include <USART_API.h>
 
-#define SYSTEM_BUAD_RATE							9600//115200
+#define SYSTEM_BUAD_RATE							115200
 
 extern bool Debug_COM_Enable;
 

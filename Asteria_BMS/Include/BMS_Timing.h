@@ -44,6 +44,7 @@ extern bool flag;
 #define _4_SECONDS								(4*_1_SECONDS)
 #define _5_SECONDS								(5*_1_SECONDS)
 #define _10_SECONDS								(2* _5_SECONDS)
+#define _20_SECONDS								(2* _10_SECONDS)
 
 #define _500_MILLIS								(_1_SECONDS/2)
 #define LOW_CONSUMPTION_DELAY					(60*_1_SECONDS)

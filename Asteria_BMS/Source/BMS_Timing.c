@@ -17,6 +17,8 @@ bool _25Hz_Flag = false,_1Hz_Flag = false;
 /* Variable to count to number of 40ms duration to achieve other tumer delays */
 static volatile int16_t Counter = 0;
 
+uint8_t BMS_Idle_Time_Count = 0;
+
 /* variables to log the loop rate on SD card; Loop_Rate_Counter will be incremented after every 40ms duration
  * in main.c file */
 uint8_t Loop_Rate_Counter = 0, Loop_Rate_Log_Counter = 0;
@@ -30,10 +32,10 @@ uint8_t Loop_Rate_Counter = 0, Loop_Rate_Log_Counter = 0;
 void BMS_Timers_Init()
 {
 	/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-	Timer_Init(TIMER_2,_40ms_PERIOD_1MHz_SYS_Clock);
+	Timer_Init(TIMER_2,_40ms_PERIOD_20MHz_SYS_Clock);
 
 	/* Timer value set to 1 second */
-	Timer_Init(TIMER_6,_1sec_PERIOD_1MHz_SYS_Clock);
+	Timer_Init(TIMER_6,_1sec_PERIOD_20MHz_SYS_Clock);
 }
 
 /**
@@ -84,6 +86,9 @@ void TIM2_PeriodElapsedCallback()
 void TIM6_PeriodElapsedCallback(void)
 {
 	flag = true;
+
+	BMS_Idle_Time_Count++;
+
 //	Loop_Rate_Log_Counter = Loop_Rate_Counter;
 //	Loop_Rate_Counter = 0;
 //

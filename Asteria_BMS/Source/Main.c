@@ -99,6 +99,8 @@ bool Log_Status = false,Log_Stopped = false;
 /* This flag becomes true when all the configuration parameters are written to the EEPROM of ISL ASIC */
 bool BMS_Configuration_OK = false;
 
+extern uint8_t BMS_Idle_Time_Count;
+
 uint8_t Critical_Batt_V_Counter = 0;
 
 int main(void)
@@ -109,7 +111,7 @@ int main(void)
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
 
-	/* Configure the system clock frequency (Peripherals clock) to 1MHz */
+	/* Configure the system clock frequency (Peripherals clock) to 20MHz */
 	Set_System_Clock_Frequency();
 
 	/* Delay of 1000 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
@@ -379,12 +381,12 @@ int main(void)
 
 			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 			 * all status flags and calculate the battery capacity used */
-//			BMS_Read_Cell_Voltages();
-//			BMS_Read_Pack_Voltage();
-//			BMS_Read_Pack_Current();
-//			BMS_Read_Pack_Temperature();
-//			BMS_Read_RAM_Status_Register();
-//			BMS_Estimate_Capacity_Used();
+			BMS_Read_Cell_Voltages();
+			BMS_Read_Pack_Voltage();
+			BMS_Read_Pack_Current();
+			BMS_Read_Pack_Temperature();
+			BMS_Read_RAM_Status_Register();
+			BMS_Estimate_Capacity_Used();
 
 			/* If current consumption is less than 200mA and BMS IC is not in sleep mode then start
 			 * counting the timer value */
@@ -849,7 +851,7 @@ int main(void)
 			Flight_Stat_Received = false;
 		}
 
-		/* flag true every 1 second time interval (timer_6 event) */
+		/* flag true every 1 second time interval (timer_6 event). This flag is use for loop rate counting every 1 second time interval */
 		if(flag == true)
 		{
 			/*flag clear */
@@ -866,6 +868,19 @@ int main(void)
 
 			/* loop count value print on uart */
 			BMS_Debug_COM_Write_Data(loop_buff,2);
+		}
+
+		/* after 20 second force to BMS IC to Idle mode */
+		if(BMS_Idle_Time_Count == 20)
+		{
+//			BMS_Idle_Time_Count = 0;
+
+			/* Set the corresponding flag in BMS IC to force it to Idle mode */
+		    BMS_Force_Idle();
+
+		    Delay_Millis(2);
+
+		    BMS_Debug_COM_Write_Data("B",1);
 		}
 	}
 }
@@ -884,3 +899,4 @@ void Gpio_Confi(void)
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_5,RESET);
 }
+

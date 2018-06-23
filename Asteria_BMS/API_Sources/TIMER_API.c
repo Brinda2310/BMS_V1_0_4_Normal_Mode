@@ -87,7 +87,7 @@ uint8_t Timer_Init(uint8_t Timer_Num,uint32_t Period)
 
 	/* Configure the timer resolution value to 100uS. The same can be configured in Hardware_Config.h */
 	TimHandle.Init.Prescaler         = _100uS_PRESCALAR;
-	TimHandle.Init.Period            = (Period - 1);
+	TimHandle.Init.Period            = ((Period * 10) - 1);
 	TimHandle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
 	TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
 	TimHandle.Init.RepetitionCounter = 0;
