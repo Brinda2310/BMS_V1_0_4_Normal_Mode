@@ -105,7 +105,7 @@ extern uint8_t BMS_Idle_Time_Count;
 /* BMS Idle time count variable increment every 1 second time interval in timer 6 ISR.*/
 extern uint8_t BMS_Doze_Time_Count;
 
-/* after 20 second force BMS IC to Idle mode. if BMS in Idle mode, BMS_Mode_Status flag true */
+/* after 20 second force BMS IC to Doze mode. if BMS in Doze mode, BMS_Mode_Status flag true */
 bool BMS_Mode_status = false;
 
 uint8_t Critical_Batt_V_Counter = 0;
@@ -655,11 +655,12 @@ int main(void)
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
+			/* This flag true after 20 second */
 			if(BMS_Mode_status == true)
 			{
 				BMS_Mode_status = false;
 
-				BMS_Debug_COM_Write_Data("BMS in Idle Mode",16);
+				BMS_Debug_COM_Write_Data("BMS in Doze Mode",16);
 			}
 
 			/* Debug code to be removed after testing */
@@ -887,10 +888,10 @@ int main(void)
 		/* after 20 second force to BMS IC to Idle mode */
 		if(BMS_Idle_Time_Count >= 20)
 		{
-			/* Set the corresponding flag in BMS IC to force it to Idle mode */
-			BMS_Force_Idle();
+			/* Set the corresponding flag in BMS IC to force it to Doze mode */
+			BMS_Force_Doze();
 
-			if(I2C_Error_Flag.I2C_Force_Idle == 0)
+			if(I2C_Error_Flag.I2C_Force_Doze == 0)
 			{
 				BMS_Mode_status = true;
 			}

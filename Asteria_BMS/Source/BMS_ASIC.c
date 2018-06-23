@@ -338,8 +338,6 @@ void BMS_Force_Doze()
 	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_DOZE_DATA,sizeof(ISL_DOZE_DATA)) == RESULT_OK)
 	{
 		I2C_Error_Flag.I2C_Force_Doze = 0;
-
-		BMS_Debug_COM_Write_Data("A",1);
 	}
 	else
 	{
