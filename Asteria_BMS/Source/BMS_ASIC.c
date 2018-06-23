@@ -321,8 +321,6 @@ void BMS_Force_Idle()
 	if(I2C_WriteData(BMS_I2C,BMS_ADDRESS,ISL_IDLE_DATA,sizeof(ISL_IDLE_DATA)) == RESULT_OK)
 	{
 		I2C_Error_Flag.I2C_Force_Idle = 0;
-
-		BMS_Debug_COM_Write_Data("A",1);
 	}
 	else
 	{
