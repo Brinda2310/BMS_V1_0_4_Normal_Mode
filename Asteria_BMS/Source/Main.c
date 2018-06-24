@@ -19,6 +19,8 @@
 /* Structure for GPIO */
 GPIO_InitTypeDef    GPIO_InitStruct;
 
+extern __IO uint32_t uwTick;
+
 void Gpio_Confi(void);
 
 #define TEST_DEBUG_GPS_INFO									/* Character A*/
@@ -108,6 +110,9 @@ int main(void)
 {
 	/* loop rate counter value store buffer*/
 	uint8_t loop_buff[2] = {0};
+	uint8_t time_buff[16] = {0};
+
+	uint32_t l_old_time = 0, l_final_time = 0;
 
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
@@ -161,6 +166,8 @@ int main(void)
 		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
 	}
 
+	l_old_time = uwTick;
+
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
 	if(BMS_Configure_Parameters() != RESULT_OK)
 	{
@@ -170,6 +177,12 @@ int main(void)
 	{
 		BMS_Configuration_OK = true;
 	}
+
+	l_final_time = uwTick - l_old_time;
+
+	sprintf(time_buff,"total time = %d\n",l_final_time);
+
+	BMS_Debug_COM_Write_Data(time_buff,16);
 
 	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
 	 * the curves we will decide which gain is suitable for which current range(Amperes) */
