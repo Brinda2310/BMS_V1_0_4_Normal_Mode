@@ -880,16 +880,16 @@ int main(void)
 		}
 
 		/* after 20 second force to BMS IC to Idle mode */
-		if(BMS_Idle_Time_Count >= 20)
-		{
-			/* Set the corresponding flag in BMS IC to force it to Doze mode */
-			BMS_Force_Doze();
-
-			if(I2C_Error_Flag.I2C_Force_Doze == 0)
-			{
-				BMS_Mode_status = true;
-			}
-		}
+//		if(BMS_Idle_Time_Count >= 20)
+//		{
+//			/* Set the corresponding flag in BMS IC to force it to Doze mode */
+//			BMS_Force_Doze();
+//
+//			if(I2C_Error_Flag.I2C_Force_Doze == 0)
+//			{
+//				BMS_Mode_status = true;
+//			}
+//		}
 	}
 }
 
