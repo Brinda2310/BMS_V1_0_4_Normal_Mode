@@ -363,9 +363,6 @@ static void BMS_Set_Over_Voltage_Threshold(void)
 	Data_Value[(*Index)++] = OV_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OVER_VOLTAGE_THR_VALUE,Data_Value,Index);
 
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
-
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
 	BMS_User_EEPROM_Write(OV_THRESHOLD_ADDR,data_value,2);
@@ -409,7 +406,6 @@ static void BMS_Set_Over_Voltage_Recovery(void)
 	 * then OV flag is reseted and logged on SD card */
 	Data_Value[(*Index)++] = OV_RECOVERY_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OV_RECOVERY_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -454,7 +450,6 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 	 * is set and logged on SD card */
 	Data_Value[(*Index)++] = UV_THROSHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UNDER_VOLTAGE_THR_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -499,7 +494,6 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 	 * is reseted and logged on SD card */
 	Data_Value[(*Index)++] = UV_RECOVERY_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UV_RECOVERY_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -544,7 +538,6 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 	 * for more than 5 successive scans then OVLO flag is set and logged on SD card */
 	Data_Value[(*Index)++] = OV_LOCKOUT_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OV_LOCKOUT_THR_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -589,7 +582,6 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 	 * for more than 5 successive scans then UVLO flag is set and logged on SD card */
 	Data_Value[(*Index)++] = UV_LOCKOUT_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UV_LOCKOUT_THR_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -634,7 +626,6 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 	 * EOC flag is set and logged on SD card */
 	Data_Value[(*Index)++] = EOC_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_EOC_THR_VALUE,Data_Value,Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
 
 	data_value[0] = Data_Value[1];
 	data_value[1] = Data_Value[2];
@@ -664,7 +655,7 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 
 static void BMS_Set_OV_Delay_Timeout(void)
 {
-	uint8_t *Index = 0,Data_Value[3];
+	uint8_t *Index = 0,Data_Value[3],data_value[2];
 	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
 
@@ -676,7 +667,9 @@ static void BMS_Set_OV_Delay_Timeout(void)
 	Data_Value[(*Index)++] = OV_DELAY_TIMEOUT_VALUE;
 	Data_Value[(*Index)++] = OV_DELAY_TIMEOUT_RESOLUTION | ((OV_DELAY_TIMEOUT_VALUE >> 8) & 0x03);
 
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
+	data_value[0] = Data_Value[1];
+	data_value[1] = Data_Value[2];
+	BMS_User_EEPROM_Write(OV_DELAY_TIMEOUT_ADDR,data_value,2);
 
 	/* Delay required between read and write operations for ISL */
 	Delay_Millis(READ_WRITE_DELAY);
@@ -702,7 +695,7 @@ static void BMS_Set_OV_Delay_Timeout(void)
 
 static void BMS_Set_UV_Delay_Timeout(void)
 {
-	uint8_t *Index = 0,Data_Value[3];
+	uint8_t *Index = 0,Data_Value[3],data_value[2];
 	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
 
@@ -714,7 +707,9 @@ static void BMS_Set_UV_Delay_Timeout(void)
 	Data_Value[(*Index)++] = UV_DELAY_TIMEOUT_VALUE;
 	Data_Value[(*Index)++] = UV_DELAY_TIMEOUT_RESOLUTION | ((UV_DELAY_TIMEOUT_VALUE >> 8) & 0x03);
 
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
+	data_value[0] = Data_Value[1];
+	data_value[1] = Data_Value[2];
+	BMS_User_EEPROM_Write(UV_DELAY_TIMEOUT_ADDR,data_value,2);
 
 	/* Delay required between read and write operations for ISL */
 	Delay_Millis(READ_WRITE_DELAY);
@@ -740,7 +735,7 @@ static void BMS_Set_UV_Delay_Timeout(void)
 
 static void BMS_Set_Open_Wiring_Timeout(void)
 {
-	uint8_t *Index = 0,Data_Value[3];
+	uint8_t *Index = 0,Data_Value[3],data_value[2];
 	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
 
@@ -752,7 +747,9 @@ static void BMS_Set_Open_Wiring_Timeout(void)
 	Data_Value[(*Index)++] = OPEN_WIRING_TIMEOUT_VALUE;
 	Data_Value[(*Index)++] = OPEN_WIRING_TIMEOUT_RESOLUTION | ((UV_DELAY_TIMEOUT_VALUE >> 8) & 0x01);
 
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,Data_Value, *Index);
+	data_value[0] = Data_Value[1];
+	data_value[1] = Data_Value[2];
+	BMS_User_EEPROM_Write(OPEN_WIRING_TIMEOUT_ADDR,data_value,2);
 
 	/* Delay required between read and write operations for ISL */
 	Delay_Millis(READ_WRITE_DELAY);
@@ -783,7 +780,7 @@ static void BMS_Set_Open_Wiring_Timeout(void)
  */
 static void BMS_Set_Internal_OT_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3];
+	uint8_t *Index = 0,Data_Value[3],data_value[2];
 	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
 
@@ -793,7 +790,10 @@ static void BMS_Set_Internal_OT_Threshold(void)
 	 * above this value then IOT flag is set and logged on SD card */
 	Data_Value[(*Index)++] = INTERNAL_OT_THRESHOLD_ADDR;
 	Convert_Degrees_Voltage_to_Hex(INTERNAL_OVER_TEMP_THR_VALUE, Data_Value, Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, *Index);
+
+	data_value[0] = Data_Value[1];
+	data_value[1] = Data_Value[2];
+	BMS_User_EEPROM_Write(INTERNAL_OT_THRESHOLD_ADDR,data_value,2);
 
 	/* Delay required between read and write operations for ISL */
 	Delay_Millis(READ_WRITE_DELAY);
@@ -824,7 +824,7 @@ static void BMS_Set_Internal_OT_Threshold(void)
  */
 static void BMS_Set_Internal_OT_Recovery(void)
 {
-	uint8_t *Index = 0,Data_Value[3];
+	uint8_t *Index = 0,Data_Value[3],data_value[2];
 	uint8_t Memory_Assign = 0;
 	uint16_t Pack_Data = 0;
 
@@ -834,7 +834,10 @@ static void BMS_Set_Internal_OT_Recovery(void)
 	 * above this value then IOT flag is set and logged on SD card */
 	Data_Value[(*Index)++] = INTERNAL_OT_RECOVERY_ADDR;
 	Convert_Degrees_Voltage_to_Hex(INTERNAL_OT_RECOVERY_VALUE, Data_Value, Index);
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, *Index);
+
+	data_value[0] = Data_Value[1];
+	data_value[1] = Data_Value[2];
+	BMS_User_EEPROM_Write(INTERNAL_OT_RECOVERY_ADDR,data_value,2);
 
 	/* Delay required between read and write operations for ISL */
 	Delay_Millis(READ_WRITE_DELAY);
@@ -867,14 +870,16 @@ static void BMS_Set_Internal_OT_Recovery(void)
  */
 static void BMS_Disable_Cell_Balancing(void)
 {
-	uint8_t Data_Value[3],Index = 0;
+	uint8_t Data_Value[3],Index = 0,data_value = 0;
 	uint16_t Pack_Data = 0;
 
 	/* Write the value to the register to disable the cell balancing; BMS ASIC does the cell balancing */
 	Data_Value[Index++] = DISABLE_CELL_BALANCE_ADDR;
 	Data_Value[Index++] = 0x00;
 
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
+	data_value = Data_Value[1];
+
+	BMS_User_EEPROM_Write(DISABLE_CELL_BALANCE_ADDR,&data_value,1);
 
 	uint8_t Address = DISABLE_CELL_BALANCE_ADDR;
 
@@ -904,7 +909,7 @@ static void BMS_Disable_Cell_Balancing(void)
  */
 static uint8_t BMS_Config_Number_of_Cells(uint8_t Num_of_Cells,uint8_t Operation)
 {
-	uint8_t Data_Value[3],Index = 0;
+	uint8_t Data_Value[3],Index = 0,data_value[2];
 	uint16_t Cell_Info = 0;
 
 	/* Write the value to the register to disable the cell balancing; BMS ASIC does the cell balancing */
@@ -925,7 +930,9 @@ static uint8_t BMS_Config_Number_of_Cells(uint8_t Num_of_Cells,uint8_t Operation
 	}
 	if (Operation == WRITE_REGISTER)
 	{
-		I2C_WriteData(BMS_I2C, BMS_ADDRESS, Data_Value, Index);
+		data_value[0] = Data_Value[1];
+		data_value[1] = Data_Value[2];
+		BMS_User_EEPROM_Write(NUMBER_OF_CELLS_ADDR,data_value,2);
 	}
 
 	uint8_t Address = NUMBER_OF_CELLS_ADDR;
