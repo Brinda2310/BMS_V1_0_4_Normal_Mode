@@ -9,6 +9,9 @@
 #include <string.h>
 
 bool flag = false;
+uint8_t count = 0;
+/* after 20 second force BMS IC to Doze mode. if BMS in Doze mode, BMS_Mode_Status flag true */
+bool BMS_Mode_status = false;
 
 /* Flags to monitor 25Hz and 1Hz loop; 25Hz flag will be true after every 40ms time period;
  * 1Hz flag will be true after every one second */
@@ -91,11 +94,14 @@ void TIM6_PeriodElapsedCallback(void)
 	BMS_Idle_Time_Count++;
 	BMS_Doze_Time_Count++;
 
+	/* after 20 second force to BMS IC to Idle mode */
+	if(BMS_Idle_Time_Count >= 20)
+	{
+		count++;
 
-//	Loop_Rate_Log_Counter = Loop_Rate_Counter;
-//	Loop_Rate_Counter = 0;
-//
-//	sprintf(loop_buff, "%d", Loop_Rate_Log_Counter);
-//
-//	BMS_Debug_COM_Write_Data(loop_buff,2);
+		if(count == 1)
+		{
+			BMS_Mode_status = true;
+		}
+	}
 }

@@ -19,6 +19,7 @@
 /* Structure for GPIO */
 GPIO_InitTypeDef    GPIO_InitStruct;
 
+/* this variable increment every 1 ms time interval. Here this is use for BMS configuration time counting */
 extern __IO uint32_t uwTick;
 
 void Gpio_Confi(void);
@@ -100,9 +101,6 @@ bool Log_Status = false,Log_Stopped = false;
 
 /* This flag becomes true when all the configuration parameters are written to the EEPROM of ISL ASIC */
 bool BMS_Configuration_OK = false;
-
-/* after 20 second force BMS IC to Doze mode. if BMS in Doze mode, BMS_Mode_Status flag true */
-bool BMS_Mode_status = false;
 
 uint8_t Critical_Batt_V_Counter = 0;
 
@@ -667,7 +665,13 @@ int main(void)
 			{
 				BMS_Mode_status = false;
 
-				BMS_Debug_COM_Write_Data("BMS in Doze Mode",16);
+				/* Set the corresponding flag in BMS IC to force it to Doze mode */
+				BMS_Force_Idle();
+
+				if(I2C_Error_Flag.I2C_Force_Idle == 0)
+				{
+					BMS_Debug_COM_Write_Data("BMS in Idle Mode",16);
+				}
 			}
 
 			/* Debug code to be removed after testing */
@@ -891,18 +895,6 @@ int main(void)
 			/* loop count value print on uart */
 			BMS_Debug_COM_Write_Data(loop_buff,2);
 		}
-
-		/* after 20 second force to BMS IC to Idle mode */
-//		if(BMS_Idle_Time_Count >= 20)
-//		{
-//			/* Set the corresponding flag in BMS IC to force it to Doze mode */
-//			BMS_Force_Doze();
-//
-//			if(I2C_Error_Flag.I2C_Force_Doze == 0)
-//			{
-//				BMS_Mode_status = true;
-//			}
-//		}
 	}
 }
 
