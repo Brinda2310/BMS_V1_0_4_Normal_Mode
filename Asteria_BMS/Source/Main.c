@@ -666,11 +666,11 @@ int main(void)
 				BMS_Mode_status = false;
 
 				/* Set the corresponding flag in BMS IC to force it to Doze mode */
-				BMS_Force_Idle();
+				BMS_Force_Doze();
 
-				if(I2C_Error_Flag.I2C_Force_Idle == 0)
+				if(I2C_Error_Flag.I2C_Force_Doze == 0)
 				{
-					BMS_Debug_COM_Write_Data("BMS in Idle Mode",16);
+					BMS_Debug_COM_Write_Data("BMS in Doze Mode",16);
 				}
 			}
 

@@ -95,7 +95,7 @@ void TIM6_PeriodElapsedCallback(void)
 	BMS_Doze_Time_Count++;
 
 	/* after 20 second force to BMS IC to Idle mode */
-	if(BMS_Idle_Time_Count >= 20)
+	if(BMS_Doze_Time_Count >= 20)
 	{
 		count++;
 
