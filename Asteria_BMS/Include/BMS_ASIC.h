@@ -135,9 +135,9 @@
 
 
 /* Battery Configuration Parameters to be stored in ISL EEPROM */
-#define CELL_OVER_VOLTAGE_THR_VALUE					2.25f			// In Volt
-#define CELL_OV_RECOVERY_VALUE						3.15f			// In Volt
-#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50f			// In Volt
+#define CELL_OVER_VOLTAGE_THR_VALUE					3.13f			// In Volt
+#define CELL_OV_RECOVERY_VALUE						2.23f			// In Volt
+#define CELL_UNDER_VOLTAGE_THR_VALUE				1.50f			// In Volt
 #define CELL_UV_RECOVERY_VALUE						3.60f			// In Volt
 #define CELL_OV_LOCKOUT_THR_VALUE					4.30f			// In Volt
 #define CELL_UV_LOCKOUT_THR_VALUE					2.50f			// In Volt

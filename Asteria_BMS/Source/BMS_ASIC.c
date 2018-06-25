@@ -8,6 +8,14 @@
 #include <BMS_ASIC.h>
 #include <BMS_Timing.h>
 
+uint8_t ov_data_value[2] = {0};
+uint8_t ovr_data_value[2] = {0};
+uint8_t uv_data_value[2] = {0};
+uint8_t uvr_data_value[2] = {0};
+uint8_t ovlo_data_value[2] = {0};
+uint8_t uvlo_data_value[2] = {0};
+uint8_t eoc_data_value[2] = {0};
+
 /* Battery Parameters */
 const uint8_t Battery_ID[] = "AA/BATT/001";
 const uint8_t BMS_Board_Serial_Number[] = "AA___";
@@ -243,8 +251,6 @@ static void Convert_Degrees_Voltage_to_Hex(float Temperature_Degrees,uint8_t* Da
 uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t Data_Size)
 {
 	uint8_t Result;
-	/* Before writing to EEPROM it's access needs to be enabled */
-	BMS_EEPROM_Access_Enable();
 
 	/* Make sure that data size is of 4 bytes only as BMS IC does not allow more than 4 bytes to write to
 	 * it's user EEPROM */
@@ -265,8 +271,6 @@ uint8_t BMS_User_EEPROM_Write(uint8_t Memory_Address,uint8_t *Data_Ptr,uint8_t D
 		}
 		Result = WRITE_OK;
 	}
-	/* Enable back the access to RAM as query data is always received from RAM locations */
-	BMS_RAM_Access_Enable();
 
 	return Result;
 }
@@ -345,6 +349,152 @@ void BMS_Force_Doze()
 	}
 }
 
+void BMS_RAM_Data_Read()
+{
+	uint8_t Address = 0;
+	uint16_t Pack_Data = 0;
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	Address = OV_THRESHOLD_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again  */
+	uint16_t * OV_Temp_Data = (uint16_t*)&ov_data_value[0];
+	if(Pack_Data == *OV_Temp_Data)
+	{
+		I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("OV\r",3);
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("OV_FAIL\r",8);
+	}
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	Address= OV_RECOVERY_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	uint16_t * OVR_Temp_Data = (uint16_t*)&ovr_data_value[0];
+	if(Pack_Data == *OVR_Temp_Data)
+	{
+		I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = 0;
+		BMS_Debug_COM_Write_Data("OVR\r",4);
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = 1;
+		BMS_Debug_COM_Write_Data("OVR_FAIL\r",9);
+	}
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	Address = UV_THROSHOLD_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	uint16_t * UV_Temp_Data = (uint16_t*)&uv_data_value[0];
+	if(Pack_Data == *UV_Temp_Data)
+	{
+		I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("UV\r",3);
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("UV_FAIL\r",8);
+	}
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	Address = UV_RECOVERY_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	uint16_t * UVR_Temp_Data = (uint16_t*)&uvr_data_value[0];
+	if(Pack_Data == *UVR_Temp_Data)
+	{
+		I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = 0;
+		BMS_Debug_COM_Write_Data("OVR\r",4);
+	}
+	else
+	{
+		I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = 1;
+		BMS_Debug_COM_Write_Data("UVR_FAIL\r",9);
+	}
+
+	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	Address = OV_LOCKOUT_THRESHOLD_ADDR;
+
+	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	/* If written value in BMS ASIC register and values read from the same register are same
+	 * then configuration settings are OK other wise code should write the values to the register again */
+	 uint16_t * OVLO_Temp_Data = (uint16_t*)&ovlo_data_value[0];
+	 if(Pack_Data == *OVLO_Temp_Data)
+	 {
+	 	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = 0;
+	 	BMS_Debug_COM_Write_Data("OVLO\r",5);
+	 }
+	 else
+	 {
+	  	I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = 1;
+	  	BMS_Debug_COM_Write_Data("OVLO_FAIL\r",10);
+	 }
+
+	 /* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	 Address = UV_LOCKOUT_THRESHOLD_ADDR;
+
+	 I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	 I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	 /* If written value in BMS ASIC register and values read from the same register are same
+	  * then configuration settings are OK other wise code should write the values to the register again */
+	 uint16_t * UVLO_Temp_Data = (uint16_t*)&uvlo_data_value[0];
+	 if(Pack_Data == *UVLO_Temp_Data)
+	 {
+	 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = 0;
+	 	BMS_Debug_COM_Write_Data("UVLO\r",5);
+	 }
+	 else
+	 {
+	 	I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = 1;
+	 	BMS_Debug_COM_Write_Data("UVLO_FAIL\r",10);
+	 }
+
+	 /* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
+	 Address = EOC_THRESHOLD_ADDR;
+
+	 I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
+	 I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
+
+	 /* If written value in BMS ASIC register and values read from the same register are same
+	  * then configuration settings are OK other wise code should write the values to the register again */
+	 uint16_t * EOC_Temp_Data = (uint16_t*)&eoc_data_value[0];
+	 if(Pack_Data == *EOC_Temp_Data)
+	 {
+	 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = 0;
+	 	BMS_Debug_COM_Write_Data("EOC\r",4);
+	 }
+	 else
+	 {
+	 	I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = 1;
+	 	BMS_Debug_COM_Write_Data("EOC_FAIL\r",9);
+	 }
+}
+
 /**
  * @brief  Function to set the over voltage threshold value into BMS ASIC (configuration parameter)
  * @param  None
@@ -352,9 +502,8 @@ void BMS_Force_Doze()
  */
 static void BMS_Set_Over_Voltage_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -363,29 +512,17 @@ static void BMS_Set_Over_Voltage_Threshold(void)
 	Data_Value[(*Index)++] = OV_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OVER_VOLTAGE_THR_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(OV_THRESHOLD_ADDR,data_value,2);
+	ov_data_value[0] = Data_Value[1];
+	ov_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = OV_THRESHOLD_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C,BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again  */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(OV_THRESHOLD_ADDR,ov_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("OV_Write_Not_OK\r",16);
 	}
+
 	else
 	{
-		I2C_Error_Flag.I2C_Set_OV_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("OV_Write_OK\r",12);
 	}
 }
 
@@ -396,9 +533,8 @@ static void BMS_Set_Over_Voltage_Threshold(void)
  */
 static void BMS_Set_Over_Voltage_Recovery(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -407,29 +543,17 @@ static void BMS_Set_Over_Voltage_Recovery(void)
 	Data_Value[(*Index)++] = OV_RECOVERY_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OV_RECOVERY_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(OV_RECOVERY_ADDR,data_value,2);
+	ovr_data_value[0] = Data_Value[1];
+	ovr_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = OV_RECOVERY_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(OV_RECOVERY_ADDR,ovr_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = 0;
+		BMS_Debug_COM_Write_Data("OVR_Write_Not_OK\r",17);
 	}
+
 	else
 	{
-		I2C_Error_Flag.I2C_Set_OV_Recovery_Flag = 1;
+		BMS_Debug_COM_Write_Data("OVR_Write_OK\r",13);
 	}
 }
 
@@ -440,9 +564,8 @@ static void BMS_Set_Over_Voltage_Recovery(void)
  */
 static void BMS_Set_Under_Voltage_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -451,29 +574,17 @@ static void BMS_Set_Under_Voltage_Threshold(void)
 	Data_Value[(*Index)++] = UV_THROSHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UNDER_VOLTAGE_THR_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(UV_THROSHOLD_ADDR,data_value,2);
+	uv_data_value[0] = Data_Value[1];
+	uv_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = UV_THROSHOLD_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(UV_THROSHOLD_ADDR,uv_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("UV_Write_Not_OK\r",16);
 	}
+
 	else
 	{
-		I2C_Error_Flag.I2C_Set_UV_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("UV_Write_OK\r",12);
 	}
 }
 
@@ -484,9 +595,8 @@ static void BMS_Set_Under_Voltage_Threshold(void)
  */
 static void BMS_Set_Under_Voltage_Recovery(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -495,29 +605,17 @@ static void BMS_Set_Under_Voltage_Recovery(void)
 	Data_Value[(*Index)++] = UV_RECOVERY_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UV_RECOVERY_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(UV_RECOVERY_ADDR,data_value,2);
+	uvr_data_value[0] = Data_Value[1];
+	uvr_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = UV_RECOVERY_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(UV_RECOVERY_ADDR,uvr_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = 0;
+		BMS_Debug_COM_Write_Data("UVR_Write_Not_OK\r",17);
 	}
+
 	else
 	{
-		I2C_Error_Flag.I2C_Set_UV_Recovery_Flag = 1;
+		BMS_Debug_COM_Write_Data("UVR_Write_OK\r",13);
 	}
 }
 
@@ -528,9 +626,8 @@ static void BMS_Set_Under_Voltage_Recovery(void)
  */
 static void BMS_Set_OV_LockOut_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -539,29 +636,17 @@ static void BMS_Set_OV_LockOut_Threshold(void)
 	Data_Value[(*Index)++] = OV_LOCKOUT_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_OV_LOCKOUT_THR_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(OV_LOCKOUT_THRESHOLD_ADDR,data_value,2);
+	ovlo_data_value[0] = Data_Value[1];
+	ovlo_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = OV_LOCKOUT_THRESHOLD_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(OV_LOCKOUT_THRESHOLD_ADDR,ovlo_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("OVLO_Write_Not_OK\r",18);
 	}
+
 	else
 	{
-		I2C_Error_Flag.I2C_Set_OV_Lockout_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("OVLO_Write_OK\r",14);
 	}
 }
 
@@ -572,9 +657,8 @@ static void BMS_Set_OV_LockOut_Threshold(void)
  */
 static void BMS_Set_UV_LockOut_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -583,29 +667,16 @@ static void BMS_Set_UV_LockOut_Threshold(void)
 	Data_Value[(*Index)++] = UV_LOCKOUT_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_UV_LOCKOUT_THR_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(UV_LOCKOUT_THRESHOLD_ADDR,data_value,2);
+	uvlo_data_value[0] = Data_Value[1];
+	uvlo_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = UV_LOCKOUT_THRESHOLD_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(UV_LOCKOUT_THRESHOLD_ADDR,uvlo_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("UVLO_Write_Not_OK\r",18);
 	}
 	else
 	{
-		I2C_Error_Flag.I2C_Set_UV_Lockout_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("UVLO_Write_OK\r",14);
 	}
 }
 
@@ -616,9 +687,8 @@ static void BMS_Set_UV_LockOut_Threshold(void)
  */
 static void BMS_Set_End_of_Charge_Threshold(void)
 {
-	uint8_t *Index = 0,Data_Value[3],data_value[2];
+	uint8_t *Index = 0,Data_Value[3];
 	uint8_t Memory_Assign = 0;
-	uint16_t Pack_Data = 0;
 
 	Index = &Memory_Assign;
 
@@ -627,29 +697,16 @@ static void BMS_Set_End_of_Charge_Threshold(void)
 	Data_Value[(*Index)++] = EOC_THRESHOLD_ADDR;
 	Convert_Float_Voltage_to_Hex(CELL_EOC_THR_VALUE,Data_Value,Index);
 
-	data_value[0] = Data_Value[1];
-	data_value[1] = Data_Value[2];
-	BMS_User_EEPROM_Write(EOC_THRESHOLD_ADDR,data_value,2);
+	eoc_data_value[0] = Data_Value[1];
+	eoc_data_value[1] = Data_Value[2];
 
-	/* Delay required between read and write operations for ISL */
-	Delay_Millis(READ_WRITE_DELAY);
-
-	/* Re-confirm whether threshold value is written to the register properly or not by reading the same register */
-	uint8_t Address = EOC_THRESHOLD_ADDR;
-
-	I2C_WriteData(BMS_I2C, BMS_ADDRESS,&Address, 1);
-	I2C_ReadData(BMS_I2C, BMS_ADDRESS | 0x01, (uint8_t*) &Pack_Data, 2);
-
-	/* If written value in BMS ASIC register and values read from the same register are same
-	 * then configuration settings are OK other wise code should write the values to the register again */
-	uint16_t * Temp_Data = (uint16_t*)&Data_Value[1];
-	if(Pack_Data == *Temp_Data)
+	if(BMS_User_EEPROM_Write(EOC_THRESHOLD_ADDR,eoc_data_value,2) != RESULT_OK)
 	{
-		I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = 0;
+		BMS_Debug_COM_Write_Data("EOC_Write_Not_OK\r",17);
 	}
 	else
 	{
-		I2C_Error_Flag.I2C_Set_EOC_Thresh_Flag = 1;
+		BMS_Debug_COM_Write_Data("EOC_Write_OK\r",13);
 	}
 }
 
@@ -968,6 +1025,8 @@ static uint8_t BMS_Config_Number_of_Cells(uint8_t Num_of_Cells,uint8_t Operation
  */
 uint8_t BMS_Configure_Parameters(void)
 {
+	BMS_EEPROM_Access_Enable();
+
 	BMS_Set_Over_Voltage_Threshold();
 	BMS_Set_Over_Voltage_Recovery();
 	BMS_Set_Under_Voltage_Threshold();
@@ -975,25 +1034,29 @@ uint8_t BMS_Configure_Parameters(void)
 	BMS_Set_OV_LockOut_Threshold();
 	BMS_Set_UV_LockOut_Threshold();
 	BMS_Set_End_of_Charge_Threshold();
-	BMS_Set_OV_Delay_Timeout();
-	BMS_Set_UV_Delay_Timeout();
-	BMS_Set_Open_Wiring_Timeout();
-	BMS_Set_Internal_OT_Threshold();
-	BMS_Disable_Cell_Balancing();
-	BMS_Set_Internal_OT_Recovery();
-	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,WRITE_REGISTER);
+//	BMS_Set_OV_Delay_Timeout();
+//	BMS_Set_UV_Delay_Timeout();
+//	BMS_Set_Open_Wiring_Timeout();
+//	BMS_Set_Internal_OT_Threshold();
+//	BMS_Disable_Cell_Balancing();
+//	BMS_Set_Internal_OT_Recovery();
+//	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,WRITE_REGISTER);
 
-	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
-	if(*Temp_Data == 0x00)
-	{
-		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",35);
-		return RESULT_OK;
-	}
-	else
-	{
-		BMS_Debug_COM_Write_Data("BMS Configuration Setting Failed...!!!\r",40);
-		return RESULT_ERROR;
-	}
+	BMS_RAM_Access_Enable();
+
+	BMS_RAM_Data_Read();
+
+//	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
+//	if(*Temp_Data == 0x00)
+//	{
+//		BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",35);
+//		return RESULT_OK;
+//	}
+//	else
+//	{
+//		BMS_Debug_COM_Write_Data("BMS Configuration Setting Failed...!!!\r",40);
+//		return RESULT_ERROR;
+//	}
 }
 
 /**

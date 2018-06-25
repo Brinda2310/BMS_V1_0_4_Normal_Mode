@@ -660,19 +660,19 @@ int main(void)
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
-			/* This flag true after 20 second */
-			if(BMS_Mode_status == true)
-			{
-				BMS_Mode_status = false;
-
-				/* Set the corresponding flag in BMS IC to force it to Doze mode */
-				BMS_Force_Doze();
-
-				if(I2C_Error_Flag.I2C_Force_Doze == 0)
-				{
-					BMS_Debug_COM_Write_Data("BMS in Doze Mode",16);
-				}
-			}
+//			/* This flag true after 20 second */
+//			if(BMS_Mode_status == true)
+//			{
+//				BMS_Mode_status = false;
+//
+//				/* Set the corresponding flag in BMS IC to force it to Doze mode */
+//				BMS_Force_Doze();
+//
+//				if(I2C_Error_Flag.I2C_Force_Doze == 0)
+//				{
+//					BMS_Debug_COM_Write_Data("BMS in Doze Mode",16);
+//				}
+//			}
 
 			/* Debug code to be removed after testing */
 			switch(RecData)
